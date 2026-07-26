@@ -1,467 +1,185 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>놀구로오는길</title>
-<!-- Pretendard 폰트 -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@1.3.9/dist/web/static/pretendard.css">
-<!-- Leaflet CSS -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-<!-- Leaflet Routing Machine CSS -->
-<link rel="stylesheet" href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css" />
-
-<style>
-  :root{
-    --sky-100:#EAF7FC;
-    --sky-300:#BFE9F7;
-    --sky-500:#5BB8DB;
-    --sky-700:#2E7A99;
-    --white:#FFFFFF;
-    --map-bg:#F7F9FA;
-    --road:#E2E8ED;
-    --ink:#26313D;
-    --muted:#6B7785;
-    --danger:#E53E3E;
-    --danger-bg:#FDECEA;
-    --angel:#F4B942;
-    --angel-bg:#FFF6E1;
-    --discover:#B5714A;
-    --discover-bg:#F4E9E2;
-    --yellow:#FFC93C;
-    --yellow-bg:#FFF6DA;
-    --shadow:0 8px 20px rgba(91,184,219,0.16);
-    --r-btn:16px;
-    --r-card:20px;
-  }
-  *{box-sizing:border-box;}
-  body{
-    margin:0;
-    background:#DCEEF5;
-    display:flex;
-    justify-content:center;
-    padding:40px 12px;
-    font-family:'Pretendard', sans-serif;
-    color:var(--ink);
-    -webkit-font-smoothing:antialiased;
-  }
-  .phone{
-    width:390px;
-    max-width:100%;
-    height:800px;
-    background:var(--sky-100);
-    border-radius:44px;
-    box-shadow:0 30px 60px rgba(0,0,0,0.22);
-    overflow:hidden;
-    position:relative;
-    border:8px solid #FFFFFF;
-    display:flex;
-    flex-direction:column;
-  }
-  .status{
-    display:flex;justify-content:space-between;
-    padding:14px 26px 4px;
-    font-size:13px;font-weight:700;
-    color:var(--sky-700);
-    flex-shrink:0;
-  }
-  .brand-row{
-    padding:2px 22px 14px;
-    flex-shrink:0;
-    text-align:center;
-  }
-  .brand-title{
-    display:inline-block;
-    font-size:48px;
-    font-weight:800;
-    letter-spacing:-1px;
-    color:#F2B705;
-    transform:skewX(-9deg);
-    transform-origin:center bottom;
-    max-width:100%;
-    line-height:1;
-  }
-  .header{
-    padding:6px 22px 14px;
-    display:flex;align-items:center;gap:10px;
-    flex-shrink:0;
-  }
-  .mascot-badge{
-    width:40px;height:40px;flex-shrink:0;border-radius:14px;
-    background:var(--white);box-shadow:var(--shadow);
-    display:flex;align-items:center;justify-content:center;
-  }
-  .mascot-badge svg{width:22px;height:22px;color:var(--angel);}
-  .title{font-size:18px;font-weight:800;color:var(--sky-700);line-height:1.15;}
-  .subtitle{font-size:11.5px;color:var(--muted);margin-top:1px;}
-
-  .screens{flex:1;overflow-y:auto;padding:0 18px 18px;}
-  .screen{display:none;}
-  .screen.active{display:block;animation:fade .25s ease;}
-  @keyframes fade{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
-
-  .icon{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;display:block;}
-
-  /* 카드 공통 */
-  .card{background:var(--white);border-radius:var(--r-card);padding:14px 14px 12px;box-shadow:var(--shadow);}
-  .card .icon-circle{
-    width:36px;height:36px;border-radius:12px;
-    background:var(--sky-100);color:var(--sky-700);
-    display:flex;align-items:center;justify-content:center;
-    margin-bottom:7px;
-  }
-  .card .icon-circle.yellow{background:var(--yellow-bg);color:#B8860B;}
-  .card .icon-circle.red{background:var(--danger-bg);color:var(--danger);}
-  .card h4{font-size:13px;font-weight:800;margin:0 0 4px;color:var(--ink);}
-  .card p{font-size:11px;margin:0;color:var(--muted);line-height:1.4;}
-  .card .stat{font-size:19px;font-weight:800;color:var(--sky-700);}
-  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-  .section-label{font-size:13px;font-weight:800;color:var(--sky-700);margin:14px 2px 8px;display:flex;align-items:center;gap:6px;}
-  .section-label:first-child{margin-top:2px;}
-  .section-label .icon{width:16px;height:16px;}
-
-  /* -------- 홈 -------- */
-  .hero-card{
-    background:linear-gradient(135deg,var(--sky-300),var(--sky-500));
-    border-radius:26px;padding:18px;color:white;box-shadow:var(--shadow);margin-bottom:14px;
-  }
-  .hero-card .status-pill{
-    display:inline-flex;align-items:center;gap:6px;
-    background:rgba(255,255,255,0.28);font-size:11px;font-weight:700;
-    padding:5px 12px;border-radius:999px;margin-bottom:10px;
-  }
-  .hero-card .status-pill .dotlive{width:7px;height:7px;border-radius:50%;background:#3CDB7A;display:inline-block;}
-  .hero-card h3{font-size:17px;font-weight:800;margin:0 0 4px;}
-  .hero-card p{font-size:11.5px;margin:0;opacity:0.95;}
-  .btnrow{display:flex;gap:8px;margin-top:16px;}
-  .btn{
-    flex:1;border:none;border-radius:999px;padding:13px 0;font-weight:800;font-size:13px;
-    cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;
-  }
-  .btn .icon{width:16px;height:16px;}
-  .btn.primary{background:var(--sky-700);color:white;box-shadow:0 10px 18px rgba(46,122,153,0.35);}
-  .btn.on-hero{background:white;color:var(--sky-700);}
-  .btn.on-hero.outline{background:rgba(255,255,255,0.2);color:white;border:2px solid rgba(255,255,255,0.65);}
-
-  .quicklink{
-    background:var(--white);border-radius:var(--r-card);padding:12px 14px;box-shadow:var(--shadow);
-    display:flex;align-items:center;gap:12px;margin-bottom:10px;cursor:pointer;border:none;width:100%;text-align:left;
-  }
-  .quicklink .qicon{
-    width:42px;height:42px;border-radius:14px;background:var(--sky-100);color:var(--sky-700);
-    display:flex;align-items:center;justify-content:center;flex-shrink:0;
-  }
-  .quicklink.angel .qicon{background:var(--angel-bg);color:var(--angel);}
-  .quicklink.discover .qicon{background:var(--discover-bg);color:var(--discover);}
-  .quicklink h5{font-size:13px;font-weight:800;margin:0 0 2px;color:var(--ink);}
-  .quicklink p{font-size:11px;margin:0;color:var(--muted);}
-  .quicklink .arrow{margin-left:auto;color:var(--sky-500);width:18px;height:18px;flex-shrink:0;}
-
-  /* -------- 지도 -------- */
-  .map-card{background:var(--white);border-radius:24px;box-shadow:var(--shadow);padding:12px;margin-bottom:12px;}
-  .map-title-row{display:flex;align-items:center;justify-content:space-between;padding:2px 4px 8px;}
-  .map-title{font-size:15px;font-weight:800;color:var(--sky-700);display:flex;align-items:center;gap:6px;}
-  .map-title .icon{width:17px;height:17px;}
-  .badge-pill{
-    background:#E7F8ED;color:#1E9A4C;font-size:10.5px;font-weight:700;
-    padding:4px 11px;border-radius:999px;display:flex;align-items:center;gap:5px;
-  }
-  .badge-pill .dotlive{width:6px;height:6px;border-radius:50%;background:#1E9A4C;}
-  .map-wrap{position:relative;width:100%;height:250px;border-radius:18px;overflow:hidden;background:var(--map-bg);}
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>안전 보행 지도</title>
   
-  #leaflet-map {
-    width: 100%;
-    height: 100%;
-    z-index: 1;
-  }
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  
+  <style>
+    :root {
+      --primary-color: #5BB8DB;
+      --bg-color: #F8FAFC;
+      --text-color: #1E293B;
+    }
 
-  .custom-leaflet-icon {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+    }
 
-  /* 라우팅 텍스트 패널 숨기기 (UI를 깔끔하게 유지) */
-  .leaflet-routing-container {
-    display: none !important;
-  }
+    body {
+      background-color: #E2E8F0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
 
-  .legend{display:flex;gap:10px;padding:10px 4px 0;font-size:10px;color:var(--muted);flex-wrap:wrap;}
-  .legend span{display:flex;align-items:center;gap:5px;}
-  .dot{width:9px;height:9px;border-radius:50%;display:inline-block;flex-shrink:0;}
+    /* 모바일 프레임 컨테이너 */
+    .app-container {
+      width: 100%;
+      max-width: 430px;
+      height: 100vh;
+      max-height: 932px;
+      background-color: var(--bg-color);
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+      overflow: hidden;
+    }
 
-  /* -------- 위험요소 -------- */
-  .risk-card{background:var(--danger-bg);border-radius:20px;padding:12px 14px;box-shadow:0 6px 16px rgba(229,62,62,0.14);margin-bottom:12px;}
-  .risk-card .rtitle{font-size:12.5px;font-weight:800;color:var(--danger);display:flex;align-items:center;gap:6px;margin-bottom:7px;}
-  .risk-card .rtitle .icon{width:15px;height:15px;}
-  .risk-tag{display:inline-flex;align-items:center;background:#FFFFFF;color:var(--danger);font-size:10.5px;font-weight:700;padding:5px 10px;border-radius:999px;margin:0 5px 5px 0;}
+    /* 화면 스위칭 영역 */
+    .screens {
+      flex: 1;
+      position: relative;
+      overflow-y: auto;
+    }
 
-  /* -------- 구로엔젤 -------- */
-  .angel-hero{background:var(--white);border-radius:26px;padding:22px;box-shadow:var(--shadow);text-align:center;margin-bottom:14px;}
-  .angel-big-wrap{
-    width:84px;height:84px;margin:0 auto 10px;border-radius:24px;background:var(--angel-bg);
-    display:flex;align-items:center;justify-content:center;
-  }
-  .angel-big-wrap svg{width:44px;height:44px;color:var(--angel);}
-  .angel-hero h3{font-size:16px;font-weight:800;margin:0 0 6px;color:var(--ink);}
-  .angel-hero p{font-size:12px;color:var(--muted);line-height:1.5;margin:0;}
-  .feature-item{display:flex;gap:12px;align-items:flex-start;background:var(--white);border-radius:18px;padding:12px 14px;margin-bottom:10px;box-shadow:var(--shadow);}
-  .feature-item .fic{width:38px;height:38px;border-radius:12px;background:var(--angel-bg);color:var(--angel);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-  .feature-item .fic svg{width:20px;height:20px;}
-  .feature-item h5{font-size:12.5px;font-weight:800;margin:0 0 3px;color:var(--ink);}
-  .feature-item p{font-size:11px;margin:0;color:var(--muted);line-height:1.4;}
+    .screen {
+      display: none;
+      width: 100%;
+      height: 100%;
+    }
 
-  /* -------- 삼대발견 -------- */
-  .discover-card{display:flex;align-items:center;gap:12px;background:var(--white);border-radius:20px;padding:12px 14px;margin-bottom:10px;box-shadow:var(--shadow);}
-  .discover-num{width:38px;height:38px;border-radius:12px;background:var(--discover-bg);color:var(--discover);display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-  .discover-num svg{width:20px;height:20px;}
-  .discover-card h5{margin:0;font-size:13px;font-weight:800;color:var(--ink);}
-  .discover-card p{margin:2px 0 0;font-size:11px;color:var(--muted);}
+    .screen.active {
+      display: block;
+    }
 
-  /* -------- 탭바 -------- */
-  .tabbar{flex-shrink:0;display:flex;background:var(--white);border-top:1px solid #EAF3F7;padding:8px 6px 4px;box-shadow:0 -6px 16px rgba(91,184,219,0.10);}
-  .tab{flex:1;border:none;background:none;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0 4px;cursor:pointer;color:#9FB2BE;font-size:10.5px;font-weight:700;}
-  .tab .ticon{width:34px;height:34px;display:flex;align-items:center;justify-content:center;border-radius:14px;transition:all .2s ease;}
-  .tab .ticon .icon{width:19px;height:19px;}
-  .tab.active{color:var(--sky-700);}
-  .tab.active .ticon{background:var(--sky-100);}
-  .homebar{width:120px;height:5px;background:#C9E3EE;border-radius:999px;margin:8px auto 0;flex-shrink:0;}
-</style>
+    /* 지도 영역 */
+    #leaflet-map {
+      width: 100%;
+      height: 100%;
+      z-index: 1;
+    }
+
+    /* 커스텀 마커 기본 스타일 */
+    .custom-leaflet-icon {
+      background: none;
+      border: none;
+    }
+
+    /* 하단 탭 바 */
+    .nav-bar {
+      height: 65px;
+      background-color: #FFFFFF;
+      border-top: 1px solid #E2E8F0;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      z-index: 1000;
+    }
+
+    .tab {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 4px;
+      color: #94A3B8;
+      font-size: 12px;
+      cursor: pointer;
+      text-decoration: none;
+      border: none;
+      background: none;
+      width: 100%;
+    }
+
+    .tab.active {
+      color: var(--primary-color);
+      font-weight: bold;
+    }
+
+    .tab-icon {
+      width: 24px;
+      height: 24px;
+      fill: currentColor;
+    }
+
+    /* 홈 스크린 임시 레이아웃 */
+    .home-content {
+      padding: 24px;
+      color: var(--text-color);
+    }
+    .home-content h1 {
+      font-size: 22px;
+      margin-bottom: 12px;
+    }
+  </style>
 </head>
 <body>
-<div class="phone">
 
-  <div class="status"><span>9:41</span><span>100%</span></div>
-
-  <div class="brand-row"><span class="brand-title">놀맵</span></div>
-
+<div class="app-container">
+  <!-- 화면 영역들 -->
   <div class="screens">
+    
+    <!-- 1. 홈 화면 -->
+    <div id="screen-home" class="screen active">
+      <div class="home-content">
+        <h1>안전 보행 가이드</h1>
+        <p>하단 지도 탭을 누르면 내 위치에서 신도림 놀구로까지의 보행자 전용 경로를 확인하실 수 있습니다.</p>
+      </div>
+    </div>
 
-    <!-- ============ 홈 ============ -->
-    <section class="screen active" id="screen-home">
-      <div class="hero-card">
-        <div class="status-pill"><span class="dotlive"></span>지금 통행 가능해요</div>
-        <h3>오늘도 안전하게, 놀구로!</h3>
-        <p>추천 경로로 걸으면 도보 12분, 가로등 14개가 함께해요.</p>
-        <div class="btnrow">
-          <button class="btn on-hero" onclick="go('map')">
-            <svg viewBox="0 0 24 24" class="icon"><path d="M4 19c2-4 4-4 6-8s2-6 6-6"/><circle cx="4" cy="19" r="1.6" fill="currentColor" stroke="none"/><circle cx="16" cy="5" r="1.6" fill="currentColor" stroke="none"/></svg>
-            경로 보기
-          </button>
-          <button class="btn on-hero outline" onclick="go('angel')">
-            <svg viewBox="0 0 24 24" class="icon"><path d="M3 10v4a1 1 0 0 0 1 1h2l4 3v-12L6 9H4a1 1 0 0 0-1 1Z"/><path d="M14 8a4 4 0 0 1 0 8"/><path d="M17 5a8 8 0 0 1 0 14"/></svg>
-            위험 신고
-          </button>
-        </div>
-      </div>
-
-      <div class="section-label">
-        <svg viewBox="0 0 24 24" class="icon"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.5 2.5L16 9.5"/></svg>
-        바로가기
-      </div>
-
-      <button class="quicklink" onclick="go('map')">
-        <div class="qicon"><svg viewBox="0 0 24 24" class="icon"><path d="M4 19c2-4 4-4 6-8s2-6 6-6"/><circle cx="4" cy="19" r="1.6" fill="currentColor" stroke="none"/><circle cx="16" cy="5" r="1.6" fill="currentColor" stroke="none"/></svg></div>
-        <div><h5>최적의 길 · 지도</h5><p>안전 경로와 위험 구간을 한눈에</p></div>
-        <svg viewBox="0 0 24 24" class="arrow icon"><path d="M9 5l7 7-7 7"/></svg>
-      </button>
-
-      <button class="quicklink angel" onclick="go('angel')">
-        <div class="qicon"><svg viewBox="0 0 24 24" class="icon"><ellipse cx="12" cy="4.5" rx="3" ry="1.6"/><circle cx="12" cy="10" r="3"/><path d="M9 12c-3 0-5 2-5 5"/><path d="M15 12c3 0 5 2 5 5"/><path d="M12 13v7"/></svg></div>
-        <div><h5>구로엔젤</h5><p>우리 동네 안전 도우미 소개</p></div>
-        <svg viewBox="0 0 24 24" class="arrow icon"><path d="M9 5l7 7-7 7"/></svg>
-      </button>
-
-      <button class="quicklink discover" onclick="go('discover')">
-        <div class="qicon"><svg viewBox="0 0 24 24" class="icon"><rect x="3" y="11" width="18" height="10" rx="1"/><path d="M7 11V7l3 2V6l3 2V5l3 2v4"/><path d="M8 21v-4M12 21v-4M16 21v-4"/></svg></div>
-        <div><h5>삼대발견</h5><p>가는 길에 만나는 공장지대 이야기</p></div>
-        <svg viewBox="0 0 24 24" class="arrow icon"><path d="M9 5l7 7-7 7"/></svg>
-      </button>
-    </section>
-
-    <!-- ============ 지도 ============ -->
-    <section class="screen" id="screen-map">
-      <div class="map-card">
-        <div class="map-title-row">
-          <div class="map-title">
-            <svg viewBox="0 0 24 24" class="icon"><path d="M4 19c2-4 4-4 6-8s2-6 6-6"/><circle cx="4" cy="19" r="1.6" fill="currentColor" stroke="none"/><circle cx="16" cy="5" r="1.6" fill="currentColor" stroke="none"/></svg>
-            최적의 길
-          </div>
-          <div class="badge-pill"><span class="dotlive"></span>통행 가능</div>
-        </div>
-
-        <div class="map-wrap">
-          <div id="leaflet-map"></div>
-        </div>
-
-        <div class="legend">
-          <span><i class="dot" style="background:#5BB8DB"></i>최적경로</span>
-          <span><i class="dot" style="background:#E53E3E"></i>위험 구간</span>
-          <span><i class="dot" style="background:#FFC93C"></i>가로등</span>
-          <span><i class="dot" style="background:#F4B942"></i>구로엔젤</span>
-          <span><i class="dot" style="background:#B5714A"></i>삼대발견</span>
-        </div>
-      </div>
-
-      <div class="grid2" style="margin-bottom:12px;">
-        <div class="card">
-          <div class="icon-circle yellow"><svg viewBox="0 0 24 24" class="icon"><circle cx="12" cy="6" r="3.4"/><path d="M12 9.4V21M9 21h6"/></svg></div>
-          <div class="stat">14개</div>
-          <h4>가로등 개수</h4>
-          <p>경로 전체에 밝은 가로등이 이어져 있어요</p>
-        </div>
-        <div class="card">
-          <div class="icon-circle"><svg viewBox="0 0 24 24" class="icon"><path d="M4 16l1.5-5A2 2 0 0 1 7.4 9.5h9.2a2 2 0 0 1 1.9 1.5L20 16"/><rect x="3" y="16" width="18" height="4" rx="1.5"/><circle cx="7.5" cy="20" r="1.4" fill="currentColor" stroke="none"/><circle cx="16.5" cy="20" r="1.4" fill="currentColor" stroke="none"/></svg></div>
-          <div class="stat">보통</div>
-          <h4>차량 통행량</h4>
-          <p>등하원 시간대엔 통행이 조금 늘어나요</p>
-        </div>
-      </div>
-
-      <div class="risk-card">
-        <div class="rtitle">
-          <svg viewBox="0 0 24 24" class="icon"><path d="M12 4 21 20H3Z"/><path d="M12 10v4"/><circle cx="12" cy="17" r="0.6" fill="currentColor" stroke="none"/></svg>
-          위험요소, 이런 점을 조심하세요
-        </div>
-        <span class="risk-tag">좁은 골목</span>
-        <span class="risk-tag">가로등 부족 구간</span>
-        <span class="risk-tag">급커브 도로</span>
-      </div>
-
-      <div class="card">
-        <div class="icon-circle"><svg viewBox="0 0 24 24" class="icon"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.5 2.5L16 9.5"/></svg></div>
-        <h4>지금 통행하기 충분해요</h4>
-        <p>도로 폭과 인도가 넉넉해서 여러 명이 함께 걸어도 편안해요.</p>
-      </div>
-    </section>
-
-    <!-- ============ 구로엔젤 ============ -->
-    <section class="screen" id="screen-angel">
-      <div class="angel-hero">
-        <div class="angel-big-wrap">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="4.5" rx="3" ry="1.6"/><circle cx="12" cy="10" r="3"/><path d="M9 12c-3 0-5 2-5 5"/><path d="M15 12c3 0 5 2 5 5"/><path d="M12 13v7"/></svg>
-        </div>
-        <h3>구로엔젤이 함께 걸어요</h3>
-        <p>경로 곳곳을 살피고 위험 구간을 미리 알려주는 우리 동네 안전 도우미예요.</p>
-      </div>
-
-      <div class="section-label">
-        <svg viewBox="0 0 24 24" class="icon"><ellipse cx="12" cy="4.5" rx="3" ry="1.6"/><circle cx="12" cy="10" r="3"/><path d="M9 12c-3 0-5 2-5 5"/><path d="M15 12c3 0 5 2 5 5"/><path d="M12 13v7"/></svg>
-        구로엔젤이 하는 일
-      </div>
-
-      <div class="feature-item">
-        <div class="fic"><svg viewBox="0 0 24 24" class="icon"><path d="M6 10a6 6 0 0 1 12 0c0 4 1.5 5.5 1.5 5.5H4.5S6 14 6 10Z"/><path d="M10 19a2 2 0 0 0 4 0"/></svg></div>
-        <div><h5>안전벨</h5><p>위급할 때 누르면 도움을 요청할 수 있어요</p></div>
-      </div>
-      <div class="feature-item">
-        <div class="fic"><svg viewBox="0 0 24 24" class="icon"><path d="M12 21s7-6.5 7-11.5A7 7 0 0 0 5 9.5C5 14.5 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.3"/></svg></div>
-        <div><h5>실시간 위치 안내</h5><p>지금 걷는 구간의 위험 요소를 바로 알려줘요</p></div>
-      </div>
-      <div class="feature-item">
-        <div class="fic"><svg viewBox="0 0 24 24" class="icon"><path d="M6.6 10.8c1.4 2.7 3.6 4.9 6.3 6.3l2.1-2.1c.3-.3.7-.4 1.1-.3 1.2.4 2.5.6 3.8.6.6 0 1.1.5 1.1 1.1V20c0 .6-.5 1.1-1.1 1.1C10.9 21.1 3 13.2 3 4.1 3 3.5 3.5 3 4.1 3h3.6c.6 0 1.1.5 1.1 1.1 0 1.3.2 2.6.6 3.8.1.4 0 .8-.3 1.1L6.6 10.8Z"/></svg></div>
-        <div><h5>도움 요청</h5><p>가까운 지킴이집과 어른에게 빠르게 연결돼요</p></div>
-      </div>
-
-      <button class="btn primary" style="width:100%;margin-top:4px;">
-        <svg viewBox="0 0 24 24" class="icon"><path d="M3 10v4a1 1 0 0 0 1 1h2l4 3v-12L6 9H4a1 1 0 0 0-1 1Z"/><path d="M14 8a4 4 0 0 1 0 8"/><path d="M17 5a8 8 0 0 1 0 14"/></svg>
-        위험 신고하기
-      </button>
-    </section>
-
-    <!-- ============ 삼대발견 ============ -->
-    <section class="screen" id="screen-discover">
-      <div class="section-label">
-        <svg viewBox="0 0 24 24" class="icon"><rect x="3" y="11" width="18" height="10" rx="1"/><path d="M7 11V7l3 2V6l3 2V5l3 2v4"/><path d="M8 21v-4M12 21v-4M16 21v-4"/></svg>
-        가는 길에 만나는 공장지대 이야기
-      </div>
-
-      <div class="discover-card">
-        <div class="discover-num"><svg viewBox="0 0 24 24" class="icon"><rect x="3" y="11" width="18" height="10" rx="1"/><path d="M7 11V7l3 2V6l3 2V5l3 2v4"/></svg></div>
-        <div><h5>옛 방직공장 굴뚝</h5><p>구로 산업단지 시절을 기억하는 붉은 벽돌 굴뚝이에요</p></div>
-      </div>
-      <div class="discover-card">
-        <div class="discover-num"><svg viewBox="0 0 24 24" class="icon"><path d="M12 21s7-6.5 7-11.5A7 7 0 0 0 5 9.5C5 14.5 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.3"/></svg></div>
-        <div><h5>공장 담장 벽화 거리</h5><p>옛 공장 담벼락에 그려진 노동자와 마을 이야기 벽화예요</p></div>
-      </div>
-      <div class="discover-card">
-        <div class="discover-num"><svg viewBox="0 0 24 24" class="icon"><path d="M4 19c2-4 4-4 6-8s2-6 6-6"/><circle cx="4" cy="19" r="1.6" fill="currentColor" stroke="none"/><circle cx="16" cy="5" r="1.6" fill="currentColor" stroke="none"/></svg></div>
-        <div><h5>철길 흔적 산책로</h5><p>공장으로 물자를 나르던 옛 철길을 따라 걷는 짧은 코스예요</p></div>
-      </div>
-    </section>
-
-    <!-- ============ 설정 ============ -->
-    <section class="screen" id="screen-settings">
-      <div class="section-label">
-        <svg viewBox="0 0 24 24" class="icon"><circle cx="12" cy="12" r="3"/><path d="M12 3v2.4M12 18.6V21M4.2 4.2l1.7 1.7M18.1 18.1l1.7 1.7M3 12h2.4M18.6 12H21M4.2 19.8l1.7-1.7M18.1 5.9l1.7-1.7"/></svg>
-        기본 설정
-      </div>
-      <div class="feature-item">
-        <div class="fic"><svg viewBox="0 0 24 24" class="icon"><path d="M6 10a6 6 0 0 1 12 0c0 4 1.5 5.5 1.5 5.5H4.5S6 14 6 10Z"/><path d="M10 19a2 2 0 0 0 4 0"/></svg></div>
-        <div><h5>위험 알림</h5><p>경로 위험 구간 진입 시 바로 알려드려요</p></div>
-      </div>
-      <div class="feature-item">
-        <div class="fic"><svg viewBox="0 0 24 24" class="icon"><path d="M12 21s7-6.5 7-11.5A7 7 0 0 0 5 9.5C5 14.5 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.3"/></svg></div>
-        <div><h5>위치 권한</h5><p>실시간 안전 안내를 위해 위치 접근이 필요해요</p></div>
-      </div>
-      <div class="feature-item">
-        <div class="fic"><svg viewBox="0 0 24 24" class="icon"><path d="M6.6 10.8c1.4 2.7 3.6 4.9 6.3 6.3l2.1-2.1c.3-.3.7-.4 1.1-.3 1.2.4 2.5.6 3.8.6.6 0 1.1.5 1.1 1.1V20c0 .6-.5 1.1-1.1 1.1C10.9 21.1 3 13.2 3 4.1 3 3.5 3.5 3 4.1 3h3.6c.6 0 1.1.5 1.1 1.1 0 1.3.2 2.6.6 3.8.1.4 0 .8-.3 1.1L6.6 10.8Z"/></svg></div>
-        <div><h5>보호자 연락처</h5><p>위험 신고 시 함께 연락할 보호자를 등록해요</p></div>
-      </div>
-
-      <div class="section-label">
-        <svg viewBox="0 0 24 24" class="icon"><circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.5 2.5L16 9.5"/></svg>
-        앱 정보
-      </div>
-      <div class="card">
-        <h4>놀구로오는길</h4>
-        <p>버전 1.0.0 · 신도림놀구로 청소년입장지대 안전 안내 앱</p>
-      </div>
-    </section>
+    <!-- 2. 지도 화면 -->
+    <div id="screen-map" class="screen">
+      <div id="leaflet-map"></div>
+    </div>
 
   </div>
 
-  <div class="tabbar">
-    <button class="tab" data-tab="angel" onclick="go('angel')">
-      <span class="ticon"><svg viewBox="0 0 24 24" class="icon"><ellipse cx="12" cy="4.5" rx="3" ry="1.6"/><circle cx="12" cy="10" r="3"/><path d="M9 12c-3 0-5 2-5 5"/><path d="M15 12c3 0 5 2 5 5"/><path d="M12 13v7"/></svg></span>구로엔젤
-    </button>
-    <button class="tab" data-tab="discover" onclick="go('discover')">
-      <span class="ticon"><svg viewBox="0 0 24 24" class="icon"><rect x="3" y="11" width="18" height="10" rx="1"/><path d="M7 11V7l3 2V6l3 2V5l3 2v4"/><path d="M8 21v-4M12 21v-4M16 21v-4"/></svg></span>삼대발견
-    </button>
+  <!-- 하단 탭 바 -->
+  <nav class="nav-bar">
     <button class="tab active" data-tab="home" onclick="go('home')">
-      <span class="ticon"><svg viewBox="0 0 24 24" class="icon"><path d="M4 11.5 12 4l8 7.5"/><path d="M6 10.5V20a1 1 0 0 0 1 1h3v-5h4v5h3a1 1 0 0 0 1-1v-9.5"/></svg></span>홈
+      <svg class="tab-icon" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      <span>홈</span>
     </button>
     <button class="tab" data-tab="map" onclick="go('map')">
-      <span class="ticon"><svg viewBox="0 0 24 24" class="icon"><path d="M4 19c2-4 4-4 6-8s2-6 6-6"/><circle cx="4" cy="19" r="1.6" fill="currentColor" stroke="none"/><circle cx="16" cy="5" r="1.6" fill="currentColor" stroke="none"/></svg></span>지도
+      <svg class="tab-icon" viewBox="0 0 24 24"><path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9A1 1 0 0 0 3 5.8v14.3a1 1 0 0 0 1.37.93l5.63-2.13 6 2.1 5.64-1.9A1 1 0 0 0 22 18.2V3.9a1 1 0 0 0-1.5-.9zM15 17.61l-6-2.1v-11l6 2.1z"/></svg>
+      <span>지도</span>
     </button>
-    <button class="tab" data-tab="settings" onclick="go('settings')">
-      <span class="ticon"><svg viewBox="0 0 24 24" class="icon"><circle cx="12" cy="12" r="3"/><path d="M12 3v2.4M12 18.6V21M4.2 4.2l1.7 1.7M18.1 18.1l1.7 1.7M3 12h2.4M18.6 12H21M4.2 19.8l1.7-1.7M18.1 5.9l1.7-1.7"/></svg></span>설정
-    </button>
-  </div>
-  <div class="homebar"></div>
+  </nav>
 </div>
 
-<!-- Leaflet JS Library & Routing Machine -->
+<!-- Leaflet JS -->
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-<script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
 
 <script>
   let leafletMap = null;
+  let userMarker = null;
+  let routeLine = null;
 
-  // 좌표 정의 [위도, 경도]
-  const NOLGURO          = [37.4977, 126.8878]; // 도착지: 신도림놀구로
-  const SINMIRIM_BACKGATE= [37.5008, 126.8896]; // Fallback 출발지: 서울신미림초등학교 후문
-  const DANGER_SPOT      = [37.4995, 126.8883]; // 위험 요소 지점
-  const ANGEL_SPOT       = [37.4990, 126.8874]; // 구로엔젤 지점
-  const DISCOVER_SPOT    = [37.4983, 126.8891]; // 삼대발견 지점
+  // 주요 기준 좌표
+  const NOLGURO           = [37.4977, 126.8878]; // 도착지: 신도림 놀구로
+  const SINMIRIM_BACKGATE = [37.5008, 126.8896]; // 오차 보정용 출발지: 서울신미림초 후문
 
+  const DANGER_SPOT   = [37.4995, 126.8883];
+  const ANGEL_SPOT    = [37.4990, 126.8874];
+  const DISCOVER_SPOT = [37.4983, 126.8891];
+
+  // 탭 전환 logic
   function go(name){
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById('screen-' + name).classList.add('active');
+    
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     document.querySelector('.tab[data-tab="' + name + '"]').classList.add('active');
-    document.querySelector('.screens').scrollTop = 0;
 
+    // 지도가 위치한 탭으로 진입 시 렌더링 영역 크기 재계산
     if (name === 'map' && leafletMap){
       setTimeout(() => {
         leafletMap.invalidateSize();
@@ -469,19 +187,17 @@
     }
   }
 
-  // 커스텀 SVG 마커 생성
+  // Custom SVG 마커 생성기
   function createCustomIcon(hexColor, glyph) {
     const glyphs = {
       danger: '<circle cx="15" cy="15" r="11" fill="' + hexColor + '"/><text x="15" y="19.5" font-size="13" font-weight="800" fill="white" text-anchor="middle" font-family="Pretendard, sans-serif">!</text>',
       angel:  '<circle cx="15" cy="15" r="11" fill="' + hexColor + '"/><path d="M11 13.5c-2.6 0-3.6 2-3.6 4M19 13.5c2.6 0 3.6 2 3.6 4" stroke="white" stroke-width="1.6" fill="none" stroke-linecap="round" transform="translate(0,-1)"/><circle cx="15" cy="12.5" r="2.6" fill="white"/>',
       factory:'<circle cx="15" cy="15" r="11" fill="' + hexColor + '"/><path d="M10 18v-5l2.5 1.7v-3.4L15 13v-3.4l2.5 1.7V18H10Z" fill="white"/>',
-      dot:    '<circle cx="15" cy="15" r="7" fill="' + hexColor + '"/><circle cx="15" cy="15" r="2.6" fill="white"/>'
+      dot:    '<circle cx="15" cy="15" r="8" fill="' + hexColor + '" stroke="white" stroke-width="2"/><circle cx="15" cy="15" r="3" fill="white"/>'
     };
     
-    const svgHtml = `<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30">${glyphs[glyph]}</svg>`;
-
     return L.divIcon({
-      html: svgHtml,
+      html: `<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30">${glyphs[glyph]}</svg>`,
       className: 'custom-leaflet-icon',
       iconSize: [30, 30],
       iconAnchor: [15, 15],
@@ -489,84 +205,78 @@
     });
   }
 
-  // 실시간 경로 계산 및 지도에 그리기
-  function drawRoute(startPos, startName) {
-    // 실시간 네비게이션 경로 생성 (Leaflet Routing Machine)
-    L.Routing.control({
-      waypoints: [
-        L.latLng(startPos[0], startPos[1]),
-        L.latLng(NOLGURO[0], NOLGURO[1])
-      ],
-      show: false, // 하단 안내 텍스트 패널 숨김
-      addWaypoints: false,
-      draggableWaypoints: false,
-      routeWhileDragging: false,
-      lineOptions: {
-        styles: [{ color: '#5BB8DB', weight: 6, opacity: 0.9 }]
-      },
-      createMarker: function() { return null; } // 기본 핀 생성 차단 (커스텀 핀 사용)
-    }).addTo(leafletMap);
+  // 보행자(Foot) 전용 길찾기 API 호출 및 연산
+  async function fetchPedestrianRoute(startLat, startLng, locationName) {
+    const url = `https://router.project-osrm.org/route/v1/foot/${startLng},${startLat};${NOLGURO[1]},${NOLGURO[0]}?overview=full&geometries=geojson`;
 
-    // 출발지와 도착지에 커스텀 마커 표시
-    L.marker(startPos, { icon: createCustomIcon('#5BB8DB', 'dot') })
-      .addTo(leafletMap)
-      .bindPopup(`<b>${startName}</b>`);
+    try {
+      const response = await fetch(url);
+      const data = await response.json();
 
-    L.marker(NOLGURO, { icon: createCustomIcon('#5BB8DB', 'dot') })
-      .addTo(leafletMap)
-      .bindPopup('<b>신도림 놀구로 (목적지)</b>');
+      if (data.routes && data.routes.length > 0) {
+        // Coordinate conversion ([lng, lat] -> [lat, lng])
+        const coordinates = data.routes[0].geometry.coordinates.map(coord => [coord[1], coord[0]]);
 
-    // 두 지점이 모두 보이도록 지도 영역 조정
-    const bounds = L.latLngBounds([startPos, NOLGURO]);
-    leafletMap.fitBounds(bounds, { padding: [30, 30] });
+        // 기존 เส้น 지우기
+        if (routeLine) leafletMap.removeLayer(routeLine);
+
+        // 보행자 실선 표시
+        routeLine = L.polyline(coordinates, {
+          color: '#5BB8DB',
+          weight: 6,
+          opacity: 0.9,
+          lineJoin: 'round'
+        }).addTo(leafletMap);
+
+        // 내 위치 마커 찍기
+        if (userMarker) leafletMap.removeLayer(userMarker);
+        userMarker = L.marker([startLat, startLng], { icon: createCustomIcon('#5BB8DB', 'dot') })
+          .addTo(leafletMap)
+          .bindPopup(`<b>${locationName}</b>`)
+          .openPopup();
+
+        // 경로에 맞춰 화면 확대/축소 자동 조절
+        leafletMap.fitBounds(routeLine.getBounds(), { padding: [40, 40] });
+      }
+    } catch (err) {
+      console.error('보행자 경로 계산 실패:', err);
+    }
   }
 
   // 지도 초기화
   function initLeafletMap() {
-    leafletMap = L.map('leaflet-map', {
-      zoomControl: false
-    }).setView(SINMIRIM_BACKGATE, 15);
+    leafletMap = L.map('leaflet-map', { zoomControl: false }).setView(NOLGURO, 15);
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
       attribution: '&copy; OpenStreetMap'
     }).addTo(leafletMap);
 
-    // 주요 안심/위험 요소 핀 미리 등록
-    L.marker(DANGER_SPOT, { icon: createCustomIcon('#E53E3E', 'danger') })
-      .addTo(leafletMap)
-      .bindPopup('<b>위험요소:</b> 좁은 골목 주의');
+    // 주요 거점 마커 생성
+    L.marker(NOLGURO, { icon: createCustomIcon('#2E7A99', 'dot') }).addTo(leafletMap).bindPopup('<b>도착: 신도림 놀구로</b>');
+    L.marker(DANGER_SPOT, { icon: createCustomIcon('#E53E3E', 'danger') }).addTo(leafletMap).bindPopup('<b>위험요소:</b> 좁은 골목');
+    L.marker(ANGEL_SPOT, { icon: createCustomIcon('#F4B942', 'angel') }).addTo(leafletMap).bindPopup('<b>구로엔젤:</b> 안전 상주');
+    L.marker(DISCOVER_SPOT, { icon: createCustomIcon('#B5714A', 'factory') }).addTo(leafletMap).bindPopup('<b>삼대발견:</b> 공장 터');
 
-    L.marker(ANGEL_SPOT, { icon: createCustomIcon('#F4B942', 'angel') })
-      .addTo(leafletMap)
-      .bindPopup('<b>구로엔젤:</b> 안전 도우미 상주');
-
-    L.marker(DISCOVER_SPOT, { icon: createCustomIcon('#B5714A', 'factory') })
-      .addTo(leafletMap)
-      .bindPopup('<b>삼대발견:</b> 옛 방직공장 터');
-
-    // 유저의 실시간 위치 추적 시도 (Geolocation)
+    // 위치 추적 실행
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        (position) => {
-          // 1. 유저 위치 승인 시 -> 내 위치 기반 길안내
-          const userPos = [position.coords.latitude, position.coords.longitude];
-          drawRoute(userPos, '내 위치');
+        (pos) => {
+          fetchPedestrianRoute(pos.coords.latitude, pos.coords.longitude, '내 위치');
         },
-        (error) => {
-          // 2. 유저가 위치 권한 거부 시 -> Fallback: 서울신미림초등학교 후문 기준 길안내
-          console.warn('위치 접근이 거부되었습니다. 기본 출발지로 설정합니다.');
-          drawRoute(SINMIRIM_BACKGATE, '서울신미림초등학교 후문');
+        (err) => {
+          // PC나 GPS 거부 시 기본 안전 위치로 연결
+          fetchPedestrianRoute(SINMIRIM_BACKGATE[0], SINMIRIM_BACKGATE[1], '서울신미림초등학교 후문');
         },
-        { timeout: 7000 } // 7초 내에 응답 없으면 Fallback으로 넘어감
+        { enableHighAccuracy: true, timeout: 5000 }
       );
     } else {
-      // 3. 브라우저 미지원 시 -> Fallback
-      drawRoute(SINMIRIM_BACKGATE, '서울신미림초등학교 후문');
+      fetchPedestrianRoute(SINMIRIM_BACKGATE[0], SINMIRIM_BACKGATE[1], '서울신미림초등학교 후문');
     }
   }
 
   document.addEventListener('DOMContentLoaded', initLeafletMap);
 </script>
+
 </body>
 </html>
