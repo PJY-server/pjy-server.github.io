@@ -7,15 +7,25 @@
     <title>놀맵 - 놀 곳 찾기</title>
 
     <link rel="stylesheet" href="style.css">
+
+    <!-- Leaflet 지도 라이브러리 -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
+
 </head>
 
 <body>
 
+
 <header>
+
     <img src="icon.png" class="logo">
+
     <h1>놀맵</h1>
+
     <p>주변 놀거리를 찾아보세요!</p>
+
 </header>
+
 
 
 <section class="menu">
@@ -24,22 +34,28 @@
         ☕ 카페
     </button>
 
+
     <button onclick="searchPlace('공원')">
         🌳 공원
     </button>
+
 
     <button onclick="searchPlace('놀이터')">
         🛝 놀이터
     </button>
 
+
     <button onclick="searchPlace('맛집')">
         🍴 맛집
     </button>
 
+
 </section>
 
 
+
 <div id="map"></div>
+
 
 
 <div class="bottom">
@@ -51,7 +67,12 @@
 </div>
 
 
+
+<!-- Leaflet -->
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
 <script src="script.js"></script>
+
 
 </body>
 </html>
