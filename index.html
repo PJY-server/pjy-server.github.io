@@ -1,79 +1,260 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>놀맵</title>
+    <title>놀맵 (NolMap)</title>
 
-<link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#4FC3F7">
 
-<link
-rel="stylesheet"
-href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-/>
+    <link rel="manifest" href="manifest.json">
 
-<link
-rel="stylesheet"
-href="style.css"
-/>
+    <link rel="icon" href="icon.png">
 
-<link
-href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700&display=swap"
-rel="stylesheet">
+    <!-- Pretendard Font -->
+    <link rel="preconnect" href="https://cdn.jsdelivr.net">
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
+
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons"
+          rel="stylesheet">
+
+    <!-- Leaflet -->
+    <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<!-- ======================
+     Splash
+====================== -->
+
+<div id="splash">
+
+    <img src="icon.png" id="logo">
+
+    <h1>놀맵</h1>
+
+    <p>청소년 안전지도</p>
+
+</div>
+
+<!-- ======================
+     Header
+====================== -->
+
+<header>
+
+    <div class="title">
+
+        <img src="icon.png">
+
+        <span>놀맵</span>
+
+    </div>
+
+    <div id="weather">
+
+        불러오는 중...
+
+    </div>
+
+</header>
+
+<!-- ======================
+     Main
+====================== -->
+
+<main>
+
+    <!-- HOME -->
+
+    <section id="homePage" class="page active">
+
+        <div class="card">
+
+            <h2>현재 위치</h2>
+
+            <p id="locationText">
+
+                위치 확인중...
+
+            </p>
+
+        </div>
+
+        <div class="card">
+
+            <h2>오늘 날씨</h2>
+
+            <p id="weatherText">
+
+                불러오는 중...
+
+            </p>
+
+        </div>
+
+        <div class="card">
+
+            <h2>안전지수</h2>
+
+            <h1>★★★★★</h1>
+
+        </div>
+
+    </section>
+
+    <!-- MAP -->
+
+    <section id="mapPage" class="page">
+
+        <div id="map"></div>
+
+    </section>
+
+    <!-- ANGEL -->
+
+    <section id="angelPage" class="page">
+
+        <div class="card">
+
+            <h2>구로엔젤</h2>
+
+            <p>
+
+                위험 상황을 예방하고
+                청소년을 도와주는
+                안전 지킴이입니다.
+
+            </p>
+
+        </div>
+
+    </section>
+
+    <!-- DISCOVER -->
+
+    <section id="discoverPage" class="page">
+
+        <div class="card">
+
+            <h2>삼대발견</h2>
+
+            <p>
+
+                우리 동네의
+                다양한 장소를
+                탐험해보세요.
+
+            </p>
+
+        </div>
+
+    </section>
+
+    <!-- SETTING -->
+
+    <section id="settingPage" class="page">
+
+        <div class="card">
+
+            <h2>설정</h2>
+
+            <p>
+
+                버전 2.0
+
+            </p>
+
+        </div>
+
+    </section>
+
+</main>
+
+<!-- ======================
+     Bottom Navigation
+====================== -->
+
+<nav>
+
+<button class="navBtn active" data-page="homePage">
+
+<span class="material-icons">
+
+home
+
+</span>
+
+<p>홈</p>
+
+</button>
+
+<button class="navBtn" data-page="mapPage">
+
+<span class="material-icons">
+
+map
+
+</span>
+
+<p>지도</p>
+
+</button>
+
+<button class="navBtn" data-page="angelPage">
+
+<span class="material-icons">
+
+shield
+
+</span>
+
+<p>구로엔젤</p>
+
+</button>
+
+<button class="navBtn" data-page="discoverPage">
+
+<span class="material-icons">
+
+explore
+
+</span>
+
+<p>삼대발견</p>
+
+</button>
+
+<button class="navBtn" data-page="settingPage">
+
+<span class="material-icons">
+
+settings
+
+</span>
+
+<p>설정</p>
+
+</button>
+
+</nav>
+
+<!-- Leaflet -->
 
 <script
 src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
 </script>
 
-</head>
-
-<body>
-
-<header>
-
-<h1>놀맵</h1>
-
-<div id="weather">
-불러오는 중...
-</div>
-
-</header>
-
-<nav>
-
-<button class="tab active">홈</button>
-<button class="tab">지도</button>
-<button class="tab">구로엔젤</button>
-<button class="tab">삼대발견</button>
-<button class="tab">설정</button>
-
-</nav>
-
-<main>
-
-<section id="map"></section>
-
-<div class="cards">
-
-<div class="card">
-<h2>현재 위치</h2>
-<p id="locationText">위치 확인 중...</p>
-</div>
-
-<div class="card">
-<h2>안전지수</h2>
-<h1>★★★★★</h1>
-</div>
-
-<div class="card">
-<h2>공지</h2>
-<p>놀구로 프로젝트에 오신 것을 환영합니다.</p>
-</div>
-
-</div>
-
-</main>
+<!-- Script -->
 
 <script src="script.js"></script>
 
