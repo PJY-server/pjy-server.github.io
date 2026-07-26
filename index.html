@@ -1,1 +1,81 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<title>놀맵</title>
+
+<link rel="manifest" href="manifest.json">
+
+<link
+rel="stylesheet"
+href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+/>
+
+<link
+rel="stylesheet"
+href="style.css"
+/>
+
+<link
+href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;600;700&display=swap"
+rel="stylesheet">
+
+<script
+src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+</script>
+
+</head>
+
+<body>
+
+<header>
+
+<h1>놀맵</h1>
+
+<div id="weather">
+불러오는 중...
+</div>
+
+</header>
+
+<nav>
+
+<button class="tab active">홈</button>
+<button class="tab">지도</button>
+<button class="tab">구로엔젤</button>
+<button class="tab">삼대발견</button>
+<button class="tab">설정</button>
+
+</nav>
+
+<main>
+
+<section id="map"></section>
+
+<div class="cards">
+
+<div class="card">
+<h2>현재 위치</h2>
+<p id="locationText">위치 확인 중...</p>
+</div>
+
+<div class="card">
+<h2>안전지수</h2>
+<h1>★★★★★</h1>
+</div>
+
+<div class="card">
+<h2>공지</h2>
+<p>놀구로 프로젝트에 오신 것을 환영합니다.</p>
+</div>
+
+</div>
+
+</main>
+
+<script src="script.js"></script>
+
+</body>
+</html>
