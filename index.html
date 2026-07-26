@@ -3,9 +3,9 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>안전 보행 가이드</title>
+  <title>안전 보행 지도</title>
   
-  <!-- 카카오 지도 SDK (발급받으신 JavaScript 키를 넣어주세요) -->
+  <!-- 카카오 지도 SDK (본인의 JavaScript 키로 변경하세요) -->
   <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=ca9e3c754e327cb6e9f8c55abb2d237e&libraries=services"></script>
 
   <style>
@@ -64,7 +64,7 @@
       height: 100%;
     }
 
-    /* 하단 외부 내비게이션 연결 버튼 패널 */
+    /* 하단 길찾기 버튼 패널 */
     .route-action-panel {
       position: absolute;
       bottom: 80px;
@@ -97,7 +97,7 @@
     }
 
     .navi-btn {
-      background-color: #FEE500; /* 카카오 옐로우 */
+      background-color: #FEE500;
       color: #000000;
       border: none;
       padding: 10px 14px;
@@ -167,23 +167,23 @@
 
 <div class="app-container">
   <div class="screens">
-    <!-- 홈 화면 -->
+    <!-- 1. 홈 화면 -->
     <div id="screen-home" class="screen active">
       <div class="home-content">
         <h1 style="font-size: 22px; margin-bottom: 12px;">안전 보행 가이드</h1>
-        <p>실제 배포용 지도입니다. 지도를 확인하고 바로 길안내를 받아보세요.</p>
+        <p>하단 [지도] 탭에서 내 실시간 위치 기준 안전 보행 경로를 확인하세요.</p>
       </div>
     </div>
 
-    <!-- 지도 화면 -->
+    <!-- 2. 지도 화면 -->
     <div id="screen-map" class="screen" style="position: relative;">
       <div id="kakao-map"></div>
       
-      <!-- 하단 바로가기 플로팅 바 -->
+      <!-- 카카오 길찾기 앱/웹 바로가기 플로팅 바 -->
       <div class="route-action-panel">
         <div class="route-info">
           <span class="title">신도림 놀구로</span>
-          <span class="sub">추천 안전 보행 경로 안내 중</span>
+          <span class="sub">안전 보행 추천 경로</span>
         </div>
         <a id="kakao-navi-link" href="#" target="_blank" class="navi-btn">
           카카오맵 길찾기
@@ -241,7 +241,7 @@
     createMarker(ANGEL_SPOT, '구로엔젤');
     createMarker(DISCOVER_SPOT, '삼대발견');
 
-    // HTTPS 배포 환경에서 유저의 진짜 실시간 GPS 수신
+    // GitHub Pages(HTTPS) 환경에서 동작하는 GPS
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
@@ -251,7 +251,7 @@
           
           drawRoute(userLatLng, '내 위치');
           
-          // 카카오맵 보행자 길찾기 웹/앱 링크 연동
+          // 카카오맵 딥링크 연결 (내 위치 -> 신도림 놀구로)
           const naviLink = `https://map.kakao.com/link/to/신도림 놀구로,${NOLGURO_LAT},${NOLGURO_LNG}/from/내위치,${uLat},${uLng}`;
           document.getElementById('kakao-navi-link').href = naviLink;
         },
