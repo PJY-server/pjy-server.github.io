@@ -148,12 +148,15 @@
     padding:4px 11px;border-radius:999px;display:flex;align-items:center;gap:5px;
   }
   .badge-pill .dotlive{width:6px;height:6px;border-radius:50%;background:#1E9A4C;}
+  
+  /* 지도 영역 */
   .map-wrap{position:relative;width:100%;height:250px;border-radius:18px;overflow:hidden;background:var(--map-bg);}
+  #gmap {width:100%; height:250px; border-radius:18px;}
+
   .legend{display:flex;gap:10px;padding:10px 4px 0;font-size:10px;color:var(--muted);flex-wrap:wrap;}
   .legend span{display:flex;align-items:center;gap:5px;}
   .dot{width:9px;height:9px;border-radius:50%;display:inline-block;flex-shrink:0;}
 
-  /* 카카오 길찾기 바 */
   .navi-bar-link {
     display: flex;
     justify-content: space-between;
@@ -270,7 +273,7 @@
         </div>
 
         <div class="map-wrap">
-          <div id="gmap" style="position:absolute;inset:0;width:100%;height:100%;"></div>
+          <div id="gmap"></div>
         </div>
 
         <div class="legend">
@@ -427,8 +430,8 @@
 
 <script>
   let noolmap = null;
-  let startPos = { lat: 37.5008, lng: 126.8896 }; // 기본 예시 출발지 (신미림초 후문)
-  const NOLGURO      = { lat: 37.4977, lng: 126.8878 }; // 도착지: 신도림 놀구로
+  let startPos = { lat: 37.5008, lng: 126.8896 };
+  const NOLGURO      = { lat: 37.4977, lng: 126.8878 };
   const DANGER_SPOT  = { lat: 37.4995, lng: 126.8883 };
   const ANGEL_SPOT   = { lat: 37.4990, lng: 126.8874 };
   const DISCOVER_SPOT= { lat: 37.4983, lng: 126.8891 };
@@ -440,14 +443,16 @@
     document.querySelector('.tab[data-tab="' + name + '"]').classList.add('active');
     document.querySelector('.screens').scrollTop = 0;
     
-    if (name === 'map' && noolmap){
+    if (name === 'map'){
       setTimeout(() => {
-        kakao.maps.event.trigger(noolmap, 'resize');
-        const bounds = new kakao.maps.LatLngBounds();
-        bounds.extend(new kakao.maps.LatLng(startPos.lat, startPos.lng));
-        bounds.extend(new kakao.maps.LatLng(NOLGURO.lat, NOLGURO.lng));
-        noolmap.setBounds(bounds);
-      }, 100);
+        if (noolmap) {
+          noolmap.relayout();
+          const bounds = new kakao.maps.LatLngBounds();
+          bounds.extend(new kakao.maps.LatLng(startPos.lat, startPos.lng));
+          bounds.extend(new kakao.maps.LatLng(NOLGURO.lat, NOLGURO.lng));
+          noolmap.setBounds(bounds);
+        }
+      }, 150);
     }
   }
 
@@ -477,7 +482,6 @@
   }
 
   function drawRouteOnMap(map, currentStart) {
-    // 최적경로 선
     new kakao.maps.Polyline({
       map,
       path: [currentStart, DANGER_SPOT, ANGEL_SPOT, DISCOVER_SPOT, NOLGURO]
@@ -488,7 +492,6 @@
       strokeStyle: 'shortdash'
     });
 
-    // 위험 구간 하이라이트
     new kakao.maps.Polyline({
       map,
       path: [DANGER_SPOT, ANGEL_SPOT].map(p => new kakao.maps.LatLng(p.lat, p.lng)),
@@ -497,47 +500,54 @@
       strokeOpacity: 0.95
     });
 
-    // 마커 생성
     createMarker(map, currentStart, '#5BB8DB', 'dot', 26, '출발');
     createMarker(map, NOLGURO, '#5BB8DB', 'dot', 26, '놀구로');
     createMarker(map, DANGER_SPOT, '#E53E3E', 'danger', 30, '위험요소');
     createMarker(map, ANGEL_SPOT, '#F4B942', 'angel', 30, '구로엔젤');
     createMarker(map, DISCOVER_SPOT, '#B5714A', 'factory', 30, '삼대발견');
 
-    // 카카오맵 외부 보행자 길찾기 링크 바인딩
     const naviUrl = `https://map.kakao.com/link/to/신도림놀구로,${NOLGURO.lat},${NOLGURO.lng}/from/내위치,${currentStart.lat},${currentStart.lng}`;
     document.getElementById('kakao-navi-btn').href = naviUrl;
   }
 
   function initMap(){
-    const container = document.getElementById('gmap');
-    const map = new kakao.maps.Map(container, {
-      center: new kakao.maps.LatLng(NOLGURO.lat, NOLGURO.lng),
-      level: 4
-    });
-    map.setZoomable(true);
-    noolmap = map;
+    try {
+      const container = document.getElementById('gmap');
+      const map = new kakao.maps.Map(container, {
+        center: new kakao.maps.LatLng(NOLGURO.lat, NOLGURO.lng),
+        level: 4
+      });
+      map.setZoomable(true);
+      noolmap = map;
 
-    // HTTPS 배포 환경에서 유저 실제 GPS 정보 수신
-    if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          startPos = { lat: pos.coords.latitude, lng: pos.coords.longitude };
-          drawRouteOnMap(map, startPos);
-        },
-        (err) => {
-          drawRouteOnMap(map, startPos);
-        },
-        { enableHighAccuracy: true, timeout: 5000 }
-      );
-    } else {
-      drawRouteOnMap(map, startPos);
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (pos) => {
+            startPos = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+            drawRouteOnMap(map, startPos);
+          },
+          (err) => {
+            drawRouteOnMap(map, startPos);
+          },
+          { enableHighAccuracy: true, timeout: 3000 }
+        );
+      } else {
+        drawRouteOnMap(map, startPos);
+      }
+    } catch (e) {
+      document.getElementById('gmap').innerHTML = '<div style="padding:20px;text-align:center;color:#E53E3E;font-size:12px;font-weight:bold;">지도를 불러올 수 없습니다.<br>카카오 개발자 센터에서 Web 플랫폼 도메인(https://pjy-server.github.io) 등록을 확인해 주세요.</div>';
     }
   }
 </script>
+
+<!-- 전달해주신 카카오 지도 JavaScript 앱 키가 적용되었습니다 -->
 <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=ca9e3c754e327cb6e9f8c55abb2d237e&autoload=false"></script>
 <script>
-  kakao.maps.load(initMap);
+  if (typeof kakao !== 'undefined' && kakao.maps) {
+    kakao.maps.load(initMap);
+  } else {
+    document.getElementById('gmap').innerHTML = '<div style="padding:20px;text-align:center;color:#E53E3E;font-size:12px;font-weight:bold;">카카오 지도 SDK 로드 실패.<br>키 설정 및 카카오 개발자 센터 도메인 등록을 확인하세요.</div>';
+  }
 </script>
 </body>
 </html>
