@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>안전 보행 지도</title>
+  <title>안전 보행 가이드</title>
   
-  <!-- Leaflet CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
-  
+  <!-- 카카오 지도 SDK (발급받으신 JavaScript 키를 넣어주세요) -->
+  <script type="text/javascript" src="//dapi.kakao.com/v2/maps/sdk.js?appkey=ca9e3c754e327cb6e9f8c55abb2d237e&libraries=services"></script>
+
   <style>
     :root {
       --primary-color: #5BB8DB;
@@ -30,7 +30,6 @@
       min-height: 100vh;
     }
 
-    /* 모바일 프레임 컨테이너 */
     .app-container {
       width: 100%;
       max-width: 430px;
@@ -44,7 +43,6 @@
       overflow: hidden;
     }
 
-    /* 화면 스위칭 영역 */
     .screens {
       flex: 1;
       position: relative;
@@ -61,20 +59,59 @@
       display: block;
     }
 
-    /* 지도 영역 */
-    #leaflet-map {
+    #kakao-map {
       width: 100%;
       height: 100%;
-      z-index: 1;
     }
 
-    /* 커스텀 마커 기본 스타일 */
-    .custom-leaflet-icon {
-      background: none;
+    /* 하단 외부 내비게이션 연결 버튼 패널 */
+    .route-action-panel {
+      position: absolute;
+      bottom: 80px;
+      left: 16px;
+      right: 16px;
+      z-index: 10;
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(8px);
+      padding: 14px 16px;
+      border-radius: 16px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .route-info {
+      display: flex;
+      flex-direction: column;
+    }
+    .route-info .title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-color);
+    }
+    .route-info .sub {
+      font-size: 11px;
+      color: #64748B;
+      margin-top: 2px;
+    }
+
+    .navi-btn {
+      background-color: #FEE500; /* 카카오 옐로우 */
+      color: #000000;
       border: none;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: bold;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.08);
     }
 
-    /* 하단 탭 바 */
     .nav-bar {
       height: 65px;
       background-color: #FFFFFF;
@@ -93,7 +130,6 @@
       color: #94A3B8;
       font-size: 12px;
       cursor: pointer;
-      text-decoration: none;
       border: none;
       background: none;
       width: 100%;
@@ -110,36 +146,50 @@
       fill: currentColor;
     }
 
-    /* 홈 스크린 임시 레이아웃 */
     .home-content {
       padding: 24px;
       color: var(--text-color);
     }
-    .home-content h1 {
-      font-size: 22px;
-      margin-bottom: 12px;
+
+    .custom-overlay {
+      background: #FFFFFF;
+      border: 2px solid var(--primary-color);
+      border-radius: 8px;
+      padding: 4px 8px;
+      font-size: 12px;
+      font-weight: bold;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      white-space: nowrap;
     }
   </style>
 </head>
 <body>
 
 <div class="app-container">
-  <!-- 화면 영역들 -->
   <div class="screens">
-    
-    <!-- 1. 홈 화면 -->
+    <!-- 홈 화면 -->
     <div id="screen-home" class="screen active">
       <div class="home-content">
-        <h1>안전 보행 가이드</h1>
-        <p>하단 지도 탭을 누르면 내 위치에서 신도림 놀구로까지의 보행자 전용 경로를 확인하실 수 있습니다.</p>
+        <h1 style="font-size: 22px; margin-bottom: 12px;">안전 보행 가이드</h1>
+        <p>실제 배포용 지도입니다. 지도를 확인하고 바로 길안내를 받아보세요.</p>
       </div>
     </div>
 
-    <!-- 2. 지도 화면 -->
-    <div id="screen-map" class="screen">
-      <div id="leaflet-map"></div>
+    <!-- 지도 화면 -->
+    <div id="screen-map" class="screen" style="position: relative;">
+      <div id="kakao-map"></div>
+      
+      <!-- 하단 바로가기 플로팅 바 -->
+      <div class="route-action-panel">
+        <div class="route-info">
+          <span class="title">신도림 놀구로</span>
+          <span class="sub">추천 안전 보행 경로 안내 중</span>
+        </div>
+        <a id="kakao-navi-link" href="#" target="_blank" class="navi-btn">
+          카카오맵 길찾기
+        </a>
+      </div>
     </div>
-
   </div>
 
   <!-- 하단 탭 바 -->
@@ -155,23 +205,19 @@
   </nav>
 </div>
 
-<!-- Leaflet JS -->
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
-
 <script>
-  let leafletMap = null;
-  let userMarker = null;
-  let routeLine = null;
+  let map = null;
+  let polyline = null;
 
-  // 주요 기준 좌표
-  const NOLGURO           = [37.4977, 126.8878]; // 도착지: 신도림 놀구로
-  const SINMIRIM_BACKGATE = [37.5008, 126.8896]; // 오차 보정용 출발지: 서울신미림초 후문
+  const NOLGURO_LAT = 37.4977;
+  const NOLGURO_LNG = 126.8878;
+  const NOLGURO_LATLNG = new kakao.maps.LatLng(NOLGURO_LAT, NOLGURO_LNG);
+  const SINMIRIM_BACKGATE_LATLNG = new kakao.maps.LatLng(37.5008, 126.8896);
 
-  const DANGER_SPOT   = [37.4995, 126.8883];
-  const ANGEL_SPOT    = [37.4990, 126.8874];
-  const DISCOVER_SPOT = [37.4983, 126.8891];
+  const DANGER_SPOT   = new kakao.maps.LatLng(37.4995, 126.8883);
+  const ANGEL_SPOT    = new kakao.maps.LatLng(37.4990, 126.8874);
+  const DISCOVER_SPOT = new kakao.maps.LatLng(37.4983, 126.8891);
 
-  // 탭 전환 logic
   function go(name){
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById('screen-' + name).classList.add('active');
@@ -179,103 +225,86 @@
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     document.querySelector('.tab[data-tab="' + name + '"]').classList.add('active');
 
-    // 지도가 위치한 탭으로 진입 시 렌더링 영역 크기 재계산
-    if (name === 'map' && leafletMap){
+    if (name === 'map' && map){
       setTimeout(() => {
-        leafletMap.invalidateSize();
+        map.relayout();
       }, 100);
     }
   }
 
-  // Custom SVG 마커 생성기
-  function createCustomIcon(hexColor, glyph) {
-    const glyphs = {
-      danger: '<circle cx="15" cy="15" r="11" fill="' + hexColor + '"/><text x="15" y="19.5" font-size="13" font-weight="800" fill="white" text-anchor="middle" font-family="Pretendard, sans-serif">!</text>',
-      angel:  '<circle cx="15" cy="15" r="11" fill="' + hexColor + '"/><path d="M11 13.5c-2.6 0-3.6 2-3.6 4M19 13.5c2.6 0 3.6 2 3.6 4" stroke="white" stroke-width="1.6" fill="none" stroke-linecap="round" transform="translate(0,-1)"/><circle cx="15" cy="12.5" r="2.6" fill="white"/>',
-      factory:'<circle cx="15" cy="15" r="11" fill="' + hexColor + '"/><path d="M10 18v-5l2.5 1.7v-3.4L15 13v-3.4l2.5 1.7V18H10Z" fill="white"/>',
-      dot:    '<circle cx="15" cy="15" r="8" fill="' + hexColor + '" stroke="white" stroke-width="2"/><circle cx="15" cy="15" r="3" fill="white"/>'
-    };
-    
-    return L.divIcon({
-      html: `<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30">${glyphs[glyph]}</svg>`,
-      className: 'custom-leaflet-icon',
-      iconSize: [30, 30],
-      iconAnchor: [15, 15],
-      popupAnchor: [0, -15]
-    });
-  }
+  function initKakaoMap() {
+    const container = document.getElementById('kakao-map');
+    map = new kakao.maps.Map(container, { center: NOLGURO_LATLNG, level: 3 });
 
-  // 보행자(Foot) 전용 길찾기 API 호출 및 연산
-  async function fetchPedestrianRoute(startLat, startLng, locationName) {
-    const url = `https://router.project-osrm.org/route/v1/foot/${startLng},${startLat};${NOLGURO[1]},${NOLGURO[0]}?overview=full&geometries=geojson`;
+    createMarker(NOLGURO_LATLNG, '도착: 신도림 놀구로');
+    createMarker(DANGER_SPOT, '위험요소: 좁은 골목');
+    createMarker(ANGEL_SPOT, '구로엔젤');
+    createMarker(DISCOVER_SPOT, '삼대발견');
 
-    try {
-      const response = await fetch(url);
-      const data = await response.json();
-
-      if (data.routes && data.routes.length > 0) {
-        // Coordinate conversion ([lng, lat] -> [lat, lng])
-        const coordinates = data.routes[0].geometry.coordinates.map(coord => [coord[1], coord[0]]);
-
-        // 기존 เส้น 지우기
-        if (routeLine) leafletMap.removeLayer(routeLine);
-
-        // 보행자 실선 표시
-        routeLine = L.polyline(coordinates, {
-          color: '#5BB8DB',
-          weight: 6,
-          opacity: 0.9,
-          lineJoin: 'round'
-        }).addTo(leafletMap);
-
-        // 내 위치 마커 찍기
-        if (userMarker) leafletMap.removeLayer(userMarker);
-        userMarker = L.marker([startLat, startLng], { icon: createCustomIcon('#5BB8DB', 'dot') })
-          .addTo(leafletMap)
-          .bindPopup(`<b>${locationName}</b>`)
-          .openPopup();
-
-        // 경로에 맞춰 화면 확대/축소 자동 조절
-        leafletMap.fitBounds(routeLine.getBounds(), { padding: [40, 40] });
-      }
-    } catch (err) {
-      console.error('보행자 경로 계산 실패:', err);
-    }
-  }
-
-  // 지도 초기화
-  function initLeafletMap() {
-    leafletMap = L.map('leaflet-map', { zoomControl: false }).setView(NOLGURO, 15);
-
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      maxZoom: 19,
-      attribution: '&copy; OpenStreetMap'
-    }).addTo(leafletMap);
-
-    // 주요 거점 마커 생성
-    L.marker(NOLGURO, { icon: createCustomIcon('#2E7A99', 'dot') }).addTo(leafletMap).bindPopup('<b>도착: 신도림 놀구로</b>');
-    L.marker(DANGER_SPOT, { icon: createCustomIcon('#E53E3E', 'danger') }).addTo(leafletMap).bindPopup('<b>위험요소:</b> 좁은 골목');
-    L.marker(ANGEL_SPOT, { icon: createCustomIcon('#F4B942', 'angel') }).addTo(leafletMap).bindPopup('<b>구로엔젤:</b> 안전 상주');
-    L.marker(DISCOVER_SPOT, { icon: createCustomIcon('#B5714A', 'factory') }).addTo(leafletMap).bindPopup('<b>삼대발견:</b> 공장 터');
-
-    // 위치 추적 실행
+    // HTTPS 배포 환경에서 유저의 진짜 실시간 GPS 수신
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
-          fetchPedestrianRoute(pos.coords.latitude, pos.coords.longitude, '내 위치');
+          const uLat = pos.coords.latitude;
+          const uLng = pos.coords.longitude;
+          const userLatLng = new kakao.maps.LatLng(uLat, uLng);
+          
+          drawRoute(userLatLng, '내 위치');
+          
+          // 카카오맵 보행자 길찾기 웹/앱 링크 연동
+          const naviLink = `https://map.kakao.com/link/to/신도림 놀구로,${NOLGURO_LAT},${NOLGURO_LNG}/from/내위치,${uLat},${uLng}`;
+          document.getElementById('kakao-navi-link').href = naviLink;
         },
         (err) => {
-          // PC나 GPS 거부 시 기본 안전 위치로 연결
-          fetchPedestrianRoute(SINMIRIM_BACKGATE[0], SINMIRIM_BACKGATE[1], '서울신미림초등학교 후문');
+          drawRoute(SINMIRIM_BACKGATE_LATLNG, '서울신미림초 후문');
+          const naviLink = `https://map.kakao.com/link/to/신도림 놀구로,${NOLGURO_LAT},${NOLGURO_LNG}`;
+          document.getElementById('kakao-navi-link').href = naviLink;
         },
-        { enableHighAccuracy: true, timeout: 5000 }
+        { enableHighAccuracy: true, timeout: 7000 }
       );
     } else {
-      fetchPedestrianRoute(SINMIRIM_BACKGATE[0], SINMIRIM_BACKGATE[1], '서울신미림초등학교 후문');
+      drawRoute(SINMIRIM_BACKGATE_LATLNG, '서울신미림초 후문');
     }
   }
 
-  document.addEventListener('DOMContentLoaded', initLeafletMap);
+  function createMarker(position, title) {
+    new kakao.maps.Marker({ position: position, map: map });
+    new kakao.maps.CustomOverlay({
+      position: position,
+      content: `<div class="custom-overlay">${title}</div>`,
+      yAnchor: 2.3
+    }).setMap(map);
+  }
+
+  function drawRoute(startLatLng, startName) {
+    createMarker(startLatLng, startName);
+
+    const linePath = [
+      startLatLng,
+      new kakao.maps.LatLng(37.5001, 126.8890),
+      new kakao.maps.LatLng(37.4990, 126.8884),
+      NOLGURO_LATLNG
+    ];
+
+    if (polyline) polyline.setMap(null);
+
+    polyline = new kakao.maps.Polyline({
+      path: linePath,
+      strokeWeight: 6,
+      strokeColor: '#5BB8DB',
+      strokeOpacity: 0.9,
+      strokeStyle: 'solid'
+    });
+
+    polyline.setMap(map);
+
+    const bounds = new kakao.maps.LatLngBounds();
+    bounds.extend(startLatLng);
+    bounds.extend(NOLGURO_LATLNG);
+    map.setBounds(bounds);
+  }
+
+  document.addEventListener('DOMContentLoaded', initKakaoMap);
 </script>
 
 </body>
