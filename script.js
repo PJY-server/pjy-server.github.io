@@ -1,15 +1,17 @@
 let map;
 let userMarker;
+let placeMarkers = [];
 
 
 // 지도 시작
 function initMap() {
 
-    // 기본 위치 (서울)
-    map = L.map("map").setView([37.5665, 126.9780], 13);
+    map = L.map("map").setView(
+        [37.5665, 126.9780],
+        13
+    );
 
 
-    // OpenStreetMap 불러오기
     L.tileLayer(
         "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
         {
@@ -18,17 +20,17 @@ function initMap() {
         }
     ).addTo(map);
 
-
 }
 
 
 
-// 내 위치 찾기
+// 내 위치
 function myLocation() {
+
 
     if (!navigator.geolocation) {
 
-        alert("위치 기능을 지원하지 않는 기기입니다.");
+        alert("위치 기능을 지원하지 않습니다.");
         return;
 
     }
@@ -36,61 +38,146 @@ function myLocation() {
 
     navigator.geolocation.getCurrentPosition(
 
-        function(position) {
+        function(position){
 
-            const lat = position.coords.latitude;
-            const lng = position.coords.longitude;
+            let lat = position.coords.latitude;
+            let lng = position.coords.longitude;
 
 
             map.setView(
-                [lat, lng],
+                [lat,lng],
                 16
             );
 
 
-            // 기존 위치 마커 제거
             if(userMarker){
                 map.removeLayer(userMarker);
             }
 
 
             userMarker = L.marker(
-                [lat, lng]
+                [lat,lng]
             )
             .addTo(map)
-            .bindPopup("📍 현재 위치")
+            .bindPopup(
+                "📍 현재 위치"
+            )
             .openPopup();
 
 
         },
 
-
         function(){
 
             alert(
-                "위치를 가져올 수 없습니다."
+                "위치 권한을 허용해주세요."
             );
 
         }
 
     );
 
+
 }
 
 
 
 // 장소 검색
-function searchPlace(keyword) {
+async function searchPlace(keyword){
 
 
-    alert(
-        keyword + " 검색 준비중!"
+    // 기존 마커 삭제
+    placeMarkers.forEach(
+        marker => map.removeLayer(marker)
     );
+
+    placeMarkers = [];
+
+
+
+    let center = map.getCenter();
+
+
+
+    let url =
+    "https://nominatim.openstreetmap.org/search?" +
+    "q=" + encodeURIComponent(keyword) +
+    "&format=json" +
+    "&limit=10" +
+    "&lat=" + center.lat +
+    "&lon=" + center.lng;
+
+
+
+    try{
+
+
+        let response =
+            await fetch(url);
+
+
+        let data =
+            await response.json();
+
+
+
+        if(data.length === 0){
+
+            alert(
+                "검색 결과가 없습니다."
+            );
+
+            return;
+
+        }
+
+
+
+        data.forEach(place=>{
+
+
+            let marker =
+                L.marker(
+                    [
+                        place.lat,
+                        place.lon
+                    ]
+                )
+                .addTo(map)
+                .bindPopup(
+                    "📍 " + place.display_name
+                );
+
+
+            placeMarkers.push(marker);
+
+
+        });
+
+
+
+        map.fitBounds(
+            placeMarkers.map(
+                m=>m.getLatLng()
+            )
+        );
+
+
+
+    }
+    catch(error){
+
+        console.log(error);
+
+        alert(
+            "검색 중 오류 발생"
+        );
+
+    }
 
 
 }
 
 
 
-// 실행
 initMap();
