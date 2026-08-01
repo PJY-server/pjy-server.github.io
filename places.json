@@ -1,0 +1,50 @@
+[
+  {
+    "id": 1,
+    "type": "destination",
+    "name": "신도림 놀구로",
+    "description": "청소년입장지대",
+    "lat": 37.497700,
+    "lng": 126.887800
+  },
+  {
+    "id": 2,
+    "type": "danger",
+    "name": "좁은 골목",
+    "description": "야간 주의",
+    "lat": 37.499500,
+    "lng": 126.888300
+  },
+  {
+    "id": 3,
+    "type": "angel",
+    "name": "구로엔젤",
+    "description": "안전 도우미",
+    "lat": 37.499000,
+    "lng": 126.887400
+  },
+  {
+    "id": 4,
+    "type": "discover",
+    "name": "삼대발견",
+    "description": "공장지대 이야기",
+    "lat": 37.498300,
+    "lng": 126.889100
+  },
+  {
+    "id": 5,
+    "type": "lamp",
+    "name": "가로등",
+    "description": "LED 가로등",
+    "lat": 37.498700,
+    "lng": 126.888700
+  },
+  {
+    "id": 6,
+    "type": "cctv",
+    "name": "CCTV",
+    "description": "방범 CCTV",
+    "lat": 37.499200,
+    "lng": 126.888900
+  }
+]
