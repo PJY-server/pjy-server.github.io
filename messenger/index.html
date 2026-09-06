@@ -1047,6 +1047,65 @@ const supabaseClient =
 
 
 /* ==================================================
+   GOOGLE SHEET 연동 (회원가입 로그)
+================================================== */
+
+/*
+ * 구글 Apps Script 웹앱 배포 후 나오는 URL을
+ * 아래에 그대로 붙여넣으세요.
+ * 예: https://script.google.com/macros/s/AKfycb.../exec
+ */
+
+const GOOGLE_SHEET_URL =
+    "https://script.google.com/macros/s/AKfycbyvsu13mZtCgwqm_vNuzfgQkSNRJ0PEWrr3r-TRkquCGkKkmG3Y-SbfiZ70EXWZfDcz/exec";
+
+
+async function logToGoogleSheet(username, displayName) {
+
+    if (
+        !GOOGLE_SHEET_URL ||
+        GOOGLE_SHEET_URL.includes("여기에_")
+    ) {
+
+        /*
+         * URL을 아직 설정하지 않았다면
+         * 조용히 건너뛴다 (회원가입 자체는 계속 진행).
+         */
+
+        return;
+    }
+
+    try {
+
+        await fetch(GOOGLE_SHEET_URL, {
+            method: "POST",
+            mode: "no-cors",
+            headers: {
+                "Content-Type": "text/plain"
+            },
+            body: JSON.stringify({
+                created_at: new Date().toISOString(),
+                username: username,
+                display_name: displayName
+            })
+        });
+
+    } catch (error) {
+
+        /*
+         * 시트 기록이 실패해도
+         * 회원가입 자체를 막지는 않는다.
+         */
+
+        console.error(
+            "구글 시트 기록 실패:",
+            error
+        );
+    }
+}
+
+
+/* ==================================================
    STATE
 ================================================== */
 
@@ -1396,6 +1455,13 @@ async function signup() {
      * 가입과 동시에 세션이 생겨서 바로 로그인된다.
      * 켜져 있으면 세션이 없고 이메일 확인이 필요하다.
      */
+
+    /*
+     * 가입 성공 시 (세션 유무와 무관하게)
+     * 구글 시트에 기록을 남긴다.
+     */
+
+    await logToGoogleSheet(username, displayName);
 
     if (data.session) {
 
