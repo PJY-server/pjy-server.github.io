@@ -100,6 +100,24 @@ button {
     text-align: center;
     font-size: 14px;
     margin-top: 12px;
+    white-space: pre-line;
+}
+
+.signupLink {
+    text-align: center;
+    color: #67b52f;
+    font-weight: 700;
+    font-size: 14px;
+    margin-top: 16px;
+    cursor: pointer;
+}
+
+.signupLink:hover {
+    text-decoration: underline;
+}
+
+.formHidden {
+    display: none;
 }
 
 /* =========================
@@ -668,7 +686,7 @@ button {
 <body>
 
 <!-- ==================================================
-     LOGIN
+     LOGIN / SIGNUP
 ================================================== -->
 
 <section id="loginScreen">
@@ -679,32 +697,79 @@ button {
             Friends<span>Chat</span>
         </div>
 
-        <div class="loginSub">
+        <div id="authSub" class="loginSub">
             친구들과 편하게 이야기해보세요
         </div>
 
-        <input
-            id="username"
-            type="text"
-            placeholder="아이디"
-            autocomplete="username"
-        >
+        <!-- 로그인 폼 -->
+        <div id="loginFields">
 
-        <input
-            id="password"
-            type="password"
-            placeholder="비밀번호"
-            autocomplete="current-password"
-        >
+            <input
+                id="loginEmail"
+                type="email"
+                placeholder="이메일"
+                autocomplete="username"
+            >
 
-        <button class="loginBtn" onclick="login()">
-            로그인
-        </button>
-        <div class="signupLink" onclick="openSignup()">
-    회원가입
-</div>
+            <input
+                id="loginPassword"
+                type="password"
+                placeholder="비밀번호"
+                autocomplete="current-password"
+            >
 
-        <div id="loginError" class="loginError"></div>
+            <button class="loginBtn" onclick="login()">
+                로그인
+            </button>
+
+            <div class="signupLink" onclick="showSignup()">
+                아직 계정이 없으신가요? 회원가입
+            </div>
+
+        </div>
+
+        <!-- 회원가입 폼 -->
+        <div id="signupFields" class="formHidden">
+
+            <input
+                id="signupEmail"
+                type="email"
+                placeholder="이메일"
+                autocomplete="email"
+            >
+
+            <input
+                id="signupPassword"
+                type="password"
+                placeholder="비밀번호 (6자 이상)"
+                autocomplete="new-password"
+            >
+
+            <input
+                id="signupUsername"
+                type="text"
+                placeholder="아이디 (영문/숫자)"
+                autocomplete="off"
+            >
+
+            <input
+                id="signupDisplayName"
+                type="text"
+                placeholder="닉네임 (표시 이름)"
+                autocomplete="off"
+            >
+
+            <button class="loginBtn" onclick="signup()">
+                가입하기
+            </button>
+
+            <div class="signupLink" onclick="showLogin()">
+                이미 계정이 있으신가요? 로그인
+            </div>
+
+        </div>
+
+        <div id="authError" class="loginError"></div>
 
     </div>
 
@@ -985,7 +1050,10 @@ const supabaseClient =
    STATE
 ================================================== */
 
-let currentUser = null;
+let currentUserId = null;   // auth.users.id
+let currentUser = null;     // profiles.username (기존 코드 호환용)
+let currentProfile = null;  // profiles 전체 row
+
 let currentFriend = null;
 let currentRoom = null;
 
@@ -1006,14 +1074,35 @@ const app =
 const appLayout =
     document.getElementById("appLayout");
 
-const usernameInput =
-    document.getElementById("username");
+const authSub =
+    document.getElementById("authSub");
 
-const passwordInput =
-    document.getElementById("password");
+const loginFields =
+    document.getElementById("loginFields");
 
-const loginError =
-    document.getElementById("loginError");
+const signupFields =
+    document.getElementById("signupFields");
+
+const loginEmailInput =
+    document.getElementById("loginEmail");
+
+const loginPasswordInput =
+    document.getElementById("loginPassword");
+
+const signupEmailInput =
+    document.getElementById("signupEmail");
+
+const signupPasswordInput =
+    document.getElementById("signupPassword");
+
+const signupUsernameInput =
+    document.getElementById("signupUsername");
+
+const signupDisplayNameInput =
+    document.getElementById("signupDisplayName");
+
+const authError =
+    document.getElementById("authError");
 
 const friendList =
     document.getElementById("friendList");
@@ -1137,23 +1226,60 @@ function handleEnter(event) {
 
 
 /* ==================================================
-   LOGIN
+   LOGIN / SIGNUP 화면 전환
+================================================== */
+
+function showLogin() {
+
+    loginFields.classList.remove("formHidden");
+    signupFields.classList.add("formHidden");
+
+    authSub.textContent =
+        "친구들과 편하게 이야기해보세요";
+
+    authError.style.color = "#e53935";
+    authError.textContent = "";
+}
+
+
+function showSignup() {
+
+    loginFields.classList.add("formHidden");
+    signupFields.classList.remove("formHidden");
+
+    authSub.textContent =
+        "이메일로 새 계정을 만들어보세요";
+
+    authError.style.color = "#e53935";
+    authError.textContent = "";
+}
+
+
+/* 기존 코드 호환용 (이전에 남아있던 onclick="openSignup()") */
+function openSignup() {
+    showSignup();
+}
+
+
+/* ==================================================
+   LOGIN (Supabase Auth)
 ================================================== */
 
 async function login() {
 
-    const username =
-        usernameInput.value.trim();
+    const email =
+        loginEmailInput.value.trim();
 
     const password =
-        passwordInput.value;
+        loginPasswordInput.value;
 
-    loginError.textContent = "";
+    authError.style.color = "#e53935";
+    authError.textContent = "";
 
-    if (!username || !password) {
+    if (!email || !password) {
 
-        loginError.textContent =
-            "아이디와 비밀번호를 입력하세요.";
+        authError.textContent =
+            "이메일과 비밀번호를 입력하세요.";
 
         return;
     }
@@ -1161,39 +1287,217 @@ async function login() {
     const {
         data,
         error
+    } = await supabaseClient.auth.signInWithPassword({
+        email,
+        password
+    });
+
+    if (error) {
+
+        console.error(error);
+
+        authError.textContent =
+            "이메일 또는 비밀번호가 올바르지 않습니다.";
+
+        return;
+    }
+
+    const profile =
+        await loadCurrentProfile();
+
+    if (!profile) {
+
+        authError.textContent =
+            "프로필 정보를 불러오지 못했습니다. 관리자에게 문의하세요.";
+
+        await supabaseClient.auth.signOut();
+
+        return;
+    }
+
+    await startApp();
+}
+
+
+/* ==================================================
+   SIGNUP (Supabase Auth)
+================================================== */
+
+async function signup() {
+
+    const email =
+        signupEmailInput.value.trim();
+
+    const password =
+        signupPasswordInput.value;
+
+    const username =
+        signupUsernameInput.value.trim();
+
+    const displayName =
+        signupDisplayNameInput.value.trim() ||
+        username;
+
+    authError.style.color = "#e53935";
+    authError.textContent = "";
+
+    if (!email || !password || !username) {
+
+        authError.textContent =
+            "이메일, 비밀번호, 아이디를 모두 입력하세요.";
+
+        return;
+    }
+
+    if (password.length < 6) {
+
+        authError.textContent =
+            "비밀번호는 6자 이상이어야 합니다.";
+
+        return;
+    }
+
+    const usernamePattern = /^[a-zA-Z0-9_]{3,20}$/;
+
+    if (!usernamePattern.test(username)) {
+
+        authError.textContent =
+            "아이디는 영문/숫자/밑줄로 3~20자로 입력하세요.";
+
+        return;
+    }
+
+    const {
+        data,
+        error
+    } = await supabaseClient.auth.signUp({
+        email,
+        password,
+        options: {
+            data: {
+                username: username,
+                display_name: displayName
+            }
+        }
+    });
+
+    if (error) {
+
+        console.error(error);
+
+        authError.textContent =
+            "회원가입 실패: " + error.message;
+
+        return;
+    }
+
+    /*
+     * 이메일 인증(Confirm email)이 꺼져 있으면
+     * 가입과 동시에 세션이 생겨서 바로 로그인된다.
+     * 켜져 있으면 세션이 없고 이메일 확인이 필요하다.
+     */
+
+    if (data.session) {
+
+        const profile =
+            await loadCurrentProfile();
+
+        if (profile) {
+
+            await startApp();
+
+            return;
+        }
+    }
+
+    authError.style.color = "#2e7d32";
+
+    authError.textContent =
+        "가입 요청이 완료되었습니다.\n" +
+        "이메일 인증이 필요할 수 있어요. 인증 후 로그인해주세요.";
+
+    signupEmailInput.value = "";
+    signupPasswordInput.value = "";
+    signupUsernameInput.value = "";
+    signupDisplayNameInput.value = "";
+
+    showLogin();
+}
+
+
+/* ==================================================
+   현재 로그인한 사용자의 profiles 불러오기
+================================================== */
+
+async function loadCurrentProfile() {
+
+    const {
+        data: userData,
+        error: userError
+    } = await supabaseClient.auth.getUser();
+
+    if (userError || !userData || !userData.user) {
+
+        console.error(userError);
+
+        return null;
+    }
+
+    const authUser = userData.user;
+
+    const {
+        data,
+        error
     } = await supabaseClient
-        .from("chat_users")
-        .select("username")
-        .eq("username", username)
-        .eq("password", password)
+        .from("profiles")
+        .select("*")
+        .eq("id", authUser.id)
         .maybeSingle();
 
     if (error) {
 
         console.error(error);
 
-        loginError.textContent =
-            "로그인 오류가 발생했습니다.";
-
-        return;
+        return null;
     }
 
     if (!data) {
 
-        loginError.textContent =
-            "아이디 또는 비밀번호가 틀렸습니다.";
+        /*
+         * 트리거가 아직 profiles를 만들지 못했을 가능성에 대비해
+         * 한 번 더 시도해본다. (회원가입 직후 타이밍 이슈 대비)
+         */
 
-        return;
+        await new Promise(
+            resolve => setTimeout(resolve, 500)
+        );
+
+        const retry =
+            await supabaseClient
+                .from("profiles")
+                .select("*")
+                .eq("id", authUser.id)
+                .maybeSingle();
+
+        if (retry.error || !retry.data) {
+
+            console.error(retry.error);
+
+            return null;
+        }
+
+        currentUserId = authUser.id;
+        currentUser = retry.data.username;
+        currentProfile = retry.data;
+
+        return retry.data;
     }
 
+    currentUserId = authUser.id;
     currentUser = data.username;
+    currentProfile = data;
 
-    localStorage.setItem(
-        "friendschat_user",
-        currentUser
-    );
-
-    await startApp();
+    return data;
 }
 
 
@@ -1209,10 +1513,15 @@ async function startApp() {
     app.style.display = "block";
 
     myName.textContent =
+        currentProfile.display_name ||
         currentUser;
 
     myAvatar.textContent =
-        currentUser.charAt(0);
+        (
+            currentProfile.display_name ||
+            currentUser ||
+            "?"
+        ).charAt(0);
 
     await loadFriends();
 
@@ -1223,36 +1532,27 @@ async function startApp() {
 
 
 /* ==================================================
-   AUTO LOGIN
+   AUTO LOGIN (Supabase 세션 기반)
 ================================================== */
 
 async function checkAutoLogin() {
 
-    const saved =
-        localStorage.getItem(
-            "friendschat_user"
-        );
-
-    if (!saved) return;
-
     const {
-        data
-    } = await supabaseClient
-        .from("chat_users")
-        .select("username")
-        .eq("username", saved)
-        .maybeSingle();
+        data: sessionData
+    } = await supabaseClient.auth.getSession();
 
-    if (!data) {
-
-        localStorage.removeItem(
-            "friendschat_user"
-        );
+    if (!sessionData || !sessionData.session) {
 
         return;
     }
 
-    currentUser = data.username;
+    const profile =
+        await loadCurrentProfile();
+
+    if (!profile) {
+
+        return;
+    }
 
     await startApp();
 }
@@ -1266,7 +1566,7 @@ checkAutoLogin();
 
 async function setOnline() {
 
-    if (!currentUser) return;
+    if (!currentUserId) return;
 
     await supabaseClient
         .from("profiles")
@@ -1274,13 +1574,13 @@ async function setOnline() {
             status: "online",
             last_seen: new Date().toISOString()
         })
-        .eq("username", currentUser);
+        .eq("id", currentUserId);
 }
 
 
 async function setOffline() {
 
-    if (!currentUser) return;
+    if (!currentUserId) return;
 
     await supabaseClient
         .from("profiles")
@@ -1288,7 +1588,7 @@ async function setOffline() {
             status: "offline",
             last_seen: new Date().toISOString()
         })
-        .eq("username", currentUser);
+        .eq("id", currentUserId);
 }
 
 window.addEventListener(
@@ -2560,20 +2860,22 @@ async function logout() {
         sidebarChannel = null;
     }
 
-    localStorage.removeItem(
-        "friendschat_user"
-    );
+    await supabaseClient.auth.signOut();
 
+    currentUserId = null;
     currentUser = null;
+    currentProfile = null;
     currentFriend = null;
     currentRoom = null;
 
     app.style.display = "none";
     loginScreen.style.display = "flex";
 
-    usernameInput.value = "";
-    passwordInput.value = "";
-    loginError.textContent = "";
+    showLogin();
+
+    loginEmailInput.value = "";
+    loginPasswordInput.value = "";
+    authError.textContent = "";
 
     messageInput.disabled = true;
     sendBtn.disabled = true;
