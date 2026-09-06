@@ -1,0 +1,400 @@
+```html
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+    <meta name="theme-color" content="#ffffff">
+    <meta name="description" content="PJY Server">
+
+    <title>PJY Server</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            margin: 0;
+            background: #f6f7f9;
+            color: #17181a;
+            font-family:
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                "Noto Sans KR",
+                sans-serif;
+        }
+
+        /* 전체 */
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 60px 24px 40px;
+        }
+
+        /* 헤더 */
+
+        header {
+            margin-bottom: 42px;
+        }
+
+        .logo {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+
+            width: 52px;
+            height: 52px;
+
+            margin-bottom: 22px;
+
+            border-radius: 16px;
+
+            background: #17181a;
+            color: white;
+
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: -1px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 38px;
+            font-weight: 800;
+            letter-spacing: -1.8px;
+        }
+
+        .subtitle {
+            margin: 10px 0 0;
+
+            color: #777b82;
+
+            font-size: 16px;
+            font-weight: 500;
+            letter-spacing: -0.3px;
+        }
+
+        /* 서비스 제목 */
+
+        .section-title {
+            margin: 0 0 16px;
+
+            font-size: 15px;
+            font-weight: 700;
+
+            color: #73777d;
+        }
+
+        /* 서비스 목록 */
+
+        .services {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 14px;
+        }
+
+        .service {
+            display: flex;
+            align-items: center;
+
+            min-height: 112px;
+
+            padding: 20px;
+
+            background: white;
+
+            border: 1px solid #e8e9eb;
+            border-radius: 20px;
+
+            text-decoration: none;
+            color: inherit;
+
+            transition:
+                transform 0.15s ease,
+                box-shadow 0.15s ease,
+                border-color 0.15s ease;
+
+            cursor: pointer;
+        }
+
+        .service:hover {
+            transform: translateY(-2px);
+
+            border-color: #dcdfe3;
+
+            box-shadow:
+                0 8px 25px rgba(0, 0, 0, 0.06);
+        }
+
+        .service:active {
+            transform: scale(0.98);
+        }
+
+        .icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            flex-shrink: 0;
+
+            width: 58px;
+            height: 58px;
+
+            margin-right: 16px;
+
+            border-radius: 17px;
+
+            background: #f1f2f4;
+
+            font-size: 27px;
+        }
+
+        .service-info {
+            min-width: 0;
+        }
+
+        .service-name {
+            margin-bottom: 5px;
+
+            font-size: 18px;
+            font-weight: 750;
+            letter-spacing: -0.5px;
+        }
+
+        .service-description {
+            color: #858990;
+
+            font-size: 13px;
+            font-weight: 500;
+
+            line-height: 1.4;
+
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .arrow {
+            margin-left: auto;
+            padding-left: 10px;
+
+            color: #b4b7bc;
+
+            font-size: 20px;
+        }
+
+        /* 준비중 */
+
+        .service.disabled {
+            cursor: default;
+            opacity: 0.55;
+        }
+
+        .service.disabled:hover {
+            transform: none;
+            box-shadow: none;
+            border-color: #e8e9eb;
+        }
+
+        /* 푸터 */
+
+        footer {
+            margin-top: 55px;
+
+            color: #a1a4a9;
+
+            font-size: 12px;
+            text-align: center;
+        }
+
+        /* 모바일 */
+
+        @media (max-width: 600px) {
+
+            .container {
+                padding:
+                    38px 18px
+                    calc(30px + env(safe-area-inset-bottom));
+            }
+
+            header {
+                margin-bottom: 32px;
+            }
+
+            .logo {
+                width: 48px;
+                height: 48px;
+
+                border-radius: 15px;
+
+                font-size: 18px;
+            }
+
+            h1 {
+                font-size: 32px;
+                letter-spacing: -1.5px;
+            }
+
+            .subtitle {
+                font-size: 14px;
+            }
+
+            .services {
+                grid-template-columns: 1fr;
+                gap: 11px;
+            }
+
+            .service {
+                min-height: 94px;
+                padding: 16px;
+                border-radius: 18px;
+            }
+
+            .icon {
+                width: 52px;
+                height: 52px;
+
+                margin-right: 14px;
+
+                border-radius: 15px;
+
+                font-size: 24px;
+            }
+
+            .service-name {
+                font-size: 17px;
+            }
+
+            .service-description {
+                font-size: 12px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <main class="container">
+
+        <!-- 헤더 -->
+        <header>
+            <div class="logo">PJY</div>
+
+            <h1>PJY Server</h1>
+
+            <p class="subtitle">
+                서비스와 프로젝트를 한곳에서
+            </p>
+        </header>
+
+
+        <!-- 서비스 -->
+        <section>
+
+            <h2 class="section-title">SERVICES</h2>
+
+            <div class="services">
+
+                <!-- Messenger -->
+                <a class="service" href="/messenger/">
+
+                    <div class="icon">💬</div>
+
+                    <div class="service-info">
+                        <div class="service-name">
+                            Messenger
+                        </div>
+
+                        <div class="service-description">
+                            친구들과 채팅하기
+                        </div>
+                    </div>
+
+                    <div class="arrow">›</div>
+
+                </a>
+
+
+                <!-- Music -->
+                <a class="service" href="/music/">
+
+                    <div class="icon">🎵</div>
+
+                    <div class="service-info">
+                        <div class="service-name">
+                            Music
+                        </div>
+
+                        <div class="service-description">
+                            음악을 재생하고 관리하기
+                        </div>
+                    </div>
+
+                    <div class="arrow">›</div>
+
+                </a>
+
+
+                <!-- NolMap -->
+                <a class="service" href="/nolmap/">
+
+                    <div class="icon">🗺️</div>
+
+                    <div class="service-info">
+                        <div class="service-name">
+                            NolMap
+                        </div>
+
+                        <div class="service-description">
+                            놀맵
+                        </div>
+                    </div>
+
+                    <div class="arrow">›</div>
+
+                </a>
+
+
+                <!-- 나중에 추가할 서비스 -->
+                <div class="service disabled">
+
+                    <div class="icon">＋</div>
+
+                    <div class="service-info">
+                        <div class="service-name">
+                            Coming Soon
+                        </div>
+
+                        <div class="service-description">
+                            새로운 서비스가 추가될 예정입니다
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- 푸터 -->
+        <footer>
+            PJY Server · 2026
+        </footer>
+
+    </main>
+
+</body>
+</html>
+```
