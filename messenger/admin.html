@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FriendsChat 관리자</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,"Malgun Gothic",sans-serif;background:#f5f7f6;color:#222}
+header{height:64px;background:#fff;border-bottom:1px solid #e5e5e5;display:flex;align-items:center;justify-content:space-between;padding:0 28px}
+.logo{font-size:21px;font-weight:800;color:#35a853}
+.headerRight{display:flex;align-items:center;gap:14px;font-size:14px}
+button{border:0;border-radius:10px;padding:10px 15px;cursor:pointer;font-weight:700}
+.logout{background:#eee;color:#333}
+main{max-width:1100px;margin:28px auto;padding:0 18px}
+h1{margin:0 0 6px;font-size:27px}
+.sub{color:#777;margin-bottom:22px}
+.card{background:#fff;border-radius:16px;border:1px solid #e8e8e8;box-shadow:0 3px 14px rgba(0,0,0,.04);padding:22px;margin-bottom:20px}
+.card h2{margin:0 0 16px;font-size:19px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.stat{background:#f7fbf8;border-radius:13px;padding:18px}
+.stat b{display:block;font-size:27px;margin-top:5px}
+.search{width:100%;padding:12px 14px;border:1px solid #ddd;border-radius:10px;font-size:15px;margin-bottom:15px}
+table{width:100%;border-collapse:collapse}
+th,td{text-align:left;padding:13px 10px;border-bottom:1px solid #eee;font-size:14px}
+th{background:#fafafa;color:#666}
+.badge{display:inline-block;padding:5px 9px;border-radius:999px;font-size:12px;font-weight:700}
+.online{background:#e7f8eb;color:#218838}.offline{background:#eee;color:#777}
+.admin{background:#fff3cd;color:#856404}
+.normal{background:#f0f0f0;color:#666}
+.action{padding:7px 10px;font-size:12px;margin-right:5px;background:#eef7f0;color:#23843a}
+.danger{background:#ffe9e9;color:#c62828}
+#loading{text-align:center;padding:50px;color:#777}
+#error{color:#c62828;background:#fff0f0;padding:14px;border-radius:10px;display:none;margin-bottom:15px}
+#loginBox{max-width:420px;margin:90px auto;background:#fff;padding:28px;border-radius:18px;border:1px solid #e5e5e5}
+#loginBox h1{color:#35a853}
+input[type=email],input[type=password]{width:100%;padding:13px;margin:7px 0;border:1px solid #ddd;border-radius:10px}
+.loginBtn{width:100%;background:#43b95d;color:#fff;margin-top:10px}
+@media(max-width:700px){.stats{grid-template-columns:1fr}th:nth-child(3),td:nth-child(3){display:none}header{padding:0 15px}main{margin-top:18px}.card{padding:15px}}
+</style>
+</head>
+<body>
+
+<div id="loginBox" style="display:none">
+<h1>FriendsChat 관리자</h1>
+<p>관리자 계정으로 로그인하세요.</p>
+<input id="email" type="email" placeholder="이메일">
+<input id="password" type="password" placeholder="비밀번호">
+<button class="loginBtn" onclick="login()">관리자 로그인</button>
+<div id="loginError" style="color:#c62828;margin-top:12px"></div>
+</div>
+
+<div id="adminPage" style="display:none">
+<header>
+<div class="logo">FriendsChat 관리자</div>
+<div class="headerRight">
+<span id="adminName"></span>
+<button class="logout" onclick="logout()">로그아웃</button>
+</div>
+</header>
+
+<main>
+<h1>관리자 페이지</h1>
+<div class="sub">회원과 관리자 권한을 관리합니다.</div>
+<div id="error"></div>
+
+<div class="card">
+<h2>회원 현황</h2>
+<div class="stats">
+<div class="stat">전체 회원<b id="total">0</b></div>
+<div class="stat">온라인<b id="onlineCount">0</b></div>
+<div class="stat">관리자<b id="adminCount">0</b></div>
+</div>
+</div>
+
+<div class="card">
+<h2>회원 관리</h2>
+<input class="search" id="search" placeholder="아이디 또는 이름 검색" oninput="renderUsers()">
+<div style="overflow-x:auto">
+<table>
+<thead><tr><th>이름</th><th>아이디</th><th>상태</th><th>권한</th><th>관리</th></tr></thead>
+<tbody id="userTable"></tbody>
+</table>
+</div>
+<div id="loading">회원 정보를 불러오는 중...</div>
+</div>
+</main>
+</div>
+
+<script>
+const SUPABASE_URL="https://qtprsnwbeqwuzqpnlxot.supabase.co";
+const SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF0cHJzbndiZXF3dXpxcG5seG90Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzNTIwNjksImV4cCI6MjEwMzkyODA2OX0.O39oJfWYgvI2O40EcI4cgw3yM1HNrvz0n--CXiKMThM";
+const supabaseClient=supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);
+
+let users=[];
+let me=null;
+
+async function init(){
+  const {data:{session}}=await supabaseClient.auth.getSession();
+  if(!session){showLogin();return}
+  await checkAdmin(session.user);
+}
+
+async function checkAdmin(user){
+  const {data,error}=await supabaseClient.from("profiles")
+    .select("id,username,display_name,is_admin")
+    .eq("id",user.id).maybeSingle();
+
+  if(error){showError(error.message);return}
+  if(!data || !data.is_admin){
+    document.body.innerHTML='<div id="loginBox" style="display:block"><h1>접근 거부</h1><p>관리자 권한이 없습니다.</p><button onclick="logout()">로그아웃</button></div>';
+    return;
+  }
+
+  me=data;
+  document.getElementById("adminName").textContent=data.display_name+" 관리자";
+  document.getElementById("adminPage").style.display="block";
+  await loadUsers();
+}
+
+function showLogin(){
+  document.getElementById("loginBox").style.display="block";
+}
+
+async function login(){
+  const email=document.getElementById("email").value.trim();
+  const password=document.getElementById("password").value;
+  document.getElementById("loginError").textContent="";
+  if(!email||!password){
+    document.getElementById("loginError").textContent="이메일과 비밀번호를 입력하세요.";
+    return;
+  }
+  const {data,error}=await supabaseClient.auth.signInWithPassword({email,password});
+  if(error){
+    document.getElementById("loginError").textContent="로그인 실패: "+error.message;
+    return;
+  }
+  await checkAdmin(data.user);
+}
+
+async function loadUsers(){
+  document.getElementById("loading").style.display="block";
+  const {data,error}=await supabaseClient.from("profiles")
+    .select("id,username,display_name,status,last_seen,is_admin")
+    .order("display_name");
+  document.getElementById("loading").style.display="none";
+  if(error){showError(error.message);return}
+  users=data||[];
+  updateStats();
+  renderUsers();
+}
+
+function updateStats(){
+  document.getElementById("total").textContent=users.length;
+  document.getElementById("onlineCount").textContent=users.filter(u=>u.status==="online").length;
+  document.getElementById("adminCount").textContent=users.filter(u=>u.is_admin).length;
+}
+
+function renderUsers(){
+  const q=document.getElementById("search").value.trim().toLowerCase();
+  const rows=users.filter(u=>
+    (u.username||"").toLowerCase().includes(q) ||
+    (u.display_name||"").toLowerCase().includes(q)
+  );
+  document.getElementById("userTable").innerHTML=rows.map(u=>`
+    <tr>
+      <td>${esc(u.display_name)}</td>
+      <td>${esc(u.username)}</td>
+      <td><span class="badge ${u.status==="online"?"online":"offline"}">${u.status==="online"?"온라인":"오프라인"}</span></td>
+      <td><span class="badge ${u.is_admin?"admin":"normal"}">${u.is_admin?"관리자":"일반 회원"}</span></td>
+      <td>
+        ${u.id===me.id
+          ? '<span style="color:#999;font-size:12px">현재 계정</span>'
+          : `<button class="action" onclick="toggleAdmin('${u.id}',${!!u.is_admin})">${u.is_admin?"관리자 해제":"관리자 지정"}</button>
+             <button class="action danger" onclick="deleteProfile('${u.id}','${escAttr(u.display_name)}')">프로필 삭제</button>`}
+      </td>
+    </tr>`).join("");
+}
+
+async function toggleAdmin(id,current){
+  if(!confirm(current?"관리자 권한을 해제할까요?":"이 회원을 관리자로 지정할까요?"))return;
+  const {error}=await supabaseClient.from("profiles").update({is_admin:!current}).eq("id",id);
+  if(error){showError("권한 변경 실패: "+error.message);return}
+  await loadUsers();
+}
+
+async function deleteProfile(id,name){
+  alert("현재 브라우저에서는 Supabase Auth 사용자를 안전하게 삭제할 수 없습니다. 프로필만 삭제하면 인증 계정이 남을 수 있어 이 기능은 비활성화했습니다.");
+}
+
+async function logout(){
+  await supabaseClient.auth.signOut();
+  location.reload();
+}
+
+function showError(msg){
+  const e=document.getElementById("error");
+  e.textContent=msg;e.style.display="block";
+}
+function esc(v){return String(v??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;")}
+function escAttr(v){return esc(v).replaceAll("\n"," ")}
+
+init();
+</script>
+</body>
+</html>
