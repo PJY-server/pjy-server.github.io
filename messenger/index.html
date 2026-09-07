@@ -705,9 +705,9 @@ button {
         <div id="loginFields">
 
             <input
-                id="loginEmail"
-                type="email"
-                placeholder="이메일"
+                id="loginNickname"
+                type="text"
+                placeholder="닉네임"
                 autocomplete="username"
             >
 
@@ -732,10 +732,10 @@ button {
         <div id="signupFields" class="formHidden">
 
             <input
-                id="signupEmail"
-                type="email"
-                placeholder="이메일"
-                autocomplete="email"
+                id="signupNickname"
+                type="text"
+                placeholder="닉네임"
+                autocomplete="off"
             >
 
             <input
@@ -743,20 +743,6 @@ button {
                 type="password"
                 placeholder="비밀번호 (6자 이상)"
                 autocomplete="new-password"
-            >
-
-            <input
-                id="signupUsername"
-                type="text"
-                placeholder="아이디 (영문/숫자)"
-                autocomplete="off"
-            >
-
-            <input
-                id="signupDisplayName"
-                type="text"
-                placeholder="닉네임 (표시 이름)"
-                autocomplete="off"
             >
 
             <button class="loginBtn" onclick="signup()">
@@ -1142,23 +1128,17 @@ const loginFields =
 const signupFields =
     document.getElementById("signupFields");
 
-const loginEmailInput =
-    document.getElementById("loginEmail");
+const loginNicknameInput =
+    document.getElementById("loginNickname");
 
 const loginPasswordInput =
     document.getElementById("loginPassword");
 
-const signupEmailInput =
-    document.getElementById("signupEmail");
+const signupNicknameInput =
+    document.getElementById("signupNickname");
 
 const signupPasswordInput =
     document.getElementById("signupPassword");
-
-const signupUsernameInput =
-    document.getElementById("signupUsername");
-
-const signupDisplayNameInput =
-    document.getElementById("signupDisplayName");
 
 const authError =
     document.getElementById("authError");
@@ -1307,7 +1287,7 @@ function showSignup() {
     signupFields.classList.remove("formHidden");
 
     authSub.textContent =
-        "이메일로 새 계정을 만들어보세요";
+        "닉네임과 비밀번호로 새 계정을 만들어보세요";
 
     authError.style.color = "#e53935";
     authError.textContent = "";
@@ -1321,13 +1301,43 @@ function openSignup() {
 
 
 /* ==================================================
+   닉네임 ↔ 이메일 변환
+   (Supabase Auth는 내부적으로 이메일이 필요하므로
+    닉네임을 바탕으로 항상 같은 값이 나오는
+    가짜 이메일을 만들어서 사용한다. 사용자는
+    이 사실을 몰라도 되고, 닉네임+비밀번호만 입력한다.)
+================================================== */
+
+const FAKE_EMAIL_DOMAIN = "friendschat.app";
+
+function nicknameToEmail(nickname) {
+
+    const bytes =
+        new TextEncoder().encode(
+            nickname.trim().toLowerCase()
+        );
+
+    let hex = "";
+
+    bytes.forEach(byte => {
+
+        hex += byte
+            .toString(16)
+            .padStart(2, "0");
+    });
+
+    return "u" + hex + "@" + FAKE_EMAIL_DOMAIN;
+}
+
+
+/* ==================================================
    LOGIN (Supabase Auth)
 ================================================== */
 
 async function login() {
 
-    const email =
-        loginEmailInput.value.trim();
+    const nickname =
+        loginNicknameInput.value.trim();
 
     const password =
         loginPasswordInput.value;
@@ -1335,13 +1345,16 @@ async function login() {
     authError.style.color = "#e53935";
     authError.textContent = "";
 
-    if (!email || !password) {
+    if (!nickname || !password) {
 
         authError.textContent =
-            "이메일과 비밀번호를 입력하세요.";
+            "닉네임과 비밀번호를 입력하세요.";
 
         return;
     }
+
+    const email =
+        nicknameToEmail(nickname);
 
     const {
         data,
@@ -1356,7 +1369,7 @@ async function login() {
         console.error(error);
 
         authError.textContent =
-            "이메일 또는 비밀번호가 올바르지 않습니다.";
+            "닉네임 또는 비밀번호가 올바르지 않습니다.";
 
         return;
     }
@@ -1384,26 +1397,27 @@ async function login() {
 
 async function signup() {
 
-    const email =
-        signupEmailInput.value.trim();
+    const nickname =
+        signupNicknameInput.value.trim();
 
     const password =
         signupPasswordInput.value;
 
-    const username =
-        signupUsernameInput.value.trim();
-
-    const displayName =
-        signupDisplayNameInput.value.trim() ||
-        username;
-
     authError.style.color = "#e53935";
     authError.textContent = "";
 
-    if (!email || !password || !username) {
+    if (!nickname || !password) {
 
         authError.textContent =
-            "이메일, 비밀번호, 아이디를 모두 입력하세요.";
+            "닉네임과 비밀번호를 입력하세요.";
+
+        return;
+    }
+
+    if (nickname.length < 2 || nickname.length > 20) {
+
+        authError.textContent =
+            "닉네임은 2~20자로 입력하세요.";
 
         return;
     }
@@ -1416,15 +1430,8 @@ async function signup() {
         return;
     }
 
-    const usernamePattern = /^[a-zA-Z0-9_]{3,20}$/;
-
-    if (!usernamePattern.test(username)) {
-
-        authError.textContent =
-            "아이디는 영문/숫자/밑줄로 3~20자로 입력하세요.";
-
-        return;
-    }
+    const email =
+        nicknameToEmail(nickname);
 
     const {
         data,
@@ -1434,8 +1441,8 @@ async function signup() {
         password,
         options: {
             data: {
-                username: username,
-                display_name: displayName
+                username: nickname,
+                display_name: nickname
             }
         }
     });
@@ -1444,8 +1451,20 @@ async function signup() {
 
         console.error(error);
 
-        authError.textContent =
-            "회원가입 실패: " + error.message;
+        if (
+            String(error.message || "")
+                .toLowerCase()
+                .includes("already registered")
+        ) {
+
+            authError.textContent =
+                "이미 사용 중인 닉네임입니다.";
+
+        } else {
+
+            authError.textContent =
+                "회원가입 실패: " + error.message;
+        }
 
         return;
     }
@@ -1453,15 +1472,16 @@ async function signup() {
     /*
      * 이메일 인증(Confirm email)이 꺼져 있으면
      * 가입과 동시에 세션이 생겨서 바로 로그인된다.
-     * 켜져 있으면 세션이 없고 이메일 확인이 필요하다.
+     * 켜져 있으면 세션이 없고 (가짜 이메일이라
+     * 실제로 인증 메일을 받을 수 없으므로) 반드시
+     * Confirm email 설정을 꺼두어야 한다.
      */
 
     /*
-     * 가입 성공 시 (세션 유무와 무관하게)
-     * 구글 시트에 기록을 남긴다.
+     * 가입 성공 시 구글 시트에 기록을 남긴다.
      */
 
-    await logToGoogleSheet(username, displayName);
+    await logToGoogleSheet(nickname, nickname);
 
     if (data.session) {
 
@@ -1479,13 +1499,10 @@ async function signup() {
     authError.style.color = "#2e7d32";
 
     authError.textContent =
-        "가입 요청이 완료되었습니다.\n" +
-        "이메일 인증이 필요할 수 있어요. 인증 후 로그인해주세요.";
+        "가입 요청이 완료되었습니다.\n로그인해주세요.";
 
-    signupEmailInput.value = "";
+    signupNicknameInput.value = "";
     signupPasswordInput.value = "";
-    signupUsernameInput.value = "";
-    signupDisplayNameInput.value = "";
 
     showLogin();
 }
@@ -2939,7 +2956,7 @@ async function logout() {
 
     showLogin();
 
-    loginEmailInput.value = "";
+    loginNicknameInput.value = "";
     loginPasswordInput.value = "";
     authError.textContent = "";
 
