@@ -1,0 +1,14 @@
+[
+  {
+    "username": "admin",
+    "password": "jyoon*3177",
+    "display_name": "admin",
+    "is_admin": true
+  },
+  {
+    "username": "test",
+    "password": "1234",
+    "display_name": "test",
+    "is_admin": false
+  }
+]
