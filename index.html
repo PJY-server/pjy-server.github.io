@@ -1,398 +1,3011 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-
-    <meta name="theme-color" content="#ffffff">
-    <meta name="description" content="PJY Server">
-
-    <title>PJY Server</title>
-
-    <style>
-        * {
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        html {
-            scroll-behavior: smooth;
-        }
-
-        body {
-            margin: 0;
-            background: #f6f7f9;
-            color: #17181a;
-            font-family:
-                -apple-system,
-                BlinkMacSystemFont,
-                "Segoe UI",
-                "Noto Sans KR",
-                sans-serif;
-        }
-
-        /* 전체 */
-
-        .container {
-            width: 100%;
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 60px 24px 40px;
-        }
-
-        /* 헤더 */
-
-        header {
-            margin-bottom: 42px;
-        }
-
-        .logo {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-
-            width: 52px;
-            height: 52px;
-
-            margin-bottom: 22px;
-
-            border-radius: 16px;
-
-            background: #17181a;
-            color: white;
-
-            font-size: 20px;
-            font-weight: 800;
-            letter-spacing: -1px;
-        }
-
-        h1 {
-            margin: 0;
-            font-size: 38px;
-            font-weight: 800;
-            letter-spacing: -1.8px;
-        }
-
-        .subtitle {
-            margin: 10px 0 0;
-
-            color: #777b82;
-
-            font-size: 16px;
-            font-weight: 500;
-            letter-spacing: -0.3px;
-        }
-
-        /* 서비스 제목 */
-
-        .section-title {
-            margin: 0 0 16px;
-
-            font-size: 15px;
-            font-weight: 700;
-
-            color: #73777d;
-        }
-
-        /* 서비스 목록 */
-
-        .services {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 14px;
-        }
-
-        .service {
-            display: flex;
-            align-items: center;
-
-            min-height: 112px;
-
-            padding: 20px;
-
-            background: white;
-
-            border: 1px solid #e8e9eb;
-            border-radius: 20px;
-
-            text-decoration: none;
-            color: inherit;
-
-            transition:
-                transform 0.15s ease,
-                box-shadow 0.15s ease,
-                border-color 0.15s ease;
-
-            cursor: pointer;
-        }
-
-        .service:hover {
-            transform: translateY(-2px);
-
-            border-color: #dcdfe3;
-
-            box-shadow:
-                0 8px 25px rgba(0, 0, 0, 0.06);
-        }
-
-        .service:active {
-            transform: scale(0.98);
-        }
-
-        .icon {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-
-            flex-shrink: 0;
-
-            width: 58px;
-            height: 58px;
-
-            margin-right: 16px;
-
-            border-radius: 17px;
-
-            background: #f1f2f4;
-
-            font-size: 27px;
-        }
-
-        .service-info {
-            min-width: 0;
-        }
-
-        .service-name {
-            margin-bottom: 5px;
-
-            font-size: 18px;
-            font-weight: 750;
-            letter-spacing: -0.5px;
-        }
-
-        .service-description {
-            color: #858990;
-
-            font-size: 13px;
-            font-weight: 500;
-
-            line-height: 1.4;
-
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        .arrow {
-            margin-left: auto;
-            padding-left: 10px;
-
-            color: #b4b7bc;
-
-            font-size: 20px;
-        }
-
-        /* 준비중 */
-
-        .service.disabled {
-            cursor: default;
-            opacity: 0.55;
-        }
-
-        .service.disabled:hover {
-            transform: none;
-            box-shadow: none;
-            border-color: #e8e9eb;
-        }
-
-        /* 푸터 */
-
-        footer {
-            margin-top: 55px;
-
-            color: #a1a4a9;
-
-            font-size: 12px;
-            text-align: center;
-        }
-
-        /* 모바일 */
-
-        @media (max-width: 600px) {
-
-            .container {
-                padding:
-                    38px 18px
-                    calc(30px + env(safe-area-inset-bottom));
-            }
-
-            header {
-                margin-bottom: 32px;
-            }
-
-            .logo {
-                width: 48px;
-                height: 48px;
-
-                border-radius: 15px;
-
-                font-size: 18px;
-            }
-
-            h1 {
-                font-size: 32px;
-                letter-spacing: -1.5px;
-            }
-
-            .subtitle {
-                font-size: 14px;
-            }
-
-            .services {
-                grid-template-columns: 1fr;
-                gap: 11px;
-            }
-
-            .service {
-                min-height: 94px;
-                padding: 16px;
-                border-radius: 18px;
-            }
-
-            .icon {
-                width: 52px;
-                height: 52px;
-
-                margin-right: 14px;
-
-                border-radius: 15px;
-
-                font-size: 24px;
-            }
-
-            .service-name {
-                font-size: 17px;
-            }
-
-            .service-description {
-                font-size: 12px;
-            }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+<title>FriendsChat</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+        "Noto Sans KR", sans-serif;
+    background: #f5f7fa;
+    color: #222;
+}
+
+button,
+input {
+    font: inherit;
+}
+
+button {
+    border: 0;
+    cursor: pointer;
+}
+
+/* =========================
+   LOGIN
+========================= */
+
+#loginScreen {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 25px;
+    background: linear-gradient(135deg, #dff8c8, #f5fff0);
+}
+
+.loginBox {
+    width: 100%;
+    max-width: 390px;
+    background: white;
+    border-radius: 24px;
+    padding: 32px 25px;
+    box-shadow: 0 12px 35px rgba(0,0,0,.1);
+}
+
+.logo {
+    text-align: center;
+    font-size: 34px;
+    font-weight: 800;
+    margin-bottom: 8px;
+}
+
+.logo span {
+    color: #67b52f;
+}
+
+.loginSub {
+    text-align: center;
+    color: #777;
+    margin-bottom: 28px;
+}
+
+.loginBox input {
+    width: 100%;
+    height: 52px;
+    border: 1px solid #ddd;
+    border-radius: 14px;
+    padding: 0 15px;
+    margin-bottom: 12px;
+    outline: none;
+}
+
+.loginBox input:focus {
+    border-color: #78c83f;
+}
+
+.loginBtn {
+    width: 100%;
+    height: 52px;
+    border-radius: 14px;
+    background: #78c83f;
+    color: white;
+    font-weight: 700;
+}
+
+.loginError {
+    min-height: 22px;
+    color: #e53935;
+    text-align: center;
+    font-size: 14px;
+    margin-top: 12px;
+    white-space: pre-line;
+}
+
+.signupLink {
+    text-align: center;
+    color: #67b52f;
+    font-weight: 700;
+    font-size: 14px;
+    margin-top: 16px;
+    cursor: pointer;
+}
+
+.signupLink:hover {
+    text-decoration: underline;
+}
+
+.formHidden {
+    display: none;
+}
+
+/* =========================
+   APP
+========================= */
+
+#app {
+    display: none;
+    height: 100vh;
+    overflow: hidden;
+}
+
+.appLayout {
+    height: 100%;
+    display: flex;
+}
+
+/* =========================
+   SIDEBAR
+========================= */
+
+.sidebar {
+    width: 310px;
+    background: white;
+    border-right: 1px solid #e9e9e9;
+    display: flex;
+    flex-direction: column;
+}
+
+.sideTop {
+    height: 72px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 18px;
+    border-bottom: 1px solid #eee;
+}
+
+.sideTitle {
+    font-size: 23px;
+    font-weight: 800;
+}
+
+.profileMini {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 18px;
+    border-bottom: 1px solid #eee;
+}
+
+.avatar {
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: #dff5c8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.profileName {
+    font-weight: 700;
+}
+
+.profileStatus {
+    color: #777;
+    font-size: 13px;
+    margin-top: 3px;
+}
+
+.friendTitle {
+    padding: 17px 18px 8px;
+    color: #888;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.friendList {
+    overflow-y: auto;
+    flex: 1;
+}
+
+.friend,
+.groupRoom {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 13px 18px;
+    cursor: pointer;
+}
+
+.friend:hover,
+.groupRoom:hover {
+    background: #f5f7f5;
+}
+
+.friend.active,
+.groupRoom.active {
+    background: #eaf8df;
+}
+
+.friendInfo {
+    flex: 1;
+    min-width: 0;
+}
+
+.friendName {
+    font-weight: 700;
+}
+
+.friendLast {
+    font-size: 13px;
+    color: #999;
+    margin-top: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.onlineDot,
+.offlineDot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    border: 2px solid white;
+}
+
+.onlineDot {
+    background: #4caf50;
+}
+
+.offlineDot {
+    background: #bbb;
+}
+
+.sectionHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 17px 18px 8px;
+    color: #888;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.addGroupBtn {
+    width: 30px;
+    height: 30px;
+    border-radius: 9px;
+    background: #78c83f;
+    color: white;
+    font-size: 20px;
+    line-height: 30px;
+}
+
+.logoutBtn {
+    margin: 14px;
+    height: 44px;
+    border-radius: 12px;
+    background: #f1f1f1;
+    color: #555;
+}
+
+/* =========================
+   CHAT
+========================= */
+
+.chat {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.chatHeader {
+    height: 72px;
+    background: white;
+    border-bottom: 1px solid #eee;
+    display: flex;
+    align-items: center;
+    padding: 0 20px;
+    gap: 12px;
+}
+
+.mobileBack {
+    display: none;
+    background: transparent;
+    font-size: 28px;
+}
+
+.chatUserName {
+    font-weight: 800;
+    font-size: 18px;
+}
+
+.chatUserStatus {
+    color: #888;
+    font-size: 12px;
+    margin-top: 3px;
+}
+
+.messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    background: #edf1f4;
+}
+
+.emptyChat {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #999;
+    text-align: center;
+}
+
+.messageRow {
+    display: flex;
+    margin-bottom: 10px;
+}
+
+.messageRow.mine {
+    justify-content: flex-end;
+}
+
+.messageRow.other {
+    justify-content: flex-start;
+}
+
+.messageBubble {
+    max-width: min(72%, 520px);
+}
+
+.sender {
+    font-size: 12px;
+    color: #777;
+    margin-bottom: 4px;
+}
+
+.mine .sender {
+    text-align: right;
+}
+
+.bubble {
+    display: inline-block;
+    padding: 10px 13px;
+    border-radius: 17px;
+    background: white;
+    line-height: 1.4;
+    word-break: break-word;
+    box-shadow: 0 1px 2px rgba(0,0,0,.05);
+}
+
+.mine .bubble {
+    background: #8ed653;
+    color: white;
+}
+
+.messageMeta {
+    font-size: 10px;
+    color: #888;
+    margin-top: 3px;
+}
+
+.mine .messageMeta {
+    text-align: right;
+}
+
+/* =========================
+   FILE ATTACHMENT
+========================= */
+
+.attachment {
+    margin-top: 5px;
+}
+
+.attachmentImage {
+    display: block;
+    max-width: 280px;
+    max-height: 320px;
+    border-radius: 13px;
+    object-fit: contain;
+    cursor: pointer;
+    background: #f1f1f1;
+}
+
+.fileLink {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: #f4f4f4;
+    color: #333;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 600;
+    max-width: 280px;
+}
+
+.mine .fileLink {
+    background: rgba(255,255,255,.9);
+    color: #333;
+}
+
+.fileName {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.uploadStatus {
+    position: fixed;
+    left: 50%;
+    bottom: 85px;
+    transform: translateX(-50%);
+    display: none;
+    background: rgba(0,0,0,.78);
+    color: white;
+    padding: 11px 17px;
+    border-radius: 20px;
+    font-size: 13px;
+    z-index: 200;
+}
+
+/* =========================
+   INPUT
+========================= */
+
+.inputArea {
+    background: white;
+    padding: 12px;
+    border-top: 1px solid #eee;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.emojiBtn,
+.attachBtn {
+    width: 42px;
+    height: 42px;
+    border-radius: 12px;
+    background: #f3f3f3;
+    font-size: 20px;
+    flex-shrink: 0;
+}
+
+.messageInput {
+    flex: 1;
+    min-width: 0;
+    height: 42px;
+    border: 1px solid #ddd;
+    border-radius: 15px;
+    padding: 0 13px;
+    outline: none;
+}
+
+.sendBtn {
+    width: 60px;
+    height: 42px;
+    border-radius: 13px;
+    background: #78c83f;
+    color: white;
+    font-weight: 700;
+}
+
+.sendBtn:disabled {
+    background: #ccc;
+}
+
+/* =========================
+   EMOJI
+========================= */
+
+.emojiPanel {
+    display: none;
+    position: absolute;
+    bottom: 70px;
+    left: 10px;
+    background: white;
+    width: 280px;
+    padding: 12px;
+    border-radius: 16px;
+    box-shadow: 0 8px 30px rgba(0,0,0,.18);
+    z-index: 10;
+}
+
+.emojiGrid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 5px;
+}
+
+.emojiGrid button {
+    background: transparent;
+    font-size: 23px;
+    padding: 5px;
+}
+
+/* =========================
+   MODAL
+========================= */
+
+.modalOverlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,.42);
+    z-index: 100;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.modal {
+    width: 100%;
+    max-width: 430px;
+    background: white;
+    border-radius: 22px;
+    padding: 24px;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+.modalTitle {
+    font-size: 22px;
+    font-weight: 800;
+    margin-bottom: 18px;
+}
+
+.modalInput {
+    width: 100%;
+    height: 48px;
+    border: 1px solid #ddd;
+    border-radius: 13px;
+    padding: 0 14px;
+    outline: none;
+    margin-bottom: 15px;
+}
+
+.selectTitle {
+    font-size: 14px;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.memberList {
+    border: 1px solid #eee;
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+.memberItem {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+}
+
+.memberItem:last-child {
+    border-bottom: 0;
+}
+
+.memberItem input {
+    width: 20px;
+    height: 20px;
+}
+
+.memberAvatar {
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: #e4f6d4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+}
+
+.memberName {
+    flex: 1;
+    font-weight: 600;
+}
+
+.modalButtons {
+    display: flex;
+    gap: 8px;
+    margin-top: 18px;
+}
+
+.modalCancel,
+.modalCreate {
+    flex: 1;
+    height: 48px;
+    border-radius: 13px;
+    font-weight: 700;
+}
+
+.modalCancel {
+    background: #eee;
+    color: #555;
+}
+
+.modalCreate {
+    background: #78c83f;
+    color: white;
+}
+
+.modalError {
+    color: #e53935;
+    font-size: 13px;
+    min-height: 18px;
+    margin-top: 8px;
+}
+
+/* =========================
+   MOBILE
+========================= */
+
+@media (max-width: 700px) {
+
+    .sidebar {
+        width: 100%;
+    }
+
+    .chat {
+        display: none;
+        width: 100%;
+    }
+
+    .appLayout.chatOpen .sidebar {
+        display: none;
+    }
+
+    .appLayout.chatOpen .chat {
+        display: flex;
+    }
+
+    .mobileBack {
+        display: block;
+    }
+
+    .messageBubble {
+        max-width: 82%;
+    }
+
+    .attachmentImage {
+        max-width: 240px;
+        max-height: 280px;
+    }
+
+    .fileLink {
+        max-width: 240px;
+    }
+}
+</style>
 </head>
 
 <body>
 
-    <main class="container">
+<!-- ==================================================
+     LOGIN / SIGNUP
+================================================== -->
 
-        <!-- 헤더 -->
-        <header>
-            <div class="logo">PJY</div>
+<section id="loginScreen">
 
-            <h1>PJY Server</h1>
+    <div class="loginBox">
 
-            <p class="subtitle">
-                서비스와 프로젝트를 한곳에서
-            </p>
-        </header>
+        <div class="logo">
+            Friends<span>Chat</span>
+        </div>
+
+        <div id="authSub" class="loginSub">
+            친구들과 편하게 이야기해보세요
+        </div>
+
+        <!-- 로그인 폼 -->
+        <div id="loginFields">
+
+            <input
+                id="loginNickname"
+                type="text"
+                placeholder="닉네임"
+                autocomplete="username"
+            >
+
+            <input
+                id="loginPassword"
+                type="password"
+                placeholder="비밀번호"
+                autocomplete="current-password"
+            >
+
+            <button class="loginBtn" onclick="login()">
+                로그인
+            </button>
+
+            <div class="signupLink" onclick="showSignup()">
+                아직 계정이 없으신가요? 회원가입
+            </div>
+
+        </div>
+
+        <!-- 회원가입 폼 -->
+        <div id="signupFields" class="formHidden">
+
+            <input
+                id="signupNickname"
+                type="text"
+                placeholder="닉네임"
+                autocomplete="off"
+            >
+
+            <input
+                id="signupPassword"
+                type="password"
+                placeholder="비밀번호 (6자 이상)"
+                autocomplete="new-password"
+            >
+
+            <button class="loginBtn" onclick="signup()">
+                가입하기
+            </button>
+
+            <div class="signupLink" onclick="showLogin()">
+                이미 계정이 있으신가요? 로그인
+            </div>
+
+        </div>
+
+        <div id="authError" class="loginError"></div>
+
+    </div>
+
+</section>
 
 
-        <!-- 서비스 -->
-        <section>
+<!-- ==================================================
+     APP
+================================================== -->
 
-            <h2 class="section-title">SERVICES</h2>
+<section id="app">
 
-            <div class="services">
+    <div id="appLayout" class="appLayout">
 
-                <!-- Messenger -->
-                <a class="service" href="/messenger/">
+        <aside class="sidebar">
 
-                    <div class="icon">💬</div>
+            <div class="sideTop">
+                <div class="sideTitle">
+                    친구
+                </div>
+            </div>
 
-                    <div class="service-info">
-                        <div class="service-name">
-                            Messenger
-                        </div>
+            <div class="profileMini">
 
-                        <div class="service-description">
-                            친구들과 채팅하기
-                        </div>
+                <div id="myAvatar" class="avatar">
+                    🙂
+                </div>
+
+                <div>
+                    <div id="myName" class="profileName">
+                        -
                     </div>
 
-                    <div class="arrow">›</div>
-
-                </a>
-
-
-                <!-- Music -->
-                <a class="service" href="/music/">
-
-                    <div class="icon">🎵</div>
-
-                    <div class="service-info">
-                        <div class="service-name">
-                            Music
-                        </div>
-
-                        <div class="service-description">
-                            음악을 재생하고 관리하기
-                        </div>
+                    <div class="profileStatus">
+                        내 프로필
                     </div>
-
-                    <div class="arrow">›</div>
-
-                </a>
-
-
-                <!-- NolMap -->
-                <a class="service" href="/nolmap/">
-
-                    <div class="icon">🗺️</div>
-
-                    <div class="service-info">
-                        <div class="service-name">
-                            NolMap
-                        </div>
-
-                        <div class="service-description">
-                            놀맵
-                        </div>
-                    </div>
-
-                    <div class="arrow">›</div>
-
-                </a>
-
-
-                <!-- 나중에 추가할 서비스 -->
-                <div class="service disabled">
-
-                    <div class="icon">＋</div>
-
-                    <div class="service-info">
-                        <div class="service-name">
-                            Coming Soon
-                        </div>
-
-                        <div class="service-description">
-                            새로운 서비스가 추가될 예정입니다
-                        </div>
-                    </div>
-
                 </div>
 
             </div>
 
-        </section>
+            <div class="sectionHeader">
+                <span>친구 목록</span>
+
+                <button
+                    class="addGroupBtn"
+                    onclick="openGroupModal()"
+                    title="단톡방 만들기"
+                >
+                    +
+                </button>
+            </div>
+
+            <div
+                id="friendList"
+                class="friendList"
+            ></div>
+
+            <div class="sectionHeader">
+                <span>단체 채팅</span>
+            </div>
+
+            <div
+                id="groupList"
+                class="friendList"
+                style="flex:none;max-height:220px;"
+            ></div>
+
+            <button
+                class="logoutBtn"
+                onclick="logout()"
+            >
+                로그아웃
+            </button>
+
+        </aside>
 
 
-        <!-- 푸터 -->
-        <footer>
-            PJY Server · 2026
-        </footer>
+        <main class="chat">
 
-    </main>
+            <header class="chatHeader">
+
+                <button
+                    class="mobileBack"
+                    onclick="closeChat()"
+                >
+                    ‹
+                </button>
+
+                <div
+                    id="chatAvatar"
+                    class="avatar"
+                >
+                    💬
+                </div>
+
+                <div>
+
+                    <div
+                        id="chatUserName"
+                        class="chatUserName"
+                    >
+                        친구를 선택하세요
+                    </div>
+
+                    <div
+                        id="chatUserStatus"
+                        class="chatUserStatus"
+                    >
+                    </div>
+
+                </div>
+
+            </header>
+
+
+            <div
+                id="messages"
+                class="messages"
+            >
+
+                <div class="emptyChat">
+                    친구 또는 단톡방을 선택하세요.
+                </div>
+
+            </div>
+
+
+            <div
+                class="inputArea"
+                style="position:relative;"
+            >
+
+                <div
+                    id="emojiPanel"
+                    class="emojiPanel"
+                >
+                    <div
+                        id="emojiGrid"
+                        class="emojiGrid"
+                    ></div>
+                </div>
+
+                <button
+                    class="emojiBtn"
+                    onclick="toggleEmoji()"
+                >
+                    😀
+                </button>
+
+                <button
+                    class="attachBtn"
+                    onclick="document.getElementById('fileInput').click()"
+                >
+                    📎
+                </button>
+
+                <input
+                    id="fileInput"
+                    type="file"
+                    style="display:none"
+                    onchange="fileSelected(event)"
+                >
+
+                <input
+                    id="messageInput"
+                    class="messageInput"
+                    type="text"
+                    placeholder="메시지를 입력하세요"
+                    disabled
+                    onkeydown="handleEnter(event)"
+                >
+
+                <button
+                    id="sendBtn"
+                    class="sendBtn"
+                    onclick="sendMessage()"
+                    disabled
+                >
+                    전송
+                </button>
+
+            </div>
+
+        </main>
+
+    </div>
+
+</section>
+
+
+<!-- ==================================================
+     GROUP MODAL
+================================================== -->
+
+<div
+    id="groupModal"
+    class="modalOverlay"
+>
+
+    <div class="modal">
+
+        <div class="modalTitle">
+            👥 단톡방 만들기
+        </div>
+
+        <input
+            id="groupNameInput"
+            class="modalInput"
+            type="text"
+            maxlength="40"
+            placeholder="단톡방 이름"
+        >
+
+        <div class="selectTitle">
+            친구 선택
+        </div>
+
+        <div
+            id="groupMemberList"
+            class="memberList"
+        ></div>
+
+        <div
+            id="groupModalError"
+            class="modalError"
+        ></div>
+
+        <div class="modalButtons">
+
+            <button
+                class="modalCancel"
+                onclick="closeGroupModal()"
+            >
+                취소
+            </button>
+
+            <button
+                class="modalCreate"
+                onclick="createGroupRoom()"
+            >
+                단톡방 만들기
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<div id="uploadStatus" class="uploadStatus"></div>
+
+
+<script>
+
+/* ==================================================
+   SUPABASE
+================================================== */
+
+const SUPABASE_URL =
+    "https://qtprsnwbeqwuzqpnlxot.supabase.co";
+
+const SUPABASE_ANON_KEY =
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF0cHJzbndiZXF3dXpxcG5seG90Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODgzNTIwNjksImV4cCI6MjEwMzkyODA2OX0.O39oJfWYgvI2O40EcI4cgw3yM1HNrvz0n--CXiKMThM";
+
+const STORAGE_BUCKET = "chat-files";
+
+const MAX_FILE_SIZE = 20 * 1024 * 1024;
+
+const supabaseClient =
+    supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_ANON_KEY
+    );
+
+
+/* ==================================================
+   ACCOUNT API (구글 Apps Script - 계정 관리)
+================================================== */
+
+/*
+ * 구글 Apps Script 웹앱 배포 URL
+ * (회원가입/로그인 요청을 이 주소로 보낸다)
+ */
+
+const ACCOUNT_API_URL =
+    "https://script.google.com/macros/s/AKfycbyvsu13mZtCgwqm_vNuzfgQkSNRJ0PEWrr3r-TRkquCGkKkmG3Y-SbfiZ70EXWZfDcz/exec";
+
+
+async function sha256Hex(text) {
+
+    const data =
+        new TextEncoder().encode(text);
+
+    const hashBuffer =
+        await crypto.subtle.digest(
+            "SHA-256",
+            data
+        );
+
+    return Array.from(
+        new Uint8Array(hashBuffer)
+    )
+        .map(byte =>
+            byte.toString(16).padStart(2, "0")
+        )
+        .join("");
+}
+
+
+async function callAccountApi(payload) {
+
+    const response =
+        await fetch(ACCOUNT_API_URL, {
+            method: "POST",
+            headers: {
+                "Content-Type": "text/plain;charset=utf-8"
+            },
+            body: JSON.stringify(payload)
+        });
+
+    return await response.json();
+}
+
+
+/* ==================================================
+   STATE
+================================================== */
+
+let currentUser = null;     // profiles.username
+let currentProfile = null;  // profiles 전체 row
+
+let currentFriend = null;
+let currentRoom = null;
+
+let realtimeChannel = null;
+let sidebarChannel = null;
+
+
+/* ==================================================
+   DOM
+================================================== */
+
+const loginScreen =
+    document.getElementById("loginScreen");
+
+const app =
+    document.getElementById("app");
+
+const appLayout =
+    document.getElementById("appLayout");
+
+const authSub =
+    document.getElementById("authSub");
+
+const loginFields =
+    document.getElementById("loginFields");
+
+const signupFields =
+    document.getElementById("signupFields");
+
+const loginNicknameInput =
+    document.getElementById("loginNickname");
+
+const loginPasswordInput =
+    document.getElementById("loginPassword");
+
+const signupNicknameInput =
+    document.getElementById("signupNickname");
+
+const signupPasswordInput =
+    document.getElementById("signupPassword");
+
+const authError =
+    document.getElementById("authError");
+
+const friendList =
+    document.getElementById("friendList");
+
+const groupList =
+    document.getElementById("groupList");
+
+const messagesBox =
+    document.getElementById("messages");
+
+const messageInput =
+    document.getElementById("messageInput");
+
+const sendBtn =
+    document.getElementById("sendBtn");
+
+const chatUserName =
+    document.getElementById("chatUserName");
+
+const chatUserStatus =
+    document.getElementById("chatUserStatus");
+
+const myName =
+    document.getElementById("myName");
+
+const myAvatar =
+    document.getElementById("myAvatar");
+
+const chatAvatar =
+    document.getElementById("chatAvatar");
+
+const groupModal =
+    document.getElementById("groupModal");
+
+const groupNameInput =
+    document.getElementById("groupNameInput");
+
+const groupMemberList =
+    document.getElementById("groupMemberList");
+
+const groupModalError =
+    document.getElementById("groupModalError");
+
+const fileInput =
+    document.getElementById("fileInput");
+
+const uploadStatus =
+    document.getElementById("uploadStatus");
+
+
+/* ==================================================
+   EMOJI
+================================================== */
+
+const emojis = [
+    "😀","😃","😄","😁","😆","😅","😂",
+    "🤣","😊","🙂","🙃","😉","😌","😍",
+    "🥰","😘","😎","🤩","🥳","😋","😜",
+    "🤔","🤗","😮","😭","😢","😡","😱",
+    "👍","👎","👏","🙏","❤️","💚","💙",
+    "💜","🔥","✨","🎉","🎂","🙌","💯",
+    "😴","🤪","😇","🥹"
+];
+
+function makeEmojiPanel() {
+
+    const grid =
+        document.getElementById("emojiGrid");
+
+    grid.innerHTML = "";
+
+    emojis.forEach(emoji => {
+
+        const button =
+            document.createElement("button");
+
+        button.textContent = emoji;
+
+        button.onclick = () => {
+
+            messageInput.value += emoji;
+
+            messageInput.focus();
+        };
+
+        grid.appendChild(button);
+    });
+}
+
+makeEmojiPanel();
+
+
+function toggleEmoji() {
+
+    const panel =
+        document.getElementById("emojiPanel");
+
+    panel.style.display =
+        panel.style.display === "block"
+        ? "none"
+        : "block";
+}
+
+
+/* ==================================================
+   ENTER
+================================================== */
+
+function handleEnter(event) {
+
+    if (
+        event.key === "Enter" &&
+        !event.shiftKey
+    ) {
+
+        event.preventDefault();
+
+        sendMessage();
+    }
+}
+
+
+/* ==================================================
+   LOGIN / SIGNUP 화면 전환
+================================================== */
+
+function showLogin() {
+
+    loginFields.classList.remove("formHidden");
+    signupFields.classList.add("formHidden");
+
+    authSub.textContent =
+        "친구들과 편하게 이야기해보세요";
+
+    authError.style.color = "#e53935";
+    authError.textContent = "";
+}
+
+
+function showSignup() {
+
+    loginFields.classList.add("formHidden");
+    signupFields.classList.remove("formHidden");
+
+    authSub.textContent =
+        "닉네임과 비밀번호로 새 계정을 만들어보세요";
+
+    authError.style.color = "#e53935";
+    authError.textContent = "";
+}
+
+
+/* 기존 코드 호환용 (이전에 남아있던 onclick="openSignup()") */
+function openSignup() {
+    showSignup();
+}
+
+
+/* ==================================================
+   LOGIN (구글 시트 계정 API)
+================================================== */
+
+async function login() {
+
+    const username =
+        loginNicknameInput.value.trim();
+
+    const password =
+        loginPasswordInput.value;
+
+    authError.style.color = "#e53935";
+    authError.textContent = "";
+
+    if (!username || !password) {
+
+        authError.textContent =
+            "닉네임과 비밀번호를 입력하세요.";
+
+        return;
+    }
+
+    let result;
+
+    try {
+
+        const passwordHash =
+            await sha256Hex(password);
+
+        result = await callAccountApi({
+            action: "login",
+            username: username,
+            passwordHash: passwordHash
+        });
+
+    } catch (error) {
+
+        console.error(error);
+
+        authError.textContent =
+            "서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.";
+
+        return;
+    }
+
+    if (!result || !result.success) {
+
+        authError.textContent =
+            (result && result.message) ||
+            "닉네임 또는 비밀번호가 올바르지 않습니다.";
+
+        return;
+    }
+
+    currentUser = result.username;
+
+    localStorage.setItem(
+        "friendschat_user",
+        currentUser
+    );
+
+    const profile =
+        await ensureProfile(
+            result.username,
+            result.displayName,
+            result.isAdmin
+        );
+
+    if (!profile) {
+
+        authError.textContent =
+            "프로필 정보를 불러오지 못했습니다.";
+
+        return;
+    }
+
+    await startApp();
+}
+
+
+/* ==================================================
+   SIGNUP (구글 시트 계정 API)
+================================================== */
+
+async function signup() {
+
+    const username =
+        signupNicknameInput.value.trim();
+
+    const password =
+        signupPasswordInput.value;
+
+    authError.style.color = "#e53935";
+    authError.textContent = "";
+
+    if (!username || !password) {
+
+        authError.textContent =
+            "닉네임과 비밀번호를 입력하세요.";
+
+        return;
+    }
+
+    if (username.length < 2 || username.length > 20) {
+
+        authError.textContent =
+            "닉네임은 2~20자로 입력하세요.";
+
+        return;
+    }
+
+    if (password.length < 6) {
+
+        authError.textContent =
+            "비밀번호는 6자 이상이어야 합니다.";
+
+        return;
+    }
+
+    let result;
+
+    try {
+
+        const passwordHash =
+            await sha256Hex(password);
+
+        result = await callAccountApi({
+            action: "signup",
+            username: username,
+            passwordHash: passwordHash,
+            displayName: username
+        });
+
+    } catch (error) {
+
+        console.error(error);
+
+        authError.textContent =
+            "서버에 연결할 수 없습니다. 잠시 후 다시 시도해주세요.";
+
+        return;
+    }
+
+    if (!result || !result.success) {
+
+        authError.textContent =
+            (result && result.message) ||
+            "회원가입에 실패했습니다.";
+
+        return;
+    }
+
+    /*
+     * 계정(아이디/비번)은 구글 시트에 저장됐으니
+     * 이제 Supabase profiles에도 대응하는 행을 만들어서
+     * 채팅 기능(친구 목록/온라인 상태 등)이 동작하게 한다.
+     */
+
+    const profile =
+        await ensureProfile(
+            result.username,
+            result.displayName,
+            result.isAdmin
+        );
+
+    if (!profile) {
+
+        authError.textContent =
+            "가입은 됐지만 프로필 생성에 실패했습니다. 다시 로그인해보세요.";
+
+        showLogin();
+
+        return;
+    }
+
+    currentUser = result.username;
+
+    localStorage.setItem(
+        "friendschat_user",
+        currentUser
+    );
+
+    await startApp();
+}
+
+
+/* ==================================================
+   profiles 행이 없으면 만들고, 있으면 그대로 가져온다
+================================================== */
+
+async function ensureProfile(
+    username,
+    displayName,
+    isAdmin
+) {
+
+    const {
+        data: existing,
+        error: selectError
+    } = await supabaseClient
+        .from("profiles")
+        .select("*")
+        .eq("username", username)
+        .maybeSingle();
+
+    if (selectError) {
+
+        console.error(selectError);
+
+        return null;
+    }
+
+    if (existing) {
+
+        currentProfile = existing;
+
+        return existing;
+    }
+
+    const {
+        data: created,
+        error: insertError
+    } = await supabaseClient
+        .from("profiles")
+        .insert({
+            username: username,
+            display_name: displayName || username,
+            status: "offline",
+            is_admin: !!isAdmin
+        })
+        .select()
+        .single();
+
+    if (insertError) {
+
+        console.error(insertError);
+
+        return null;
+    }
+
+    currentProfile = created;
+
+    return created;
+}
+
+
+/* ==================================================
+   START APP
+================================================== */
+
+async function startApp() {
+
+    await setOnline();
+
+    loginScreen.style.display = "none";
+    app.style.display = "block";
+
+    myName.textContent =
+        currentProfile.display_name ||
+        currentUser;
+
+    myAvatar.textContent =
+        (
+            currentProfile.display_name ||
+            currentUser ||
+            "?"
+        ).charAt(0);
+
+    await loadFriends();
+
+    await loadGroups();
+
+    subscribeSidebar();
+}
+
+
+/* ==================================================
+   AUTO LOGIN (localStorage 기반)
+   - 구글 시트 계정 확인은 비밀번호가 필요해서
+     재검증할 수 없으므로, 브라우저에 저장된
+     닉네임을 신뢰하고 profiles만 다시 불러온다.
+================================================== */
+
+async function checkAutoLogin() {
+
+    const saved =
+        localStorage.getItem("friendschat_user");
+
+    if (!saved) return;
+
+    const {
+        data,
+        error
+    } = await supabaseClient
+        .from("profiles")
+        .select("*")
+        .eq("username", saved)
+        .maybeSingle();
+
+    if (error || !data) {
+
+        localStorage.removeItem(
+            "friendschat_user"
+        );
+
+        return;
+    }
+
+    currentUser = data.username;
+    currentProfile = data;
+
+    await startApp();
+}
+
+checkAutoLogin();
+
+
+/* ==================================================
+   ONLINE
+================================================== */
+
+async function setOnline() {
+
+    if (!currentUser) return;
+
+    await supabaseClient
+        .from("profiles")
+        .update({
+            status: "online",
+            last_seen: new Date().toISOString()
+        })
+        .eq("username", currentUser);
+}
+
+
+async function setOffline() {
+
+    if (!currentUser) return;
+
+    await supabaseClient
+        .from("profiles")
+        .update({
+            status: "offline",
+            last_seen: new Date().toISOString()
+        })
+        .eq("username", currentUser);
+}
+
+window.addEventListener(
+    "beforeunload",
+    () => {
+        setOffline();
+    }
+);
+
+
+/* ==================================================
+   FRIENDS
+================================================== */
+
+async function loadFriends() {
+
+    const {
+        data,
+        error
+    } = await supabaseClient
+        .from("profiles")
+        .select("*")
+        .neq("username", currentUser)
+        .order("display_name");
+
+    if (error) {
+
+        console.error(error);
+
+        return;
+    }
+
+    friendList.innerHTML = "";
+
+    if (!data || data.length === 0) {
+
+        friendList.innerHTML =
+            '<div style="padding:20px;color:#999;">친구가 없습니다.</div>';
+
+        return;
+    }
+
+    data.forEach(friend => {
+
+        const item =
+            document.createElement("div");
+
+        item.className = "friend";
+
+        item.dataset.username =
+            friend.username;
+
+        item.innerHTML = `
+
+            <div class="avatar">
+                ${escapeHtml(
+                    friend.display_name.charAt(0)
+                )}
+            </div>
+
+            <div class="friendInfo">
+
+                <div class="friendName">
+                    ${escapeHtml(
+                        friend.display_name
+                    )}
+                </div>
+
+                <div class="friendLast">
+                    ${
+                        friend.status === "online"
+                        ? "온라인"
+                        : "오프라인"
+                    }
+                </div>
+
+            </div>
+
+            <div class="${
+                friend.status === "online"
+                ? "onlineDot"
+                : "offlineDot"
+            }"></div>
+        `;
+
+        item.onclick = () =>
+            openPrivateChat(friend);
+
+        friendList.appendChild(item);
+    });
+}
+
+
+/* ==================================================
+   GROUP LIST
+================================================== */
+
+async function loadGroups() {
+
+    if (!currentUser) return;
+
+    const {
+        data: members,
+        error
+    } = await supabaseClient
+        .from("chat_members")
+        .select("room_id")
+        .eq("username", currentUser);
+
+    if (error) {
+
+        console.error(
+            "단톡 목록 오류:",
+            error
+        );
+
+        return;
+    }
+
+    groupList.innerHTML = "";
+
+    if (!members || members.length === 0) {
+
+        groupList.innerHTML = `
+            <div style="padding:10px 18px;color:#aaa;font-size:13px;">
+                단톡방이 없습니다.
+            </div>
+        `;
+
+        return;
+    }
+
+    const roomIds =
+        members.map(x => x.room_id);
+
+    const {
+        data: rooms,
+        error: roomError
+    } = await supabaseClient
+        .from("chat_rooms")
+        .select("*")
+        .in("id", roomIds)
+        .eq("is_group", true)
+        .order("created_at", {
+            ascending: false
+        });
+
+    if (roomError) {
+
+        console.error(roomError);
+
+        return;
+    }
+
+    if (!rooms || rooms.length === 0) {
+
+        groupList.innerHTML = `
+            <div style="padding:10px 18px;color:#aaa;font-size:13px;">
+                단톡방이 없습니다.
+            </div>
+        `;
+
+        return;
+    }
+
+    for (const room of rooms) {
+
+        const item =
+            document.createElement("div");
+
+        item.className =
+            "groupRoom";
+
+        item.dataset.roomId =
+            room.id;
+
+        item.innerHTML = `
+
+            <div class="avatar">
+                👥
+            </div>
+
+            <div class="friendInfo">
+
+                <div class="friendName">
+                    ${escapeHtml(
+                        room.name || "단톡방"
+                    )}
+                </div>
+
+                <div class="friendLast">
+                    단체 채팅
+                </div>
+
+            </div>
+        `;
+
+        item.onclick = () =>
+            openGroupChat(room);
+
+        groupList.appendChild(item);
+    }
+}
+
+
+/* ==================================================
+   PRIVATE ROOM
+================================================== */
+
+async function getPrivateRoom(
+    user1,
+    user2
+) {
+
+    const keys = [
+        `${user1}_${user2}`,
+        `${user2}_${user1}`
+    ];
+
+    const {
+        data,
+        error
+    } = await supabaseClient
+        .from("chat_rooms")
+        .select("*")
+        .in("room_key", keys)
+        .eq("is_group", false)
+        .limit(1)
+        .maybeSingle();
+
+    if (error) {
+
+        console.error(
+            "1:1 채팅방 오류:",
+            error
+        );
+
+        return null;
+    }
+
+    return data;
+}
+
+
+/* ==================================================
+   PRIVATE CHAT
+================================================== */
+
+async function openPrivateChat(friend) {
+
+    currentFriend = friend;
+
+    currentRoom =
+        await getPrivateRoom(
+            currentUser,
+            friend.username
+        );
+
+    if (!currentRoom) {
+
+        alert(
+            "1:1 채팅방을 찾을 수 없습니다."
+        );
+
+        return;
+    }
+
+    document
+        .querySelectorAll(
+            ".friend, .groupRoom"
+        )
+        .forEach(el =>
+            el.classList.remove("active")
+        );
+
+    const selected =
+        document.querySelector(
+            `.friend[data-username="${CSS.escape(friend.username)}"]`
+        );
+
+    if (selected)
+        selected.classList.add("active");
+
+    chatUserName.textContent =
+        friend.display_name;
+
+    chatAvatar.textContent =
+        friend.display_name.charAt(0);
+
+    chatUserStatus.textContent =
+        friend.status === "online"
+        ? "온라인"
+        : "오프라인";
+
+    messageInput.disabled = false;
+    sendBtn.disabled = false;
+
+    appLayout.classList.add("chatOpen");
+
+    await loadMessages();
+
+    subscribeMessages();
+
+    messageInput.focus();
+}
+
+
+/* ==================================================
+   GROUP CHAT
+================================================== */
+
+async function openGroupChat(room) {
+
+    currentFriend = null;
+
+    currentRoom = room;
+
+    document
+        .querySelectorAll(
+            ".friend, .groupRoom"
+        )
+        .forEach(el =>
+            el.classList.remove("active")
+        );
+
+    const selected =
+        document.querySelector(
+            `.groupRoom[data-room-id="${room.id}"]`
+        );
+
+    if (selected)
+        selected.classList.add("active");
+
+    chatUserName.textContent =
+        room.name || "단톡방";
+
+    chatAvatar.textContent =
+        "👥";
+
+    chatUserStatus.textContent =
+        "단체 채팅";
+
+    messageInput.disabled = false;
+    sendBtn.disabled = false;
+
+    appLayout.classList.add("chatOpen");
+
+    await loadMessages();
+
+    subscribeMessages();
+
+    messageInput.focus();
+}
+
+
+/* ==================================================
+   LOAD MESSAGES + FILES
+================================================== */
+
+async function loadMessages() {
+
+    if (!currentRoom) return;
+
+    const {
+        data,
+        error
+    } = await supabaseClient
+        .from("messages")
+        .select("*")
+        .eq("room_id", currentRoom.id)
+        .order("created_at", {
+            ascending: true
+        });
+
+    if (error) {
+
+        console.error(
+            "메시지 로딩 오류:",
+            error
+        );
+
+        messagesBox.innerHTML = `
+            <div class="emptyChat">
+                메시지를 불러오지 못했습니다.
+            </div>
+        `;
+
+        return;
+    }
+
+    messagesBox.innerHTML = "";
+
+    if (!data || data.length === 0) {
+
+        messagesBox.innerHTML = `
+            <div class="emptyChat">
+                아직 메시지가 없습니다.<br>
+                먼저 인사를 보내보세요 👋
+            </div>
+        `;
+
+        return;
+    }
+
+    const messageIds =
+        data.map(message => message.id);
+
+    let files = [];
+
+    if (messageIds.length > 0) {
+
+        const {
+            data: fileData,
+            error: fileError
+        } = await supabaseClient
+            .from("chat_files")
+            .select("*")
+            .in("message_id", messageIds);
+
+        if (fileError) {
+
+            console.error(
+                "파일 정보 로딩 오류:",
+                fileError
+            );
+
+        } else {
+
+            files = fileData || [];
+        }
+    }
+
+    data.forEach(message => {
+
+        const attachment =
+            files.find(
+                file =>
+                    file.message_id === message.id
+            );
+
+        renderMessage(
+            message,
+            attachment
+        );
+    });
+
+    scrollMessages();
+}
+
+
+/* ==================================================
+   RENDER MESSAGE
+================================================== */
+
+function renderMessage(
+    message,
+    attachment = null
+) {
+
+    const sender =
+        message.sender_username ||
+        message.nickname ||
+        "";
+
+    const mine =
+        sender === currentUser;
+
+    const row =
+        document.createElement("div");
+
+    row.className =
+        "messageRow " +
+        (mine ? "mine" : "other");
+
+    const bubbleWrap =
+        document.createElement("div");
+
+    bubbleWrap.className =
+        "messageBubble";
+
+    const time =
+        message.created_at
+        ? formatTime(message.created_at)
+        : "";
+
+    let attachmentHtml = "";
+
+    if (attachment) {
+
+        const fileName =
+            escapeHtml(
+                attachment.file_name ||
+                "파일"
+            );
+
+        const fileUrl =
+            escapeHtml(
+                attachment.file_url
+            );
+
+        const fileType =
+            attachment.file_type || "";
+
+        if (
+            fileType.startsWith("image/")
+        ) {
+
+            attachmentHtml = `
+                <div class="attachment">
+                    <a
+                        href="${fileUrl}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        <img
+                            class="attachmentImage"
+                            src="${fileUrl}"
+                            alt="${fileName}"
+                            loading="lazy"
+                        >
+                    </a>
+                </div>
+            `;
+
+        } else {
+
+            attachmentHtml = `
+                <div class="attachment">
+                    <a
+                        class="fileLink"
+                        href="${fileUrl}"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                    >
+                        📄
+                        <span class="fileName">
+                            ${fileName}
+                        </span>
+                    </a>
+                </div>
+            `;
+        }
+    }
+
+    bubbleWrap.innerHTML = `
+
+        <div class="sender">
+            ${escapeHtml(sender)}
+        </div>
+
+        <div class="bubble">
+
+            ${
+                attachment
+                ? ""
+                : escapeHtml(
+                    message.message
+                )
+            }
+
+            ${attachmentHtml}
+
+        </div>
+
+        <div class="messageMeta">
+            ${time}
+        </div>
+    `;
+
+    row.appendChild(bubbleWrap);
+
+    messagesBox.appendChild(row);
+}
+
+
+/* ==================================================
+   SEND MESSAGE
+================================================== */
+
+async function sendMessage() {
+
+    if (!currentUser || !currentRoom)
+        return;
+
+    const text =
+        messageInput.value.trim();
+
+    if (!text) return;
+
+    sendBtn.disabled = true;
+
+    const {
+        error
+    } = await supabaseClient
+        .from("messages")
+        .insert({
+            nickname: currentUser,
+            sender_username: currentUser,
+            message: text,
+            room_id: currentRoom.id
+        });
+
+    if (error) {
+
+        console.error(error);
+
+        alert(
+            "메시지 전송 실패\n" +
+            error.message
+        );
+
+        sendBtn.disabled = false;
+
+        return;
+    }
+
+    messageInput.value = "";
+
+    sendBtn.disabled = false;
+
+    messageInput.focus();
+}
+
+
+/* ==================================================
+   FILE SELECTED
+================================================== */
+
+async function fileSelected(event) {
+
+    const file =
+        event.target.files[0];
+
+    if (!file) return;
+
+    event.target.value = "";
+
+    if (!currentUser || !currentRoom) {
+
+        alert(
+            "먼저 채팅방을 선택하세요."
+        );
+
+        return;
+    }
+
+    if (file.size > MAX_FILE_SIZE) {
+
+        alert(
+            "파일 크기는 최대 20MB까지 가능합니다."
+        );
+
+        return;
+    }
+
+    try {
+
+        showUploadStatus(
+            "📤 파일 업로드 중..."
+        );
+
+        /*
+         * 파일명에 들어갈 수 있는 위험한 문자를 제거
+         */
+
+        const safeName =
+            file.name
+                .replace(/[^\w가-힣.\-() ]/g, "_")
+                .slice(0, 100);
+
+        /*
+         * 같은 이름의 파일이 충돌하지 않도록
+         * 시간 + 랜덤 문자열 사용
+         */
+
+        const random =
+            Math.random()
+                .toString(36)
+                .slice(2, 10);
+
+        const path =
+            `${currentRoom.id}/${currentUser}/${Date.now()}_${random}_${safeName}`;
+
+        /*
+         * Supabase Storage 업로드
+         */
+
+        const {
+            error: uploadError
+        } = await supabaseClient
+            .storage
+            .from(STORAGE_BUCKET)
+            .upload(
+                path,
+                file,
+                {
+                    cacheControl: "3600",
+                    upsert: false,
+                    contentType: file.type || "application/octet-stream"
+                }
+            );
+
+        if (uploadError) {
+
+            console.error(
+                "Storage 업로드 오류:",
+                uploadError
+            );
+
+            throw uploadError;
+        }
+
+        /*
+         * Public URL 가져오기
+         */
+
+        const {
+            data: publicData
+        } = supabaseClient
+            .storage
+            .from(STORAGE_BUCKET)
+            .getPublicUrl(path);
+
+        const publicUrl =
+            publicData.publicUrl;
+
+        /*
+         * 파일을 표시할 메시지 생성
+         */
+
+        const {
+            data: message,
+            error: messageError
+        } = await supabaseClient
+            .from("messages")
+            .insert({
+                nickname: currentUser,
+                sender_username: currentUser,
+                message: `📎 ${file.name}`,
+                room_id: currentRoom.id
+            })
+            .select()
+            .single();
+
+        if (messageError) {
+
+            console.error(
+                "파일 메시지 생성 오류:",
+                messageError
+            );
+
+            /*
+             * 메시지 생성 실패 시 Storage 파일 삭제
+             */
+
+            await supabaseClient
+                .storage
+                .from(STORAGE_BUCKET)
+                .remove([path]);
+
+            throw messageError;
+        }
+
+        /*
+         * chat_files에 파일 정보 저장
+         */
+
+        const {
+            error: fileDbError
+        } = await supabaseClient
+            .from("chat_files")
+            .insert({
+                message_id: message.id,
+                file_url: publicUrl,
+                file_name: file.name,
+                file_type:
+                    file.type ||
+                    "application/octet-stream"
+            });
+
+        if (fileDbError) {
+
+            console.error(
+                "chat_files 저장 오류:",
+                fileDbError
+            );
+
+            /*
+             * DB 저장 실패 시 Storage 파일과 메시지 정리
+             */
+
+            await supabaseClient
+                .storage
+                .from(STORAGE_BUCKET)
+                .remove([path]);
+
+            await supabaseClient
+                .from("messages")
+                .delete()
+                .eq("id", message.id);
+
+            throw fileDbError;
+        }
+
+        showUploadStatus(
+            "✅ 업로드 완료!"
+        );
+
+        /*
+         * 파일 정보가 들어온 뒤 다시 렌더링
+         */
+
+        await loadMessages();
+
+        setTimeout(() => {
+            hideUploadStatus();
+        }, 1200);
+
+    } catch (error) {
+
+        console.error(error);
+
+        hideUploadStatus();
+
+        alert(
+            "파일 업로드에 실패했습니다.\n\n" +
+            (error.message || error)
+        );
+    }
+}
+
+
+/* ==================================================
+   UPLOAD STATUS
+================================================== */
+
+function showUploadStatus(text) {
+
+    uploadStatus.textContent =
+        text;
+
+    uploadStatus.style.display =
+        "block";
+}
+
+
+function hideUploadStatus() {
+
+    uploadStatus.style.display =
+        "none";
+}
+
+
+/* ==================================================
+   REALTIME MESSAGE + FILE
+================================================== */
+
+function subscribeMessages() {
+
+    if (!currentRoom) return;
+
+    if (realtimeChannel) {
+
+        supabaseClient
+            .removeChannel(
+                realtimeChannel
+            );
+    }
+
+    realtimeChannel =
+        supabaseClient
+            .channel(
+                "room-" +
+                currentRoom.id +
+                "-" +
+                Date.now()
+            )
+
+            /*
+             * 일반 메시지 실시간
+             */
+
+            .on(
+                "postgres_changes",
+                {
+                    event: "INSERT",
+                    schema: "public",
+                    table: "messages",
+                    filter:
+                        "room_id=eq." +
+                        currentRoom.id
+                },
+                payload => {
+
+                    /*
+                     * 파일 메시지는 chat_files가
+                     * 저장된 후 전체를 다시 로딩한다.
+                     */
+
+                    if (
+                        String(
+                            payload.new.message || ""
+                        ).startsWith("📎 ")
+                    ) {
+
+                        setTimeout(
+                            () => {
+                                loadMessages();
+                            },
+                            300
+                        );
+
+                        return;
+                    }
+
+                    renderMessage(
+                        payload.new
+                    );
+
+                    scrollMessages();
+                }
+            )
+
+            /*
+             * 파일 DB 정보 실시간
+             */
+
+            .on(
+                "postgres_changes",
+                {
+                    event: "INSERT",
+                    schema: "public",
+                    table: "chat_files"
+                },
+                payload => {
+
+                    /*
+                     * 어느 방의 파일인지
+                     * message_id를 이용해서 확인
+                     */
+
+                    loadMessages();
+                }
+            )
+
+            .subscribe();
+}
+
+
+/* ==================================================
+   SIDEBAR REALTIME
+================================================== */
+
+function subscribeSidebar() {
+
+    if (sidebarChannel) {
+
+        supabaseClient
+            .removeChannel(
+                sidebarChannel
+            );
+    }
+
+    sidebarChannel =
+        supabaseClient
+            .channel(
+                "sidebar-" +
+                Date.now()
+            )
+            .on(
+                "postgres_changes",
+                {
+                    event: "*",
+                    schema: "public",
+                    table: "chat_rooms"
+                },
+                async () => {
+
+                    await loadGroups();
+                }
+            )
+            .on(
+                "postgres_changes",
+                {
+                    event: "*",
+                    schema: "public",
+                    table: "chat_members"
+                },
+                async () => {
+
+                    await loadGroups();
+                }
+            )
+            .on(
+                "postgres_changes",
+                {
+                    event: "*",
+                    schema: "public",
+                    table: "profiles"
+                },
+                async () => {
+
+                    await loadFriends();
+                }
+            )
+            .subscribe();
+}
+
+
+/* ==================================================
+   GROUP MODAL
+================================================== */
+
+async function openGroupModal() {
+
+    groupNameInput.value = "";
+
+    groupModalError.textContent = "";
+
+    groupMemberList.innerHTML = "";
+
+    const {
+        data,
+        error
+    } = await supabaseClient
+        .from("profiles")
+        .select("*")
+        .neq("username", currentUser)
+        .order("display_name");
+
+    if (error) {
+
+        console.error(error);
+
+        groupModalError.textContent =
+            "친구 목록을 불러오지 못했습니다.";
+
+        return;
+    }
+
+    if (!data || data.length === 0) {
+
+        groupModalError.textContent =
+            "선택할 친구가 없습니다.";
+
+        return;
+    }
+
+    data.forEach(friend => {
+
+        const item =
+            document.createElement("label");
+
+        item.className =
+            "memberItem";
+
+        item.innerHTML = `
+
+            <input
+                type="checkbox"
+                value="${escapeHtml(
+                    friend.username
+                )}"
+            >
+
+            <div class="memberAvatar">
+                ${escapeHtml(
+                    friend.display_name.charAt(0)
+                )}
+            </div>
+
+            <div class="memberName">
+                ${escapeHtml(
+                    friend.display_name
+                )}
+            </div>
+        `;
+
+        groupMemberList.appendChild(item);
+    });
+
+    groupModal.style.display = "flex";
+
+    setTimeout(() => {
+        groupNameInput.focus();
+    }, 50);
+}
+
+
+function closeGroupModal() {
+
+    groupModal.style.display = "none";
+    groupModalError.textContent = "";
+}
+
+
+/* ==================================================
+   CREATE GROUP
+================================================== */
+
+async function createGroupRoom() {
+
+    const name =
+        groupNameInput.value.trim();
+
+    groupModalError.textContent = "";
+
+    if (!name) {
+
+        groupModalError.textContent =
+            "단톡방 이름을 입력하세요.";
+
+        return;
+    }
+
+    const checked =
+        groupMemberList.querySelectorAll(
+            'input[type="checkbox"]:checked'
+        );
+
+    if (checked.length === 0) {
+
+        groupModalError.textContent =
+            "친구를 한 명 이상 선택하세요.";
+
+        return;
+    }
+
+    const usernames =
+        Array.from(checked)
+            .map(input => input.value);
+
+    const roomKey =
+        "group_" +
+        Date.now() +
+        "_" +
+        Math.random()
+            .toString(36)
+            .slice(2, 8);
+
+    const {
+        data: room,
+        error: roomError
+    } = await supabaseClient
+        .from("chat_rooms")
+        .insert({
+            name: name,
+            is_group: true,
+            room_key: roomKey
+        })
+        .select()
+        .single();
+
+    if (roomError) {
+
+        console.error(roomError);
+
+        groupModalError.textContent =
+            "단톡방 생성 실패: " +
+            roomError.message;
+
+        return;
+    }
+
+    const members = [
+        currentUser,
+        ...usernames
+    ];
+
+    const uniqueMembers =
+        [...new Set(members)];
+
+    const memberRows =
+        uniqueMembers.map(username => ({
+            room_id: room.id,
+            username: username
+        }));
+
+    const {
+        error: memberError
+    } = await supabaseClient
+        .from("chat_members")
+        .insert(memberRows);
+
+    if (memberError) {
+
+        console.error(memberError);
+
+        await supabaseClient
+            .from("chat_rooms")
+            .delete()
+            .eq("id", room.id);
+
+        groupModalError.textContent =
+            "참가자 등록 실패: " +
+            memberError.message;
+
+        return;
+    }
+
+    closeGroupModal();
+
+    await loadGroups();
+
+    await openGroupChat(room);
+}
+
+
+/* ==================================================
+   CLOSE CHAT
+================================================== */
+
+function closeChat() {
+
+    appLayout.classList.remove(
+        "chatOpen"
+    );
+
+    currentFriend = null;
+    currentRoom = null;
+
+    messageInput.value = "";
+
+    messageInput.disabled = true;
+    sendBtn.disabled = true;
+
+    chatUserName.textContent =
+        "친구를 선택하세요";
+
+    chatUserStatus.textContent = "";
+
+    if (realtimeChannel) {
+
+        supabaseClient
+            .removeChannel(
+                realtimeChannel
+            );
+
+        realtimeChannel = null;
+    }
+}
+
+
+/* ==================================================
+   LOGOUT
+================================================== */
+
+async function logout() {
+
+    await setOffline();
+
+    if (realtimeChannel) {
+
+        await supabaseClient
+            .removeChannel(
+                realtimeChannel
+            );
+
+        realtimeChannel = null;
+    }
+
+    if (sidebarChannel) {
+
+        await supabaseClient
+            .removeChannel(
+                sidebarChannel
+            );
+
+        sidebarChannel = null;
+    }
+
+    localStorage.removeItem(
+        "friendschat_user"
+    );
+
+    currentUser = null;
+    currentProfile = null;
+    currentFriend = null;
+    currentRoom = null;
+
+    app.style.display = "none";
+    loginScreen.style.display = "flex";
+
+    showLogin();
+
+    loginNicknameInput.value = "";
+    loginPasswordInput.value = "";
+    authError.textContent = "";
+
+    messageInput.disabled = true;
+    sendBtn.disabled = true;
+
+    appLayout.classList.remove(
+        "chatOpen"
+    );
+}
+
+
+/* ==================================================
+   UTIL
+================================================== */
+
+function scrollMessages() {
+
+    messagesBox.scrollTop =
+        messagesBox.scrollHeight;
+}
+
+
+function formatTime(dateString) {
+
+    const date =
+        new Date(dateString);
+
+    return date.toLocaleTimeString(
+        "ko-KR",
+        {
+            hour: "2-digit",
+            minute: "2-digit"
+        }
+    );
+}
+
+
+function escapeHtml(value) {
+
+    return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
+
+
+/* ==================================================
+   MODAL BACKDROP
+================================================== */
+
+groupModal.addEventListener(
+    "click",
+    event => {
+
+        if (event.target === groupModal) {
+            closeGroupModal();
+        }
+
+    }
+);
+
+
+/* ==================================================
+   ESC
+================================================== */
+
+document.addEventListener(
+    "keydown",
+    event => {
+
+        if (
+            event.key === "Escape" &&
+            groupModal.style.display === "flex"
+        ) {
+            closeGroupModal();
+        }
+
+    }
+);
+
+</script>
 
 </body>
-</html>
+    </html>
