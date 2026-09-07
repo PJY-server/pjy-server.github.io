@@ -723,34 +723,21 @@ button {
             </button>
 
             <div class="signupLink" onclick="showSignup()">
-                아직 계정이 없으신가요? 회원가입
+                계정이 필요하신가요? (관리자 문의)
             </div>
 
         </div>
 
-        <!-- 회원가입 폼 -->
+        <!-- 회원가입 폼 (지금은 직접 계정 생성 불가 - 안내만 표시) -->
         <div id="signupFields" class="formHidden">
 
-            <input
-                id="signupNickname"
-                type="text"
-                placeholder="닉네임"
-                autocomplete="off"
-            >
-
-            <input
-                id="signupPassword"
-                type="password"
-                placeholder="비밀번호 (6자 이상)"
-                autocomplete="new-password"
-            >
-
-            <button class="loginBtn" onclick="signup()">
-                가입하기
-            </button>
+            <div style="text-align:center;color:#777;padding:10px 0 20px;line-height:1.6;">
+                지금은 자동 회원가입이 지원되지 않습니다.<br>
+                관리자에게 아이디/비밀번호 등록을 요청해주세요.
+            </div>
 
             <div class="signupLink" onclick="showLogin()">
-                이미 계정이 있으신가요? 로그인
+                로그인 화면으로 돌아가기
             </div>
 
         </div>
@@ -1033,61 +1020,35 @@ const supabaseClient =
 
 
 /* ==================================================
-   GOOGLE SHEET 연동 (회원가입 로그)
+   ACCOUNT (GitHub의 users.json 평문 저장)
+   ⚠️ 테스트 전용 - 실제 서비스에는 부적합
 ================================================== */
 
-/*
- * 구글 Apps Script 웹앱 배포 후 나오는 URL을
- * 아래에 그대로 붙여넣으세요.
- * 예: https://script.google.com/macros/s/AKfycb.../exec
- */
+const USERS_JSON_URL = "./users.json";
 
-const GOOGLE_SHEET_URL =
-    "https://script.google.com/macros/s/AKfycbyvsu13mZtCgwqm_vNuzfgQkSNRJ0PEWrr3r-TRkquCGkKkmG3Y-SbfiZ70EXWZfDcz/exec";
+let usersCache = null;
 
+async function loadUsers() {
 
-async function logToGoogleSheet(username, displayName) {
+    if (usersCache) return usersCache;
 
-    if (
-        !GOOGLE_SHEET_URL ||
-        GOOGLE_SHEET_URL.includes("여기에_")
-    ) {
+    const response =
+        await fetch(
+            USERS_JSON_URL,
+            { cache: "no-store" }
+        );
 
-        /*
-         * URL을 아직 설정하지 않았다면
-         * 조용히 건너뛴다 (회원가입 자체는 계속 진행).
-         */
+    if (!response.ok) {
 
-        return;
-    }
-
-    try {
-
-        await fetch(GOOGLE_SHEET_URL, {
-            method: "POST",
-            mode: "no-cors",
-            headers: {
-                "Content-Type": "text/plain"
-            },
-            body: JSON.stringify({
-                created_at: new Date().toISOString(),
-                username: username,
-                display_name: displayName
-            })
-        });
-
-    } catch (error) {
-
-        /*
-         * 시트 기록이 실패해도
-         * 회원가입 자체를 막지는 않는다.
-         */
-
-        console.error(
-            "구글 시트 기록 실패:",
-            error
+        throw new Error(
+            "users.json을 불러오지 못했습니다."
         );
     }
+
+    usersCache =
+        await response.json();
+
+    return usersCache;
 }
 
 
@@ -1095,8 +1056,7 @@ async function logToGoogleSheet(username, displayName) {
    STATE
 ================================================== */
 
-let currentUserId = null;   // auth.users.id
-let currentUser = null;     // profiles.username (기존 코드 호환용)
+let currentUser = null;     // profiles.username
 let currentProfile = null;  // profiles 전체 row
 
 let currentFriend = null;
@@ -1133,12 +1093,6 @@ const loginNicknameInput =
 
 const loginPasswordInput =
     document.getElementById("loginPassword");
-
-const signupNicknameInput =
-    document.getElementById("signupNickname");
-
-const signupPasswordInput =
-    document.getElementById("signupPassword");
 
 const authError =
     document.getElementById("authError");
@@ -1301,42 +1255,12 @@ function openSignup() {
 
 
 /* ==================================================
-   닉네임 ↔ 이메일 변환
-   (Supabase Auth는 내부적으로 이메일이 필요하므로
-    닉네임을 바탕으로 항상 같은 값이 나오는
-    가짜 이메일을 만들어서 사용한다. 사용자는
-    이 사실을 몰라도 되고, 닉네임+비밀번호만 입력한다.)
-================================================== */
-
-const FAKE_EMAIL_DOMAIN = "friendschat.app";
-
-function nicknameToEmail(nickname) {
-
-    const bytes =
-        new TextEncoder().encode(
-            nickname.trim().toLowerCase()
-        );
-
-    let hex = "";
-
-    bytes.forEach(byte => {
-
-        hex += byte
-            .toString(16)
-            .padStart(2, "0");
-    });
-
-    return "u" + hex + "@" + FAKE_EMAIL_DOMAIN;
-}
-
-
-/* ==================================================
-   LOGIN (Supabase Auth)
+   LOGIN (GitHub의 users.json 조회)
 ================================================== */
 
 async function login() {
 
-    const nickname =
+    const username =
         loginNicknameInput.value.trim();
 
     const password =
@@ -1345,7 +1269,7 @@ async function login() {
     authError.style.color = "#e53935";
     authError.textContent = "";
 
-    if (!nickname || !password) {
+    if (!username || !password) {
 
         authError.textContent =
             "닉네임과 비밀번호를 입력하세요.";
@@ -1353,20 +1277,29 @@ async function login() {
         return;
     }
 
-    const email =
-        nicknameToEmail(nickname);
+    let users;
 
-    const {
-        data,
-        error
-    } = await supabaseClient.auth.signInWithPassword({
-        email,
-        password
-    });
+    try {
 
-    if (error) {
+        users = await loadUsers();
+
+    } catch (error) {
 
         console.error(error);
+
+        authError.textContent =
+            "계정 정보를 불러올 수 없습니다.";
+
+        return;
+    }
+
+    const matched = users.find(
+        user =>
+            user.username === username &&
+            user.password === password
+    );
+
+    if (!matched) {
 
         authError.textContent =
             "닉네임 또는 비밀번호가 올바르지 않습니다.";
@@ -1374,15 +1307,24 @@ async function login() {
         return;
     }
 
+    currentUser = matched.username;
+
+    localStorage.setItem(
+        "friendschat_user",
+        currentUser
+    );
+
     const profile =
-        await loadCurrentProfile();
+        await ensureProfile(
+            matched.username,
+            matched.display_name,
+            matched.is_admin
+        );
 
     if (!profile) {
 
         authError.textContent =
-            "프로필 정보를 불러오지 못했습니다. 관리자에게 문의하세요.";
-
-        await supabaseClient.auth.signOut();
+            "프로필 정보를 불러오지 못했습니다.";
 
         return;
     }
@@ -1392,195 +1334,76 @@ async function login() {
 
 
 /* ==================================================
-   SIGNUP (Supabase Auth)
+   SIGNUP - 정적 사이트라 자동 가입 불가.
+   안내만 표시한다 (실제 계정 추가는 users.json 직접 수정).
 ================================================== */
 
-async function signup() {
-
-    const nickname =
-        signupNicknameInput.value.trim();
-
-    const password =
-        signupPasswordInput.value;
+function signup() {
 
     authError.style.color = "#e53935";
-    authError.textContent = "";
-
-    if (!nickname || !password) {
-
-        authError.textContent =
-            "닉네임과 비밀번호를 입력하세요.";
-
-        return;
-    }
-
-    if (nickname.length < 2 || nickname.length > 20) {
-
-        authError.textContent =
-            "닉네임은 2~20자로 입력하세요.";
-
-        return;
-    }
-
-    if (password.length < 6) {
-
-        authError.textContent =
-            "비밀번호는 6자 이상이어야 합니다.";
-
-        return;
-    }
-
-    const email =
-        nicknameToEmail(nickname);
-
-    const {
-        data,
-        error
-    } = await supabaseClient.auth.signUp({
-        email,
-        password,
-        options: {
-            data: {
-                username: nickname,
-                display_name: nickname
-            }
-        }
-    });
-
-    if (error) {
-
-        console.error(error);
-
-        if (
-            String(error.message || "")
-                .toLowerCase()
-                .includes("already registered")
-        ) {
-
-            authError.textContent =
-                "이미 사용 중인 닉네임입니다.";
-
-        } else {
-
-            authError.textContent =
-                "회원가입 실패: " + error.message;
-        }
-
-        return;
-    }
-
-    /*
-     * 이메일 인증(Confirm email)이 꺼져 있으면
-     * 가입과 동시에 세션이 생겨서 바로 로그인된다.
-     * 켜져 있으면 세션이 없고 (가짜 이메일이라
-     * 실제로 인증 메일을 받을 수 없으므로) 반드시
-     * Confirm email 설정을 꺼두어야 한다.
-     */
-
-    /*
-     * 가입 성공 시 구글 시트에 기록을 남긴다.
-     */
-
-    await logToGoogleSheet(nickname, nickname);
-
-    if (data.session) {
-
-        const profile =
-            await loadCurrentProfile();
-
-        if (profile) {
-
-            await startApp();
-
-            return;
-        }
-    }
-
-    authError.style.color = "#2e7d32";
 
     authError.textContent =
-        "가입 요청이 완료되었습니다.\n로그인해주세요.";
-
-    signupNicknameInput.value = "";
-    signupPasswordInput.value = "";
-
-    showLogin();
+        "지금은 자동 회원가입이 지원되지 않습니다.\n관리자에게 문의해주세요.";
 }
 
 
 /* ==================================================
-   현재 로그인한 사용자의 profiles 불러오기
+   profiles 행이 없으면 만들고, 있으면 그대로 가져온다
 ================================================== */
 
-async function loadCurrentProfile() {
+async function ensureProfile(
+    username,
+    displayName,
+    isAdmin
+) {
 
     const {
-        data: userData,
-        error: userError
-    } = await supabaseClient.auth.getUser();
-
-    if (userError || !userData || !userData.user) {
-
-        console.error(userError);
-
-        return null;
-    }
-
-    const authUser = userData.user;
-
-    const {
-        data,
-        error
+        data: existing,
+        error: selectError
     } = await supabaseClient
         .from("profiles")
         .select("*")
-        .eq("id", authUser.id)
+        .eq("username", username)
         .maybeSingle();
 
-    if (error) {
+    if (selectError) {
 
-        console.error(error);
+        console.error(selectError);
 
         return null;
     }
 
-    if (!data) {
+    if (existing) {
 
-        /*
-         * 트리거가 아직 profiles를 만들지 못했을 가능성에 대비해
-         * 한 번 더 시도해본다. (회원가입 직후 타이밍 이슈 대비)
-         */
+        currentProfile = existing;
 
-        await new Promise(
-            resolve => setTimeout(resolve, 500)
-        );
-
-        const retry =
-            await supabaseClient
-                .from("profiles")
-                .select("*")
-                .eq("id", authUser.id)
-                .maybeSingle();
-
-        if (retry.error || !retry.data) {
-
-            console.error(retry.error);
-
-            return null;
-        }
-
-        currentUserId = authUser.id;
-        currentUser = retry.data.username;
-        currentProfile = retry.data;
-
-        return retry.data;
+        return existing;
     }
 
-    currentUserId = authUser.id;
-    currentUser = data.username;
-    currentProfile = data;
+    const {
+        data: created,
+        error: insertError
+    } = await supabaseClient
+        .from("profiles")
+        .insert({
+            username: username,
+            display_name: displayName || username,
+            status: "offline",
+            is_admin: !!isAdmin
+        })
+        .select()
+        .single();
 
-    return data;
+    if (insertError) {
+
+        console.error(insertError);
+
+        return null;
+    }
+
+    currentProfile = created;
+
+    return created;
 }
 
 
@@ -1615,27 +1438,39 @@ async function startApp() {
 
 
 /* ==================================================
-   AUTO LOGIN (Supabase 세션 기반)
+   AUTO LOGIN (localStorage 기반)
+   - 구글 시트 계정 확인은 비밀번호가 필요해서
+     재검증할 수 없으므로, 브라우저에 저장된
+     닉네임을 신뢰하고 profiles만 다시 불러온다.
 ================================================== */
 
 async function checkAutoLogin() {
 
+    const saved =
+        localStorage.getItem("friendschat_user");
+
+    if (!saved) return;
+
     const {
-        data: sessionData
-    } = await supabaseClient.auth.getSession();
+        data,
+        error
+    } = await supabaseClient
+        .from("profiles")
+        .select("*")
+        .eq("username", saved)
+        .maybeSingle();
 
-    if (!sessionData || !sessionData.session) {
+    if (error || !data) {
+
+        localStorage.removeItem(
+            "friendschat_user"
+        );
 
         return;
     }
 
-    const profile =
-        await loadCurrentProfile();
-
-    if (!profile) {
-
-        return;
-    }
+    currentUser = data.username;
+    currentProfile = data;
 
     await startApp();
 }
@@ -1649,7 +1484,7 @@ checkAutoLogin();
 
 async function setOnline() {
 
-    if (!currentUserId) return;
+    if (!currentUser) return;
 
     await supabaseClient
         .from("profiles")
@@ -1657,13 +1492,13 @@ async function setOnline() {
             status: "online",
             last_seen: new Date().toISOString()
         })
-        .eq("id", currentUserId);
+        .eq("username", currentUser);
 }
 
 
 async function setOffline() {
 
-    if (!currentUserId) return;
+    if (!currentUser) return;
 
     await supabaseClient
         .from("profiles")
@@ -1671,7 +1506,7 @@ async function setOffline() {
             status: "offline",
             last_seen: new Date().toISOString()
         })
-        .eq("id", currentUserId);
+        .eq("username", currentUser);
 }
 
 window.addEventListener(
@@ -2943,9 +2778,10 @@ async function logout() {
         sidebarChannel = null;
     }
 
-    await supabaseClient.auth.signOut();
+    localStorage.removeItem(
+        "friendschat_user"
+    );
 
-    currentUserId = null;
     currentUser = null;
     currentProfile = null;
     currentFriend = null;
