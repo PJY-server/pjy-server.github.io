@@ -13,12 +13,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Update news data
+      - name: Patch news page
+        run: python3 edu/patch_live_news.py
+      - name: Fetch and rank news
         run: python3 edu/fetch_news.py
-      - name: Commit news data
+      - name: Commit live news
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add edu/news-data.json
+          git add edu/news.html edu/news-data.json
           git diff --cached --quiet || git commit -m "Update live kids news"
           git push
