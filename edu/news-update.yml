@@ -1,0 +1,24 @@
+name: Update kids news
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update-news:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update news data
+        run: python3 edu/fetch_news.py
+      - name: Commit news data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add edu/news-data.json
+          git diff --cached --quiet || git commit -m "Update live kids news"
+          git push
