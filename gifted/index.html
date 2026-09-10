@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#6C63FF">
+<title>영재원 산출물 계획</title>
+<style>
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{
+  margin:0;
+  font-family:"Noto Sans KR","Apple SD Gothic Neo",Arial,sans-serif;
+  color:#20243a;
+  background:#f5f6ff;
+  line-height:1.7;
+}
+a{color:inherit}
+.hero{
+  min-height:72vh;
+  display:flex;align-items:center;
+  background:
+    radial-gradient(circle at 85% 20%,rgba(255,255,255,.28) 0 90px,transparent 91px),
+    radial-gradient(circle at 15% 85%,rgba(255,255,255,.18) 0 130px,transparent 131px),
+    linear-gradient(135deg,#5b54e8,#8277ff 55%,#a78bfa);
+  color:#fff;padding:70px 20px 90px;
+  position:relative;overflow:hidden;
+}
+.hero-inner{width:min(1050px,100%);margin:auto}
+.badge{
+  display:inline-flex;padding:7px 14px;border-radius:999px;
+  background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.3);
+  font-size:14px;font-weight:700;backdrop-filter:blur(8px)
+}
+h1{font-size:clamp(38px,8vw,76px);line-height:1.08;margin:20px 0 15px;letter-spacing:-3px}
+.hero p{font-size:clamp(17px,2.5vw,22px);opacity:.93;margin:0;max-width:720px}
+.meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:30px}
+.meta span{background:#fff;color:#5148d8;padding:9px 14px;border-radius:12px;font-weight:800;font-size:14px}
+.nav{
+  position:sticky;top:0;z-index:20;background:rgba(255,255,255,.9);
+  backdrop-filter:blur(12px);border-bottom:1px solid #e5e6f2;
+}
+.nav-inner{width:min(1050px,100%);margin:auto;display:flex;gap:5px;overflow:auto;padding:8px 12px}
+.nav a{text-decoration:none;white-space:nowrap;padding:8px 12px;border-radius:10px;font-size:13px;font-weight:800;color:#666}
+.nav a:hover{background:#eeedff;color:#554bd7}
+main{width:min(1050px,100%);margin:auto;padding:35px 16px 80px}
+section{margin:0 0 22px}
+.card{
+  background:#fff;border:1px solid #e7e8f3;border-radius:24px;
+  padding:28px;box-shadow:0 8px 30px rgba(55,49,120,.06)
+}
+.section-title{display:flex;align-items:center;gap:12px;margin:0 0 18px;font-size:26px;letter-spacing:-1px}
+.num{
+  width:38px;height:38px;display:grid;place-items:center;border-radius:12px;
+  background:#eeedff;color:#554bd7;font-size:16px;font-weight:900
+}
+.highlight{
+  border-left:5px solid #7167ee;background:#f5f4ff;border-radius:0 16px 16px 0;
+  padding:17px 19px;margin:16px 0
+}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.info{
+  padding:20px;border-radius:18px;background:#f8f8fc;border:1px solid #ececf5
+}
+.info h3{margin:0 0 7px;font-size:17px}
+.info p{margin:0;color:#5f6273;font-size:14px}
+.steps{counter-reset:step;display:grid;gap:12px}
+.step{
+  display:grid;grid-template-columns:44px 1fr;gap:14px;align-items:start;
+  padding:15px;border:1px solid #e9e9f3;border-radius:16px
+}
+.step:before{
+  counter-increment:step;content:counter(step);
+  width:38px;height:38px;border-radius:50%;background:#6c63ff;color:white;
+  display:grid;place-items:center;font-weight:900
+}
+.step p{margin:0}
+.experiment{
+  border:1px solid #e4e3fa;border-radius:20px;overflow:hidden;margin:16px 0
+}
+.exp-head{padding:16px 20px;background:#f2f1ff;font-weight:900;color:#4d45c7}
+.exp-body{padding:20px}
+.hypothesis{margin-top:12px;padding:13px 15px;background:#fff8e9;border-radius:12px;color:#73551b}
+.ratio-box{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  padding:22px;background:#fafaff;border-radius:16px;margin:18px 0;
+  font-weight:900;font-size:clamp(22px,5vw,34px);color:#5148d8
+}
+.ratio-box small{font-size:13px;color:#777;font-weight:600}
+.fib{
+  background:#17172a;color:#fff;border-radius:20px;padding:22px;margin-top:20px
+}
+.fib input{
+  width:90px;padding:10px;border:0;border-radius:9px;font-size:16px;text-align:center
+}
+button{
+  border:0;border-radius:10px;background:#7a70ff;color:#fff;padding:10px 14px;
+  font-weight:800;cursor:pointer
+}
+#fibResult{margin-top:14px;color:#dcd9ff;font-size:14px;word-break:break-word}
+ul{padding-left:22px}
+li{margin:7px 0}
+.reference{
+  display:flex;justify-content:space-between;gap:20px;align-items:center;
+  padding:15px 0;border-bottom:1px solid #eeeef5
+}
+.reference:last-child{border-bottom:0}
+.reference a{color:#554bd7;font-weight:800;text-decoration:none;word-break:break-all}
+.score{
+  display:grid;grid-template-columns:repeat(4,1fr);gap:12px
+}
+.score div{padding:18px;text-align:center;background:#f8f8fc;border-radius:16px}
+.score b{display:block;font-size:28px;color:#5a51dc}
+footer{text-align:center;color:#858798;padding:30px 16px 50px;font-size:13px}
+@media(max-width:760px){
+  .hero{min-height:62vh;padding-top:55px}
+  .grid,.score{grid-template-columns:1fr}
+  .card{padding:21px;border-radius:19px}
+  .section-title{font-size:22px}
+  .reference{display:block}
+  .reference a{display:block;margin-top:5px}
+}
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="hero-inner">
+    <span class="badge">남부영재교육원 · 5학년 수빛반</span>
+    <h1>영재원<br>산출물 계획</h1>
+    <p>생활 속 황금 비율 탐구하기</p>
+    <div class="meta">
+      <span>5학년</span><span>수빛반</span><span>박재윤</span>
+    </div>
+  </div>
+</header>
+
+<nav class="nav">
+  <div class="nav-inner">
+    <a href="#topic">탐구 주제</a>
+    <a href="#motive">탐구 동기</a>
+    <a href="#goal">알고 싶은 점</a>
+    <a href="#theory">이론적 배경</a>
+    <a href="#process">탐구 과정</a>
+    <a href="#result">예상 결과</a>
+    <a href="#reference">참고 자료</a>
+    <a href="#criteria">심사기준</a>
+  </div>
+</nav>
+
+<main>
+  <section id="topic">
+    <div class="card">
+      <h2 class="section-title"><span class="num">01</span> 탐구 주제</h2>
+      <div class="highlight"><strong>생활 속 황금 비율 탐구하기</strong></div>
+    </div>
+  </section>
+
+  <section id="motive">
+    <div class="card">
+      <h2 class="section-title"><span class="num">02</span> 탐구 동기</h2>
+      <p>우연히 한 그림을 보게 되었는데, 이 그림에 황금 비율이 들어 있다는 것을 알고 나서 황금 비율에 대해 조금 더 알아보고 싶은 생각이 들었다.</p>
+      <p>조사 결과, 사진 속 분할은 <strong>황금비를 이용한 면 분할</strong>이라고 한다.</p>
+    </div>
+  </section>
+
+  <section id="goal">
+    <div class="card">
+      <h2 class="section-title"><span class="num">03</span> 탐구를 통해 알고 싶은 점</h2>
+      <div class="grid">
+        <div class="info"><h3>① 생활 속 물건 찾기</h3><p>내 주위에서 황금 비율을 가지고 있는 물건들을 찾아본다.</p></div>
+        <div class="info"><h3>② 공통점과 차이점</h3><p>찾은 물건들의 공통점과 차이점을 비교한다.</p></div>
+        <div class="info"><h3>③ 수학적 개념 탐구</h3><p>황금 비율과 관련된 수학적 개념을 탐구한다.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="theory">
+    <div class="card">
+      <h2 class="section-title"><span class="num">04</span> 이론적 배경</h2>
+      <p>황금비율은 고대 수학자 유클리드가 설명한 비의 방법과 관련되어 있다. 전체와 긴 부분의 비가 긴 부분과 짧은 부분의 비와 같게 하는 방법이다.</p>
+      <div class="ratio-box">
+        1 : 1.6180339887…
+        <small>황금비의 근삿값</small>
+      </div>
+      <p>황금비는 무리수이기 때문에 소수가 끝없이 이어진다. 따라서 실제 탐구에서는 필요에 따라 <strong>1 : 1.618</strong>처럼 근삿값을 사용할 수 있다.</p>
+    </div>
+  </section>
+
+  <section id="process">
+    <div class="card">
+      <h2 class="section-title"><span class="num">05</span> 탐구 과정 및 방법</h2>
+
+      <div class="experiment">
+        <div class="exp-head">실험 방법 1 · 우리 주위의 물체 (직접 탐구)</div>
+        <div class="exp-body">
+          <div class="steps">
+            <div class="step"><p>우리 주위에 있는 황금 비율을 가진 여러 가지 물체들의 길이를 직접 측정하여 조사한다.</p></div>
+            <div class="step"><p>찾은 물체들의 공통점을 찾고, 이 공통점을 가진 다른 물체들도 추가로 조사하여 황금 비율을 가진 물체들의 목록을 작성한다.</p></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="experiment">
+        <div class="exp-head">실험 방법 2 · 피보나치 수열의 계산 (증명)</div>
+        <div class="exp-body">
+          <div class="steps">
+            <div class="step"><p>피보나치 수열을 14번째까지 작성한다.</p></div>
+            <div class="step"><p>연속된 두 수를 나누는 것을 반복해 정말로 황금 비율에 수렴하는지 알아본다.</p></div>
+          </div>
+          <div class="fib">
+            <strong>피보나치 비율 계산 도구</strong><br>
+            <span style="font-size:13px;color:#aaa">몇 번째 항까지 볼지 입력해 보세요.</span><br><br>
+            <input id="fibN" type="number" min="2" max="14" value="14">
+            <button onclick="showFib()">계산하기</button>
+            <div id="fibResult"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="experiment">
+        <div class="exp-head">실험 방법 3 · 황금비율을 가진 도형들 (직접 탐구)</div>
+        <div class="exp-body">
+          <div class="steps">
+            <div class="step"><p>탐구할 때 황금 비율을 약 <strong>1 : 1.618</strong>로 반올림하여 정한다.</p></div>
+            <div class="step"><p>황금 비율을 가진 도형들을 알아보고, 여기서 어떻게 확장해 나갈 수 있는지 알아본다.</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="result">
+    <div class="card">
+      <h2 class="section-title"><span class="num">06</span> 예상되는 결과 (가설)</h2>
+      <ul>
+        <li><strong>실험 방법 1:</strong> 세계에서 유명한 브랜드의 로고에는 황금 비율이 있을 것 같다. 또, 우리가 자주 찾는 스마트폰의 디스플레이도 황금 비율일 것 같다.</li>
+        <li><strong>실험 방법 2:</strong> 황금비는 끝없이 이어지기 때문에 계산할 때는 1.618의 근삿값으로 계산해야 할 것 같다.</li>
+        <li><strong>실험 방법 3:</strong> 황금비율을 가지고 있는 도형들에는 직사각형이 포함되어 있을 것 같다.</li>
+      </ul>
+      <div class="highlight"><strong>중요:</strong> 위 내용은 현재 계획서의 가설이며, 실제 탐구 결과와 비교하여 발표에서 확인한다.</div>
+    </div>
+  </section>
+
+  <section id="reference">
+    <div class="card">
+      <h2 class="section-title"><span class="num">07</span> 참고 자료</h2>
+      <div class="reference">
+        <div><strong>위키백과 · 황금비</strong><br><span style="font-size:13px;color:#777">이론적 배경</span></div>
+        <a href="https://ko.wikipedia.org/wiki/황금비" target="_blank" rel="noopener">자료 보기 ↗</a>
+      </div>
+      <div class="reference">
+        <div><strong>브런치 · 관련 글</strong><br><span style="font-size:13px;color:#777">사진 및 탐구 동기 자료</span></div>
+        <a href="https://brunch.co.kr/@jesus-art07/2" target="_blank" rel="noopener">자료 보기 ↗</a>
+      </div>
+    </div>
+  </section>
+
+  <section id="ppt">
+    <div class="card">
+      <h2 class="section-title"><span class="num">08</span> 발표 PPT 구성</h2>
+      <div class="grid">
+        <div class="info"><h3>1. 탐구 주제</h3><p>무엇을 탐구했는지 소개</p></div>
+        <div class="info"><h3>2. 탐구 동기</h3><p>왜 이 주제를 선택했는지 소개</p></div>
+        <div class="info"><h3>3. 탐구 과정</h3><p>관련 이론 조사와 탐구활동 내용을 사진과 함께 구체적으로 정리</p></div>
+        <div class="info"><h3>4. 탐구 결과 및 산출물</h3><p>실제 측정·계산 결과와 산출물 정리</p></div>
+        <div class="info"><h3>5. 참고 도서 및 관련 사이트</h3><p>사용한 자료 정리</p></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="criteria">
+    <div class="card">
+      <h2 class="section-title"><span class="num">09</span> 심사기준</h2>
+      <div class="score">
+        <div><b>10</b>독창성</div>
+        <div><b>10</b>체계성</div>
+        <div><b>20</b>탐구력</div>
+        <div><b>10</b>발표력</div>
+      </div>
+      <ul>
+        <li><strong>독창성:</strong> 주제가 학생의 학습 수준 내에서 참신하고 독창적인가?</li>
+        <li><strong>체계성:</strong> 탐구내용, 과정, 결론이 체계적이고 구체적이어서 이해하기 쉬운가?</li>
+        <li><strong>탐구력:</strong> 생활 속 수학 원리를 발견하거나 문제를 해결할 수 있는가?</li>
+        <li><strong>발표력:</strong> 청중을 고려하여 적절한 목소리로 알기 쉽게 발표하는가?</li>
+      </ul>
+    </div>
+  </section>
+</main>
+
+<footer>
+  영재원 산출물 계획 · 생활 속 황금 비율 탐구하기<br>
+  5학년 수빛반 박재윤
+</footer>
+
+<script>
+function showFib(){
+  const n=Math.min(14,Math.max(2,Number(document.getElementById("fibN").value)||14));
+  const f=[0,1];
+  for(let i=2;i<n;i++) f.push(f[i-1]+f[i-2]);
+  const ratios=[];
+  for(let i=2;i<n;i++) ratios.push((f[i]/f[i-1]).toFixed(6));
+  document.getElementById("fibResult").innerHTML =
+    "<b>피보나치 수열</b><br>"+f.slice(0,n).join(" , ") +
+    "<br><br><b>연속항의 비</b><br>"+ratios.join(" → ") +
+    "<br><br>마지막 값은 황금비 1.618…에 가까워지는지 비교해 볼 수 있습니다.";
+}
+showFib();
+</script>
+</body>
+</html>
