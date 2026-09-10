@@ -15,7 +15,7 @@ FEEDS = [
 ]
 
 BAD = re.compile(
-    r"성폭력|살인|시신|참수|잔혹|피살|흉기|자살|마약|도박|음주운전|성범죄|납치|테러|총격|성착취|불법촬영|폭행|사망자|시신|범죄",
+    r"성폭력|살인|시신|참수|잔혹|피살|흉기|자살|마약|도박|음주운전|성범죄|납치|테러|총격|성착취|불법촬영|폭행|사망자|범죄",
     re.I,
 )
 GOOD = re.compile(
@@ -28,8 +28,12 @@ SCIENCE = re.compile(r"과학|환경|기후|AI|인공지능|로봇|우주|에너
 
 
 def clean(x):
-    x = re.sub(r"<[^>]+>", "", x or "")
-    return re.sub(r"\s+", " ", x).replace("&nbsp;", " ").strip()
+    x = re.sub(r"<script[\s\S]*?</script>", " ", x or "", flags=re.I)
+    x = re.sub(r"<style[\s\S]*?</style>", " ", x or "", flags=re.I)
+    x = re.sub(r"<[^>]+>", " ", x or "")
+    x = re.sub(r"&nbsp;|&#160;", " ", x or "", flags=re.I)
+    x = re.sub(r"\s+", " ", x or "")
+    return x.strip()
 
 
 def parse_date(x):
@@ -44,16 +48,50 @@ def parse_date(x):
         return None
 
 
+def text_from_item(item, tag):
+    value = item.findtext(tag)
+    if value:
+        return clean(value)
+    return ""
+
+
+def make_paragraphs(text):
+    text = clean(text)
+    if not text:
+        return []
+
+    # RSS descriptions can contain an image caption followed by the actual article excerpt.
+    text = re.sub(r"^(사진|이미지|자료사진|사진=|자료=)[^가-힣A-Za-z0-9]{0,5}", "", text)
+
+    # Keep a useful article excerpt instead of dumping an entire article into the page.
+    if len(text) > 1200:
+        text = text[:1197].rstrip() + "…"
+
+    sentences = re.split(r"(?<=[.!?다요죠])\s+", text)
+    sentences = [s.strip() for s in sentences if s.strip()]
+    if len(sentences) >= 2:
+        mid = max(1, len(sentences) // 2)
+        return [" ".join(sentences[:mid]), " ".join(sentences[mid:])]
+    return [text]
+
+
 def fetch(name, url):
-    req = urllib.request.Request(url, headers={"User-Agent": "PJY-Edu-News/1.0"})
+    req = urllib.request.Request(url, headers={"User-Agent": "PJY-Edu-News/1.1"})
     with urllib.request.urlopen(req, timeout=20) as r:
         data = r.read()
     root = ET.fromstring(data)
     out = []
     for item in root.findall(".//item")[:80]:
-        title = clean(item.findtext("title"))
+        title = text_from_item(item, "title")
         link = (item.findtext("link") or "").strip()
-        desc = clean(item.findtext("description"))
+
+        # Different publishers put their RSS article excerpt in different fields.
+        desc = text_from_item(item, "description")
+        if not desc:
+            desc = text_from_item(item, "{http://purl.org/rss/1.0/modules/content/}encoded")
+        if not desc:
+            desc = text_from_item(item, "{http://purl.org/dc/elements/1.1/}description")
+
         dt = parse_date(
             item.findtext("pubDate")
             or item.findtext("{http://purl.org/dc/elements/1.1/}date")
@@ -118,12 +156,12 @@ for score, x in ranked:
 articles = []
 for i, x in enumerate(chosen[:4]):
     dt = x["dt"].astimezone() if x["dt"] else now.astimezone()
-    summary = re.sub(r"\s+", " ", x["summary"]).strip()
-    if len(summary) > 700:
-        summary = summary[:697] + "…"
+    summary = clean(x["summary"])
+    paras = make_paragraphs(summary)
+    if not paras:
+        paras = ["이 기사는 RSS에서 기사 요약문을 제공하지 않습니다. 아래 원문 링크에서 기사 내용을 확인할 수 있습니다."]
+        summary = paras[0]
 
-    # Keep the page structure compatible with the existing highlight/reflection/card-news UI.
-    paras = [summary] if summary else ["최신 뉴스입니다. 기사 원문에서 자세한 내용을 확인해 보세요."]
     facts = [
         "최신 뉴스",
         "어린이가 읽기 쉽도록 선별한 기사",
