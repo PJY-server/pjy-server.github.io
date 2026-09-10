@@ -3,9 +3,11 @@ name: Update kids news
 on:
   push:
     paths:
-      - ".github/workflows/update-edu-news.yml"
+      - 'edu/patch_live_news.py'
+      - 'edu/fetch_news.py'
+      - '.github/workflows/update-edu-news.yml'
   schedule:
-    - cron: "*/30 * * * *"
+    - cron: '*/30 * * * *'
   workflow_dispatch:
 
 permissions:
