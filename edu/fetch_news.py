@@ -5,7 +5,7 @@ import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
 
-# 조선닷컴 RSSPlus + 동아일보 RSS에서 제공하는 공식 RSS 피드
+# 조선닷컴 RSSPlus + 동아일보 RSS + 어린이 경제신문 RSS
 FEEDS = [
     ("조선일보", "https://www.chosun.com/arc/outboundfeeds/rss/?outputType=xml"),
     ("조선일보 정치", "https://www.chosun.com/arc/outboundfeeds/rss/category/politics/?outputType=xml"),
@@ -22,6 +22,11 @@ FEEDS = [
     ("동아일보 여행·생활", "https://rss.donga.com/travel.xml"),
     ("동아일보 생활정보", "https://rss.donga.com/lifeinfo.xml"),
     ("동아일보 스포츠", "https://rss.donga.com/sports.xml"),
+    ("어린이경제신문", "https://www.econoi.com/rss/allArticle.xml"),
+    ("어린이경제신문 인기기사", "https://www.econoi.com/rss/clickTop.xml"),
+    ("어린이경제신문 이야기경제", "https://www.econoi.com/rss/S1N2.xml"),
+    ("어린이경제신문 생생뉴스", "https://www.econoi.com/rss/S1N3.xml"),
+    ("어린이경제신문 교육", "https://www.econoi.com/rss/S1N5.xml"),
 ]
 
 BAD = re.compile(
