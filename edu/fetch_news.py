@@ -1,4 +1,5 @@
 import json
+import os
 import re
 import urllib.request
 import xml.etree.ElementTree as ET
@@ -101,8 +102,61 @@ def make_paragraphs(text):
     return paras
 
 
+def ai_polish(text):
+    """내용·사실·순서는 유지하고 어색한 문장과 띄어쓰기만 AI로 다듬는다."""
+    api_key = os.environ.get("OPENAI_API_KEY", "").strip()
+    if not api_key or not text:
+        return text
+
+    # RSS가 제공한 내용 자체를 통째로 새로 쓰지 않도록 길이를 제한한다.
+    source = text[:14000]
+    payload = {
+        "model": "gpt-5.6-luna",
+        "input": [
+            {
+                "role": "system",
+                "content": (
+                    "너는 어린이 뉴스 편집자다. 주어진 뉴스 문장을 '문장 다듬기'만 한다. "
+                    "새로운 사실, 숫자, 이름, 날짜, 인용, 주장, 예시를 절대 추가하지 마라. "
+                    "원문의 정보와 순서를 그대로 유지하고, 어색한 연결, 문법, 띄어쓰기, "
+                    "깨진 문장만 자연스러운 한국어로 고쳐라. 문장을 불필요하게 줄이거나 요약하지 마라. "
+                    "원문에 없는 내용을 추측하지 마라. 결과에는 수정된 본문만 출력하라."
+                ),
+            },
+            {
+                "role": "user",
+                "content": source,
+            },
+        ],
+    }
+    try:
+        req = urllib.request.Request(
+            "https://api.openai.com/v1/responses",
+            data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
+            headers={
+                "Authorization": "Bearer " + api_key,
+                "Content-Type": "application/json",
+            },
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=60) as r:
+            result = json.loads(r.read().decode("utf-8"))
+
+        output = result.get("output", [])
+        parts = []
+        for item in output:
+            for part in item.get("content", []):
+                if part.get("type") == "output_text" and part.get("text"):
+                    parts.append(part["text"])
+        polished = "\n".join(parts).strip()
+        return polished if polished else text
+    except Exception as e:
+        print("AI polish failed:", e)
+        return text
+
+
 def fetch(name, url):
-    req = urllib.request.Request(url, headers={"User-Agent": "PJY-Edu-News/1.5"})
+    req = urllib.request.Request(url, headers={"User-Agent": "PJY-Edu-News/1.6"})
     with urllib.request.urlopen(req, timeout=20) as r:
         data = r.read()
     root = ET.fromstring(data)
@@ -190,13 +244,16 @@ articles = []
 for i, x in enumerate(chosen[:4]):
     dt = x["dt"].astimezone() if x["dt"] else now.astimezone()
     content = clean_content(x["content"])
-    paras = make_paragraphs(content)
+
+    # AI는 기사 내용을 새로 작성하지 않고 어색한 문장만 다듬는다.
+    polished = ai_polish(content)
+    paras = make_paragraphs(polished)
     if not paras:
         paras = ["이 RSS는 기사 내용을 제공하지 않습니다. 아래 원문 링크에서 전체 기사를 확인할 수 있습니다."]
 
     facts = [
         "최신 뉴스",
-        "RSS가 제공한 기사 내용 표시",
+        "RSS가 제공한 기사 내용을 바탕으로 문장만 자연스럽게 다듬음",
         "자세한 내용은 기사 원문에서 확인",
     ]
 
@@ -208,7 +265,7 @@ for i, x in enumerate(chosen[:4]):
             "title": x["title"],
             "date": dt.strftime("%Y.%m.%d %H:%M"),
             "source": x["source"],
-            "content": content,
+            "content": polished,
             "paras": paras,
             "facts": facts,
             "url": x["link"],
