@@ -5,13 +5,15 @@ import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
 
+# 조선닷컴 RSSPlus에서 제공하는 공식 RSS 피드
 FEEDS = [
-    ("뉴시스", "https://nwww.newsis.com/RSS/sokbo.xml"),
-    ("뉴시스 국제", "https://nwww.newsis.com/RSS/international.xml"),
-    ("경향신문 과학·환경", "https://www.khan.co.kr/rss/rssdata/science_news.xml"),
-    ("경향신문 국제", "https://www.khan.co.kr/rss/rssdata/kh_world.xml"),
-    ("아이뉴스24 IT", "https://www.inews24.com/rss/news_it.xml"),
-    ("아이뉴스24 생활", "https://www.inews24.com/rss/news_life.xml"),
+    ("조선일보", "https://www.chosun.com/arc/outboundfeeds/rss/?outputType=xml"),
+    ("조선일보 정치", "https://www.chosun.com/arc/outboundfeeds/rss/category/politics/?outputType=xml"),
+    ("조선일보 경제", "https://www.chosun.com/arc/outboundfeeds/rss/category/economy/?outputType=xml"),
+    ("조선일보 사회", "https://www.chosun.com/arc/outboundfeeds/rss/category/national/?outputType=xml"),
+    ("조선일보 국제", "https://www.chosun.com/arc/outboundfeeds/rss/category/international/?outputType=xml"),
+    ("조선일보 문화·라이프", "https://www.chosun.com/arc/outboundfeeds/rss/category/culture-life/?outputType=xml"),
+    ("조선일보 스포츠", "https://www.chosun.com/arc/outboundfeeds/rss/category/sports/?outputType=xml"),
 ]
 
 BAD = re.compile(
@@ -73,18 +75,12 @@ def make_paragraphs(text):
     text = clean_content(text)
     if not text:
         return []
-
     paras = [re.sub(r"\s+", " ", p).strip() for p in text.split("\n")]
-    paras = [p for p in paras if p]
-
-    # RSS가 한 덩어리로만 주는 경우에도 문장을 다시 요약하거나 재작성하지 않는다.
-    if not paras:
-        return [text]
-    return paras
+    return [p for p in paras if p]
 
 
 def fetch(name, url):
-    req = urllib.request.Request(url, headers={"User-Agent": "PJY-Edu-News/1.2"})
+    req = urllib.request.Request(url, headers={"User-Agent": "PJY-Edu-News/1.3"})
     with urllib.request.urlopen(req, timeout=20) as r:
         data = r.read()
     root = ET.fromstring(data)
@@ -93,7 +89,7 @@ def fetch(name, url):
         title = text_from_item(item, "title")
         link = (item.findtext("link") or "").strip()
 
-        # 요약(description)보다 RSS의 본문(content:encoded)을 우선 사용한다.
+        # 조선 RSS의 content:encoded가 있으면 이를 우선 사용한다.
         content = text_from_item(
             item,
             "{http://purl.org/rss/1.0/modules/content/}encoded",
@@ -178,7 +174,7 @@ for i, x in enumerate(chosen[:4]):
         paras = ["이 RSS는 기사 내용을 제공하지 않습니다. 아래 원문 링크에서 전체 기사를 확인할 수 있습니다."]
 
     facts = [
-        "최신 뉴스",
+        "조선닷컴 RSS 최신 기사",
         "RSS가 제공한 기사 내용 표시",
         "자세한 내용은 기사 원문에서 확인",
     ]
