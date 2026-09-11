@@ -41,6 +41,8 @@ GOOD = re.compile(
 WORLD = re.compile(r"국제|세계|미국|중국|일본|유럽|아시아|외국|우주|NASA", re.I)
 KOREA = re.compile(r"한국|국내|서울|대한민국|교육|학교|청소년|우리나라", re.I)
 SCIENCE = re.compile(r"과학|환경|기후|AI|인공지능|로봇|우주|에너지|바다|동물|생태|기술|발명", re.I)
+ECONOMY = re.compile(r"경제|금융|증시|주식|기업|산업|무역|물가|부동산|돈|금리", re.I)
+CULTURE_SPORTS = re.compile(r"문화|예술|영화|음악|공연|스포츠|축구|야구|농구|올림픽", re.I)
 
 
 def clean_inline(x):
@@ -108,7 +110,6 @@ def ai_polish(text):
     if not api_key or not text:
         return text
 
-    # RSS가 제공한 내용 자체를 통째로 새로 쓰지 않도록 길이를 제한한다.
     source = text[:14000]
     payload = {
         "model": "gpt-5.6-luna",
@@ -116,7 +117,7 @@ def ai_polish(text):
             {
                 "role": "system",
                 "content": (
-                    "너는 어린이 뉴스 편집자다. 주어진 뉴스 문장을 '문장 다듬기'만 한다. "
+                    "너는 뉴스 편집자다. 주어진 뉴스 문장을 '문장 다듬기'만 한다. "
                     "새로운 사실, 숫자, 이름, 날짜, 인용, 주장, 예시를 절대 추가하지 마라. "
                     "원문의 정보와 순서를 그대로 유지하고, 어색한 연결, 문법, 띄어쓰기, "
                     "깨진 문장만 자연스러운 한국어로 고쳐라. 문장을 불필요하게 줄이거나 요약하지 마라. "
@@ -156,7 +157,7 @@ def ai_polish(text):
 
 
 def fetch(name, url):
-    req = urllib.request.Request(url, headers={"User-Agent": "PJY-Edu-News/1.6"})
+    req = urllib.request.Request(url, headers={"User-Agent": "PJY-Edu-News/1.7"})
     with urllib.request.urlopen(req, timeout=20) as r:
         data = r.read()
     root = ET.fromstring(data)
@@ -222,6 +223,9 @@ slots = [
     ("🌱 과학·환경", SCIENCE),
     ("🌎 세계", WORLD),
     ("🇰🇷 우리나라", KOREA),
+    ("💰 경제·생활", ECONOMY),
+    ("🎭 문화·스포츠", CULTURE_SPORTS),
+    ("📰 최신 뉴스", None),
 ]
 
 chosen = []
@@ -235,17 +239,16 @@ for label, pattern in slots:
             break
 
 for score, x in ranked:
-    if len(chosen) >= 4:
+    if len(chosen) >= 7:
         break
     if x not in chosen:
         chosen.append(x)
 
 articles = []
-for i, x in enumerate(chosen[:4]):
+for i, x in enumerate(chosen[:7]):
     dt = x["dt"].astimezone() if x["dt"] else now.astimezone()
     content = clean_content(x["content"])
 
-    # AI는 기사 내용을 새로 작성하지 않고 어색한 문장만 다듬는다.
     polished = ai_polish(content)
     paras = make_paragraphs(polished)
     if not paras:
@@ -260,7 +263,7 @@ for i, x in enumerate(chosen[:4]):
     articles.append(
         {
             "id": "live-" + str(i + 1),
-            "tabTitle": x["title"][:55],
+            "tabTitle": x["title"],
             "kicker": slots[i][0],
             "title": x["title"],
             "date": dt.strftime("%Y.%m.%d %H:%M"),
