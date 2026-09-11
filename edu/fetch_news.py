@@ -27,12 +27,25 @@ KOREA = re.compile(r"한국|국내|서울|대한민국|교육|학교|청소년|�
 SCIENCE = re.compile(r"과학|환경|기후|AI|인공지능|로봇|우주|에너지|바다|동물|생태|기술|발명", re.I)
 
 
-def clean(x):
+def clean_inline(x):
     x = re.sub(r"<script[\s\S]*?</script>", " ", x or "", flags=re.I)
     x = re.sub(r"<style[\s\S]*?</style>", " ", x or "", flags=re.I)
     x = re.sub(r"<[^>]+>", " ", x or "")
     x = re.sub(r"&nbsp;|&#160;", " ", x or "", flags=re.I)
     x = re.sub(r"\s+", " ", x or "")
+    return x.strip()
+
+
+def clean_content(x):
+    """RSS가 제공하는 기사 내용을 요약하지 않고 문단 형태로 정리한다."""
+    x = x or ""
+    x = re.sub(r"<script[\s\S]*?</script>", "", x, flags=re.I)
+    x = re.sub(r"<style[\s\S]*?</style>", "", x, flags=re.I)
+    x = re.sub(r"<(?:br|/p|/div|/li|/h[1-6])[^>]*>", "\n", x, flags=re.I)
+    x = re.sub(r"<[^>]+>", " ", x)
+    x = re.sub(r"&nbsp;|&#160;", " ", x, flags=re.I)
+    x = re.sub(r"[ \t]+", " ", x)
+    x = re.sub(r"\n\s*\n+", "\n", x)
     return x.strip()
 
 
@@ -48,35 +61,30 @@ def parse_date(x):
         return None
 
 
-def text_from_item(item, tag):
+def text_from_item(item, tag, cleaner=clean_inline):
     value = item.findtext(tag)
     if value:
-        return clean(value)
+        return cleaner(value)
     return ""
 
 
 def make_paragraphs(text):
-    text = clean(text)
+    """기사 내용을 새로 요약하지 않고 RSS에 들어 있는 문단을 그대로 사용한다."""
+    text = clean_content(text)
     if not text:
         return []
 
-    # RSS descriptions can contain an image caption followed by the actual article excerpt.
-    text = re.sub(r"^(사진|이미지|자료사진|사진=|자료=)[^가-힣A-Za-z0-9]{0,5}", "", text)
+    paras = [re.sub(r"\s+", " ", p).strip() for p in text.split("\n")]
+    paras = [p for p in paras if p]
 
-    # Keep a useful article excerpt instead of dumping an entire article into the page.
-    if len(text) > 1200:
-        text = text[:1197].rstrip() + "…"
-
-    sentences = re.split(r"(?<=[.!?다요죠])\s+", text)
-    sentences = [s.strip() for s in sentences if s.strip()]
-    if len(sentences) >= 2:
-        mid = max(1, len(sentences) // 2)
-        return [" ".join(sentences[:mid]), " ".join(sentences[mid:])]
-    return [text]
+    # RSS가 한 덩어리로만 주는 경우에도 문장을 다시 요약하거나 재작성하지 않는다.
+    if not paras:
+        return [text]
+    return paras
 
 
 def fetch(name, url):
-    req = urllib.request.Request(url, headers={"User-Agent": "PJY-Edu-News/1.1"})
+    req = urllib.request.Request(url, headers={"User-Agent": "PJY-Edu-News/1.2"})
     with urllib.request.urlopen(req, timeout=20) as r:
         data = r.read()
     root = ET.fromstring(data)
@@ -85,19 +93,27 @@ def fetch(name, url):
         title = text_from_item(item, "title")
         link = (item.findtext("link") or "").strip()
 
-        # Different publishers put their RSS article excerpt in different fields.
-        desc = text_from_item(item, "description")
-        if not desc:
-            desc = text_from_item(item, "{http://purl.org/rss/1.0/modules/content/}encoded")
-        if not desc:
-            desc = text_from_item(item, "{http://purl.org/dc/elements/1.1/}description")
+        # 요약(description)보다 RSS의 본문(content:encoded)을 우선 사용한다.
+        content = text_from_item(
+            item,
+            "{http://purl.org/rss/1.0/modules/content/}encoded",
+            clean_content,
+        )
+        if not content:
+            content = text_from_item(
+                item,
+                "{http://purl.org/dc/elements/1.1/}description",
+                clean_content,
+            )
+        if not content:
+            content = text_from_item(item, "description", clean_content)
 
         dt = parse_date(
             item.findtext("pubDate")
             or item.findtext("{http://purl.org/dc/elements/1.1/}date")
         )
         if title and link:
-            out.append({"title": title, "link": link, "summary": desc, "source": name, "dt": dt})
+            out.append({"title": title, "link": link, "content": content, "source": name, "dt": dt})
     return out
 
 
@@ -118,7 +134,7 @@ for x in items:
         continue
     seen.add(key)
 
-    text = x["title"] + " " + x["summary"]
+    text = x["title"] + " " + x["content"]
     if BAD.search(text):
         continue
 
@@ -142,7 +158,7 @@ for label, pattern in slots:
     for score, x in ranked:
         if x in chosen:
             continue
-        text = x["title"] + " " + x["summary"]
+        text = x["title"] + " " + x["content"]
         if pattern is None or pattern.search(text):
             chosen.append(x)
             break
@@ -156,15 +172,14 @@ for score, x in ranked:
 articles = []
 for i, x in enumerate(chosen[:4]):
     dt = x["dt"].astimezone() if x["dt"] else now.astimezone()
-    summary = clean(x["summary"])
-    paras = make_paragraphs(summary)
+    content = clean_content(x["content"])
+    paras = make_paragraphs(content)
     if not paras:
-        paras = ["이 기사는 RSS에서 기사 요약문을 제공하지 않습니다. 아래 원문 링크에서 기사 내용을 확인할 수 있습니다."]
-        summary = paras[0]
+        paras = ["이 RSS는 기사 내용을 제공하지 않습니다. 아래 원문 링크에서 전체 기사를 확인할 수 있습니다."]
 
     facts = [
         "최신 뉴스",
-        "어린이가 읽기 쉽도록 선별한 기사",
+        "RSS가 제공한 기사 내용 표시",
         "자세한 내용은 기사 원문에서 확인",
     ]
 
@@ -176,7 +191,7 @@ for i, x in enumerate(chosen[:4]):
             "title": x["title"],
             "date": dt.strftime("%Y.%m.%d %H:%M"),
             "source": x["source"],
-            "summary": summary,
+            "content": content,
             "paras": paras,
             "facts": facts,
             "url": x["link"],
