@@ -5,7 +5,7 @@ import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
 
-# 조선닷컴 RSSPlus에서 제공하는 공식 RSS 피드
+# 조선닷컴 RSSPlus + 동아일보 RSS에서 제공하는 공식 RSS 피드
 FEEDS = [
     ("조선일보", "https://www.chosun.com/arc/outboundfeeds/rss/?outputType=xml"),
     ("조선일보 정치", "https://www.chosun.com/arc/outboundfeeds/rss/category/politics/?outputType=xml"),
@@ -14,6 +14,14 @@ FEEDS = [
     ("조선일보 국제", "https://www.chosun.com/arc/outboundfeeds/rss/category/international/?outputType=xml"),
     ("조선일보 문화·라이프", "https://www.chosun.com/arc/outboundfeeds/rss/category/culture-life/?outputType=xml"),
     ("조선일보 스포츠", "https://www.chosun.com/arc/outboundfeeds/rss/category/sports/?outputType=xml"),
+    ("동아일보", "https://rss.donga.com/total.xml"),
+    ("동아일보 국제", "https://rss.donga.com/international.xml"),
+    ("동아일보 의학·과학", "https://rss.donga.com/science.xml"),
+    ("동아일보 문화·연예", "https://rss.donga.com/culture.xml"),
+    ("동아일보 건강", "https://rss.donga.com/health.xml"),
+    ("동아일보 여행·생활", "https://rss.donga.com/travel.xml"),
+    ("동아일보 생활정보", "https://rss.donga.com/lifeinfo.xml"),
+    ("동아일보 스포츠", "https://rss.donga.com/sports.xml"),
 ]
 
 BAD = re.compile(
@@ -80,7 +88,7 @@ def make_paragraphs(text):
 
 
 def fetch(name, url):
-    req = urllib.request.Request(url, headers={"User-Agent": "PJY-Edu-News/1.3"})
+    req = urllib.request.Request(url, headers={"User-Agent": "PJY-Edu-News/1.4"})
     with urllib.request.urlopen(req, timeout=20) as r:
         data = r.read()
     root = ET.fromstring(data)
@@ -89,7 +97,7 @@ def fetch(name, url):
         title = text_from_item(item, "title")
         link = (item.findtext("link") or "").strip()
 
-        # 조선 RSS의 content:encoded가 있으면 이를 우선 사용한다.
+        # RSS의 content:encoded가 있으면 이를 우선 사용한다.
         content = text_from_item(
             item,
             "{http://purl.org/rss/1.0/modules/content/}encoded",
@@ -174,7 +182,7 @@ for i, x in enumerate(chosen[:4]):
         paras = ["이 RSS는 기사 내용을 제공하지 않습니다. 아래 원문 링크에서 전체 기사를 확인할 수 있습니다."]
 
     facts = [
-        "조선닷컴 RSS 최신 기사",
+        "최신 뉴스",
         "RSS가 제공한 기사 내용 표시",
         "자세한 내용은 기사 원문에서 확인",
     ]
