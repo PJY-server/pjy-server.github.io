@@ -5,7 +5,7 @@ import xml.etree.ElementTree as ET
 from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
 
-# 조선닷컴 RSSPlus + 동아일보 RSS + 어린이 경제신문 RSS
+# 조선닷컴 RSSPlus + 동아일보 RSS + 어린이경제신문 RSS
 FEEDS = [
     ("조선일보", "https://www.chosun.com/arc/outboundfeeds/rss/?outputType=xml"),
     ("조선일보 정치", "https://www.chosun.com/arc/outboundfeeds/rss/category/politics/?outputType=xml"),
@@ -22,7 +22,7 @@ FEEDS = [
     ("동아일보 여행·생활", "https://rss.donga.com/travel.xml"),
     ("동아일보 생활정보", "https://rss.donga.com/lifeinfo.xml"),
     ("동아일보 스포츠", "https://rss.donga.com/sports.xml"),
-    ("어린이경제신문", "https://www.econoi.com/rss/allArticle.xml"),
+    ("어린이경제신문 전체기사", "https://www.econoi.com/rss/allArticle.xml"),
     ("어린이경제신문 인기기사", "https://www.econoi.com/rss/clickTop.xml"),
     ("어린이경제신문 이야기경제", "https://www.econoi.com/rss/S1N2.xml"),
     ("어린이경제신문 생생뉴스", "https://www.econoi.com/rss/S1N3.xml"),
@@ -52,15 +52,19 @@ def clean_inline(x):
 
 
 def clean_content(x):
-    """RSS가 제공하는 기사 내용을 요약하지 않고 문단 형태로 정리한다."""
+    """RSS 원문에 들어 있는 글자와 문단 구조를 최대한 보존한다."""
     x = x or ""
     x = re.sub(r"<script[\s\S]*?</script>", "", x, flags=re.I)
     x = re.sub(r"<style[\s\S]*?</style>", "", x, flags=re.I)
-    x = re.sub(r"<(?:br|/p|/div|/li|/h[1-6])[^>]*>", "\n", x, flags=re.I)
+    x = re.sub(r"<(?:br|hr)\s*/?>", "\n", x, flags=re.I)
+    x = re.sub(r"</(?:p|div|li|h[1-6]|section|article|blockquote)>\s*", "\n", x, flags=re.I)
+    x = re.sub(r"<(?:p|div|li|h[1-6]|section|article|blockquote)(?:\s[^>]*)?>", "", x, flags=re.I)
     x = re.sub(r"<[^>]+>", " ", x)
-    x = re.sub(r"&nbsp;|&#160;", " ", x, flags=re.I)
-    x = re.sub(r"[ \t]+", " ", x)
-    x = re.sub(r"\n\s*\n+", "\n", x)
+    import html
+    x = html.unescape(x)
+    x = re.sub(r"[ \t\r]+", " ", x)
+    x = re.sub(r"\n[ \t]+", "\n", x)
+    x = re.sub(r"\n{3,}", "\n\n", x)
     return x.strip()
 
 
@@ -77,23 +81,28 @@ def parse_date(x):
 
 
 def text_from_item(item, tag, cleaner=clean_inline):
-    value = item.findtext(tag)
-    if value:
-        return cleaner(value)
-    return ""
+    """findtext 대신 모든 자식 텍스트를 합쳐 링크 안의 글자도 잃지 않는다."""
+    node = item.find(tag)
+    if node is None:
+        return ""
+    raw = "".join(node.itertext())
+    return cleaner(raw) if cleaner else raw.strip()
 
 
 def make_paragraphs(text):
-    """기사 내용을 새로 요약하지 않고 RSS에 들어 있는 문단을 그대로 사용한다."""
     text = clean_content(text)
     if not text:
         return []
-    paras = [re.sub(r"\s+", " ", p).strip() for p in text.split("\n")]
-    return [p for p in paras if p]
+    paras = []
+    for block in re.split(r"\n{2,}|\n", text):
+        block = re.sub(r"\s+", " ", block).strip()
+        if block:
+            paras.append(block)
+    return paras
 
 
 def fetch(name, url):
-    req = urllib.request.Request(url, headers={"User-Agent": "PJY-Edu-News/1.4"})
+    req = urllib.request.Request(url, headers={"User-Agent": "PJY-Edu-News/1.5"})
     with urllib.request.urlopen(req, timeout=20) as r:
         data = r.read()
     root = ET.fromstring(data)
@@ -102,7 +111,6 @@ def fetch(name, url):
         title = text_from_item(item, "title")
         link = (item.findtext("link") or "").strip()
 
-        # RSS의 content:encoded가 있으면 이를 우선 사용한다.
         content = text_from_item(
             item,
             "{http://purl.org/rss/1.0/modules/content/}encoded",
