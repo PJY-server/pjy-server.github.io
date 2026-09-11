@@ -347,10 +347,10 @@ footer b{color:var(--ink-soft);font-weight:700}
 
   <footer>
     <b>기사 출처</b><br>
-    각 기사에 표시된 <b>언론사 이름</b>을 출처로 표시하며, 기사별 <b>원문 링크</b>를 통해 원문을 확인할 수 있습니다.<br>
+    각 기사에 표시된 <b>언론사 이름</b>과 <b>원문 링크</b>를 통해 기사 출처를 확인할 수 있습니다.<br>
     <b>사진 출처</b><br>
     실시간 기사에 사용되는 사진은 해당 기사의 원문 페이지에서 확인할 수 있습니다.<br>
-    <span>※ 뉴스 내용은 원문 기사를 바탕으로 어린이가 읽기 쉽게 정리한 것입니다.</span>
+    <span>※ 뉴스 내용은 RSS로 제공된 기사 내용을 바탕으로 문장만 자연스럽게 다듬어 표시합니다.</span>
   </footer>
 </div>
 <script>
@@ -481,7 +481,7 @@ const ARTICLES = [
   }
 ];
 
-const AI_MARK = "[어린이가 이해하기 쉽도록 간단히 정리한 뉴스입니다.]";
+const AI_MARK = "[기사 원문을 바탕으로 문장만 자연스럽게 다듬었습니다.]";
 
 /* ═══════════════  저장  ═══════════════ */
 const KEY = "nepal-flood-news-note-v1";
@@ -814,8 +814,8 @@ function paintCards(ctx, photos, draw){
     g.addColorStop(0, CN.accent); g.addColorStop(1, "#2E8FC2");
     ctx.fillStyle = g; roundRect(ctx, M, y, CW, coverH, 20); ctx.fill();
   }
-  T("오늘의 어린이 뉴스", M + PAD, y + 72, '900 42px "Noto Sans KR", sans-serif', CN.onAccent);
-  T("쉽게 읽고 생각해 보는 뉴스", M + PAD, y + 110, '700 21px "Noto Sans KR", sans-serif', "rgba(255,255,255,.86)");
+  T("오늘의 뉴스", M + PAD, y + 72, '900 42px "Noto Sans KR", sans-serif', CN.onAccent);
+  T("최신 뉴스를 읽고 생각해 보는 뉴스", M + PAD, y + 110, '700 21px "Noto Sans KR", sans-serif', "rgba(255,255,255,.86)");
   const who = (store.name || "").trim();
   const today = new Date().toLocaleDateString("ko-KR",{year:"numeric",month:"long",day:"numeric"});
   T("이름  " + (who || "___________"), M + PAD, y + 148, '700 19px "Noto Sans KR", sans-serif', "rgba(255,255,255,.95)");
@@ -928,7 +928,7 @@ function paintCards(ctx, photos, draw){
 
   T("기사 출처 : 각 기사에 표시된 언론사와 원문 링크를 확인하세요.",
     W / 2, y + 16, '400 14px "Noto Sans KR", sans-serif', CN.soft, "center");
-  T("기사 내용은 원문을 바탕으로 어린이가 읽기 쉽게 정리했습니다. 자세한 내용은 원문을 확인하세요.",
+  T("기사 내용은 원문을 바탕으로 문장만 자연스럽게 다듬었습니다. 자세한 내용은 원문을 확인하세요.",
     W / 2, y + 40, '400 13px "Noto Sans KR", sans-serif', CN.faint, "center");
   return y + 66;
 }
@@ -993,7 +993,7 @@ document.getElementById("btn-img").addEventListener("click", async e=>{
     const blob = await makeCards();
     if(!blob) throw new Error("no-blob");
     const who = (store.name || "").trim().replace(/[\\/:*?"<>|]/g, "");
-    const file = "오늘의어린이뉴스_카드뉴스" + (who ? "_" + who : "") + ".png";
+    const file = "오늘의뉴스_카드뉴스" + (who ? "_" + who : "") + ".png";
 
     const dl = await capDownloads;
     if(dl){
@@ -1066,24 +1066,84 @@ async function loadLiveKidsNews(){
 }
 window.addEventListener("load", loadLiveKidsNews);
 </script>
+<style id="live-news-ui-v4">
+/* LIVE_KIDS_NEWS_UI_V4 */
+.tabs{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:10px;
+  margin:16px 0 0;
+  padding:0 0 4px;
+  overflow:visible;
+}
+.tab{
+  min-width:0;
+  width:100%;
+  min-height:76px;
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  padding:12px 13px;
+  border-radius:14px;
+  transform:none;
+}
+.tab:hover,.tab[aria-selected="true"]{transform:translateY(-1px)}
+.tab > span:nth-child(2){min-width:0;flex:1}
+.tab-t{
+  display:block;
+  font-size:14px;
+  line-height:1.4;
+  letter-spacing:-.025em;
+  white-space:normal;
+  overflow:visible;
+  text-overflow:clip;
+  word-break:keep-all;
+  overflow-wrap:anywhere;
+}
+.tab-s{
+  display:block;
+  margin-top:4px;
+  line-height:1.35;
+  white-space:normal;
+}
+.tab .done{margin-left:0;flex:none}
+.headline{
+  white-space:normal;
+  overflow:visible;
+  text-overflow:clip;
+  word-break:keep-all;
+  overflow-wrap:anywhere;
+  text-wrap:pretty;
+}
+@media (max-width:900px){
+  .tabs{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+  .tab{min-height:82px;padding:11px 10px}
+  .tab-t{font-size:13.5px}
+}
+@media (max-width:520px){
+  .tabs{grid-template-columns:1fr}
+  .tab{min-height:0}
+  .headline{font-size:clamp(22px,6.2vw,29px);line-height:1.38}
+}
+</style>
 <script>
-/* LIVE_KIDS_NEWS_PATCH_V3 */
+/* LIVE_KIDS_NEWS_PATCH_V4 */
 async function loadLiveKidsNews(){
   try{
     const r = await fetch("./news-data.json?t=" + Date.now(), {cache:"no-store"});
     if(!r.ok) throw new Error("news-data.json " + r.status);
     const data = await r.json();
     if(!Array.isArray(data.articles) || !data.articles.length) return;
-    const live = data.articles.slice(0,4).map((a,i)=>({
+    const live = data.articles.slice(0,7).map((a,i)=>({
       id:a.id || ("live-"+(i+1)),
-      figs:[{k:"live",cap:"실시간으로 선별된 어린이 뉴스",cr:"자세한 내용은 기사 원문을 확인하세요."}],
+      figs:[{k:"live",cap:"실시간 뉴스",cr:"자세한 내용은 기사 원문을 확인하세요."}],
       tabTitle:a.tabTitle || a.title || "최신 뉴스",
       tabSub:(a.date || "")+" · "+(a.source || "뉴스"),
-      kicker:a.kicker || "🔥 오늘의 어린이 뉴스",
+      kicker:a.kicker || "📰 오늘의 뉴스",
       headline:a.title || "최신 뉴스",
       date:a.date || "",
       source:a.source || "뉴스",
-      facts:Array.isArray(a.facts)?a.facts:["최신 뉴스","어린이가 읽기 쉽도록 선별한 기사"],
+      facts:Array.isArray(a.facts)?a.facts:["최신 뉴스","자세한 내용은 기사 원문을 확인하세요."],
       paras:Array.isArray(a.paras)&&a.paras.length?a.paras:[a.summary || "최신 뉴스입니다."],
       url:a.url || ""
     }));
