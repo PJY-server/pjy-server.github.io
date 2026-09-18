@@ -9,183 +9,94 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 body{margin:0;background:#f5f6f8;color:#17181a;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans KR",sans-serif}
 .app{width:100%;max-width:720px;margin:0 auto;min-height:100vh;padding:28px 18px 40px}
-header{display:flex;align-items:center;gap:12px;margin-bottom:22px}
-.logo{width:46px;height:46px;border-radius:14px;background:#17181a;color:#fff;display:grid;place-items:center;font-size:22px}
-h1{margin:0;font-size:27px;letter-spacing:-1px}
-.sub{margin:2px 0 0;color:#858990;font-size:12px}
-.search{display:flex;gap:8px;background:#fff;border:1px solid #e5e7ea;border-radius:16px;padding:8px;box-shadow:0 5px 20px rgba(0,0,0,.04)}
-.search input{flex:1;border:0;outline:0;background:transparent;padding:8px 10px;font-size:15px}
-.search button{border:0;border-radius:11px;background:#17181a;color:#fff;padding:0 17px;font-weight:700;cursor:pointer}
-.player{margin-top:16px;background:#fff;border:1px solid #e5e7ea;border-radius:22px;padding:14px;box-shadow:0 8px 30px rgba(0,0,0,.05)}
-.video{width:100%;aspect-ratio:16/9;background:#111;border-radius:15px;overflow:hidden}
-.video iframe{width:100%;height:100%;border:0}
-.now{padding:15px 4px 4px}
-.title{font-size:18px;font-weight:750;letter-spacing:-.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.hint{margin-top:5px;color:#8b8f95;font-size:12px}
-.controls{display:flex;justify-content:center;align-items:center;gap:12px;margin-top:12px}
-.control{width:46px;height:42px;border:0;border-radius:13px;background:#f0f1f3;font-size:19px;cursor:pointer}
-.play{width:58px;background:#17181a;color:#fff;font-size:23px}
-.status{margin-top:15px;padding:13px;border-radius:13px;background:#f5f6f8;color:#73777d;font-size:12px;line-height:1.5}
-.section{margin-top:22px}
-.section-title{font-size:13px;color:#73777d;font-weight:750;margin:0 0 10px}
-.queue{display:grid;gap:8px}
-.item{display:flex;align-items:center;gap:12px;padding:13px;background:#fff;border:1px solid #e7e8eb;border-radius:15px;cursor:pointer}
-.thumb{width:58px;height:38px;border-radius:8px;background:#e9eaed;display:grid;place-items:center;overflow:hidden;font-size:17px}
-.item-main{min-width:0;flex:1}
-.item-title{font-size:14px;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.item-id{font-size:11px;color:#9a9da2;margin-top:3px}
-.item-play{border:0;background:#f0f1f3;border-radius:10px;width:38px;height:34px;cursor:pointer}
-footer{text-align:center;color:#aaaeb3;font-size:11px;margin-top:28px}
-@media(max-width:500px){.app{padding-top:20px}.video{border-radius:12px}.player{border-radius:18px}}
+header{display:flex;align-items:center;gap:12px;margin-bottom:22px}.logo{width:46px;height:46px;border-radius:14px;background:#17181a;color:#fff;display:grid;place-items:center;font-size:22px}h1{margin:0;font-size:27px;letter-spacing:-1px}.sub{margin:2px 0 0;color:#858990;font-size:12px}
+.search{display:flex;gap:8px;background:#fff;border:1px solid #e5e7ea;border-radius:16px;padding:8px;box-shadow:0 5px 20px rgba(0,0,0,.04)}.search input{flex:1;border:0;outline:0;background:transparent;padding:8px 10px;font-size:15px}.search button{border:0;border-radius:11px;background:#17181a;color:#fff;padding:0 17px;font-weight:700;cursor:pointer}
+.player{margin-top:16px;background:#fff;border:1px solid #e5e7ea;border-radius:22px;padding:14px;box-shadow:0 8px 30px rgba(0,0,0,.05)}.video{width:100%;aspect-ratio:16/9;background:#111;border-radius:15px;overflow:hidden}.video iframe{width:100%;height:100%;border:0}.now{padding:15px 4px 4px}.title{font-size:18px;font-weight:750;letter-spacing:-.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.hint{margin-top:5px;color:#8b8f95;font-size:12px}
+.controls{display:flex;justify-content:center;align-items:center;gap:12px;margin-top:12px}.control{width:46px;height:42px;border:0;border-radius:13px;background:#f0f1f3;font-size:19px;cursor:pointer}.play{width:58px;background:#17181a;color:#fff;font-size:23px}.status{margin-top:15px;padding:13px;border-radius:13px;background:#f5f6f8;color:#73777d;font-size:12px;line-height:1.5}
+.section{margin-top:22px}.section-title{font-size:13px;color:#73777d;font-weight:750;margin:0 0 10px}.results{display:grid;gap:8px}.item{display:flex;align-items:center;gap:12px;padding:10px;background:#fff;border:1px solid #e7e8eb;border-radius:15px;cursor:pointer}.thumb{width:96px;height:54px;border-radius:9px;background:#e9eaed;overflow:hidden;flex-shrink:0}.thumb img{width:100%;height:100%;object-fit:cover}.item-main{min-width:0;flex:1}.item-title{font-size:14px;font-weight:650;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.item-channel{font-size:11px;color:#8f9399;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.item-play{border:0;background:#f0f1f3;border-radius:10px;width:38px;height:34px;cursor:pointer;flex-shrink:0}
+.settings{margin-top:20px}.settings summary{cursor:pointer;color:#73777d;font-size:12px;font-weight:700}.keybox{margin-top:9px;padding:12px;background:#fff;border:1px solid #e5e7ea;border-radius:14px}.keyrow{display:flex;gap:7px}.keyrow input{flex:1;min-width:0;border:1px solid #dddfe3;border-radius:10px;padding:10px;outline:0}.keyrow button{border:0;border-radius:10px;background:#17181a;color:#fff;padding:0 13px;font-weight:700}.small{margin-top:8px;color:#999da3;font-size:11px;line-height:1.5}
+footer{text-align:center;color:#aaaeb3;font-size:11px;margin-top:28px}@media(max-width:500px){.app{padding-top:20px}.video{border-radius:12px}.player{border-radius:18px}.thumb{width:82px;height:46px}}
 </style>
 </head>
 <body>
 <div class="app">
-<header>
-  <div class="logo">🎵</div>
-  <div><h1>JPlayer</h1><p class="sub">YouTube 기반 웹 음악 플레이어</p></div>
-</header>
+<header><div class="logo">🎵</div><div><h1>JPlayer</h1><p class="sub">YouTube 기반 웹 음악 플레이어</p></div></header>
 
-<div class="search">
-  <input id="urlInput" placeholder="YouTube URL 또는 영상 ID 입력">
-  <button id="loadBtn">재생</button>
-</div>
+<div class="search"><input id="searchInput" placeholder="YouTube에서 음악 검색"><button id="searchBtn">검색</button></div>
 
 <section class="player">
-  <div class="video"><div id="player"></div></div>
-  <div class="now">
-    <div class="title" id="title">재생할 YouTube 영상을 입력하세요</div>
-    <div class="hint" id="hint">YouTube에서 허용되는 임베드 플레이어를 사용합니다.</div>
-  </div>
-  <div class="controls">
-    <button class="control" id="prevBtn">⏮</button>
-    <button class="control play" id="playBtn">▶</button>
-    <button class="control" id="nextBtn">⏭</button>
-  </div>
-  <div class="status" id="status">준비됨 · 검색 API를 연결하면 이 화면에서 YouTube 검색 결과도 표시할 수 있습니다.</div>
+<div class="video"><div id="player"></div></div>
+<div class="now"><div class="title" id="title">음악을 검색해 보세요</div><div class="hint" id="hint">검색 결과를 누르면 바로 재생됩니다.</div></div>
+<div class="controls"><button class="control" id="prevBtn">⏮</button><button class="control play" id="playBtn">▶</button><button class="control" id="nextBtn">⏭</button></div>
+<div class="status" id="status">준비됨</div>
 </section>
 
-<section class="section">
-  <h2 class="section-title">최근 재생</h2>
-  <div class="queue" id="queue">
-    <div class="item" data-id="dQw4w9WgXcQ" data-title="YouTube 테스트 영상">
-      <div class="thumb">▶</div>
-      <div class="item-main"><div class="item-title">YouTube 테스트 영상</div><div class="item-id">샘플 항목</div></div>
-      <button class="item-play">▶</button>
-    </div>
-  </div>
-</section>
+<section class="section"><h2 class="section-title">검색 결과</h2><div class="results" id="results"><div class="status">검색 결과가 여기에 표시됩니다.</div></div></section>
+
+<details class="settings"><summary>⚙️ YouTube API 설정</summary><div class="keybox"><div class="keyrow"><input id="apiKey" type="password" placeholder="YouTube Data API v3 키"><button id="saveKey">저장</button></div><div class="small">검색 기능은 YouTube Data API v3를 사용합니다. API 키는 이 브라우저에만 저장되며, GitHub에 저장하지 않습니다.</div></div></details>
 
 <footer>JPlayer · PJY Server</footer>
 </div>
 
 <script src="https://www.youtube.com/iframe_api"></script>
 <script>
-let ytPlayer=null;
-let currentId="";
-let queue=[];
-let currentIndex=-1;
+let ytPlayer=null,currentId="",queue=[],currentIndex=-1;
+const $=id=>document.getElementById(id);
 
+function setStatus(t){$("status").textContent=t}
 function extractId(value){
-  value=value.trim();
-  if(!value) return "";
-  if(/^[A-Za-z0-9_-]{11}$/.test(value)) return value;
-  try{
-    const u=new URL(value);
-    if(u.hostname.includes("youtu.be")) return u.pathname.slice(1).split("/")[0];
-    if(u.hostname.includes("youtube.com")){
-      if(u.searchParams.get("v")) return u.searchParams.get("v");
-      const m=u.pathname.match(/\/embed\/([A-Za-z0-9_-]{11})/);
-      if(m) return m[1];
-      const s=u.pathname.match(/\/shorts\/([A-Za-z0-9_-]{11})/);
-      if(s) return s[1];
-    }
-  }catch(e){}
-  return "";
+ value=value.trim(); if(!value)return "";
+ if(/^[A-Za-z0-9_-]{11}$/.test(value))return value;
+ try{const u=new URL(value);if(u.hostname.includes("youtu.be"))return u.pathname.slice(1).split("/")[0];
+ if(u.hostname.includes("youtube.com")){if(u.searchParams.get("v"))return u.searchParams.get("v");
+ let m=u.pathname.match(/\/embed\/([A-Za-z0-9_-]{11})/);if(m)return m[1];
+ m=u.pathname.match(/\/shorts\/([A-Za-z0-9_-]{11})/);if(m)return m[1]}}catch(e){} return "";
 }
-
 window.onYouTubeIframeAPIReady=function(){
-  ytPlayer=new YT.Player("player",{
-    videoId:"",
-    playerVars:{playsinline:1,rel:0},
-    events:{
-      onReady:function(){document.getElementById("status").textContent="플레이어 준비 완료";},
-      onStateChange:function(e){
-        if(e.data===YT.PlayerState.PLAYING){
-          document.getElementById("playBtn").textContent="⏸";
-          document.getElementById("status").textContent="재생 중";
-        }else if(e.data===YT.PlayerState.PAUSED){
-          document.getElementById("playBtn").textContent="▶";
-          document.getElementById("status").textContent="일시정지";
-        }else if(e.data===YT.PlayerState.ENDED){
-          document.getElementById("playBtn").textContent="▶";
-          next();
-        }
-      }
-    }
-  });
+ ytPlayer=new YT.Player("player",{videoId:"",playerVars:{playsinline:1,rel:0},events:{
+ onReady:()=>setStatus("플레이어 준비 완료"),
+ onStateChange:e=>{if(e.data===YT.PlayerState.PLAYING){$("playBtn").textContent="⏸";setStatus("재생 중")}
+ else if(e.data===YT.PlayerState.PAUSED){$("playBtn").textContent="▶";setStatus("일시정지")}
+ else if(e.data===YT.PlayerState.ENDED){$("playBtn").textContent="▶";next()}}
+ }});
 };
-
 function loadVideo(id,title){
-  if(!ytPlayer || !id){return;}
-  currentId=id;
-  ytPlayer.loadVideoById(id);
-  document.getElementById("title").textContent=title||"YouTube 영상";
-  document.getElementById("hint").textContent="YouTube 플레이어로 재생 중";
-  document.getElementById("status").textContent="로딩 중…";
+ if(!ytPlayer||!id)return; currentId=id;ytPlayer.loadVideoById(id);
+ $("title").textContent=title||"YouTube 영상";$("hint").textContent="YouTube 플레이어로 재생 중";setStatus("로딩 중…");
 }
+function addToQueue(id,title){queue.push({id,title});currentIndex=queue.length-1}
+function next(){if(!queue.length)return;currentIndex=(currentIndex+1)%queue.length;let x=queue[currentIndex];loadVideo(x.id,x.title)}
+function prev(){if(!queue.length)return;currentIndex=(currentIndex-1+queue.length)%queue.length;let x=queue[currentIndex];loadVideo(x.id,x.title)}
 
-function addToQueue(id,title){
-  queue.push({id,title});
-  currentIndex=queue.length-1;
+function renderResults(items){
+ $("results").innerHTML="";
+ if(!items.length){$("results").innerHTML='<div class="status">검색 결과가 없습니다.</div>';return}
+ items.forEach(v=>{
+  const id=v.id.videoId,title=v.snippet.title,channel=v.snippet.channelTitle;
+  const el=document.createElement("div");el.className="item";
+  el.innerHTML='<div class="thumb"><img src="'+v.snippet.thumbnails.medium.url+'" alt=""></div><div class="item-main"><div class="item-title"></div><div class="item-channel"></div></div><button class="item-play">▶</button>';
+  el.querySelector(".item-title").textContent=title;el.querySelector(".item-channel").textContent=channel;
+  el.onclick=()=>{addToQueue(id,title);loadVideo(id,title)};$("results").appendChild(el);
+ });
 }
-
-function next(){
-  if(!queue.length)return;
-  currentIndex=(currentIndex+1)%queue.length;
-  const x=queue[currentIndex];
-  loadVideo(x.id,x.title);
+async function searchYouTube(){
+ const q=$("searchInput").value.trim(),key=$("apiKey").value.trim()||localStorage.getItem("jplayer_youtube_key")||"";
+ if(!q){setStatus("검색어를 입력해 주세요.");return}
+ if(!key){document.querySelector(".settings").open=true;setStatus("YouTube API 키를 먼저 입력해 주세요.");return}
+ setStatus("YouTube 검색 중…");$("results").innerHTML='<div class="status">검색 중…</div>';
+ try{
+  const url="https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=12&q="+encodeURIComponent(q)+"&key="+encodeURIComponent(key);
+  const res=await fetch(url),data=await res.json();
+  if(!res.ok)throw new Error(data.error?.message||"API 오류");
+  renderResults(data.items||[]);setStatus("검색 완료 · "+(data.items||[]).length+"개");
+ }catch(e){$("results").innerHTML='<div class="status">검색에 실패했습니다.</div>';setStatus("오류: "+e.message)}
 }
-function prev(){
-  if(!queue.length)return;
-  currentIndex=(currentIndex-1+queue.length)%queue.length;
-  const x=queue[currentIndex];
-  loadVideo(x.id,x.title);
-}
-
-document.getElementById("loadBtn").onclick=function(){
-  const input=document.getElementById("urlInput").value;
-  const id=extractId(input);
-  if(!id){
-    document.getElementById("status").textContent="YouTube URL 또는 11자리 영상 ID를 입력해 주세요.";
-    return;
-  }
-  const title="YouTube 영상 · "+id;
-  addToQueue(id,title);
-  loadVideo(id,title);
-};
-
-document.getElementById("urlInput").addEventListener("keydown",e=>{
-  if(e.key==="Enter")document.getElementById("loadBtn").click();
-});
-document.getElementById("playBtn").onclick=function(){
-  if(!ytPlayer)return;
-  const state=ytPlayer.getPlayerState();
-  if(state===YT.PlayerState.PLAYING) ytPlayer.pauseVideo();
-  else ytPlayer.playVideo();
-};
-document.getElementById("nextBtn").onclick=next;
-document.getElementById("prevBtn").onclick=prev;
-
-document.querySelectorAll(".item").forEach(item=>{
-  item.addEventListener("click",e=>{
-    if(e.target.classList.contains("item-play")) e.stopPropagation();
-    const id=item.dataset.id;
-    const title=item.dataset.title;
-    addToQueue(id,title);
-    loadVideo(id,title);
-  });
-});
+$("searchBtn").onclick=searchYouTube;
+$("searchInput").addEventListener("keydown",e=>{if(e.key==="Enter")searchYouTube()});
+$("saveKey").onclick=()=>{const k=$("apiKey").value.trim();if(k){localStorage.setItem("jplayer_youtube_key",k);setStatus("API 키를 이 브라우저에 저장했습니다.")}};
+$("playBtn").onclick=()=>{if(!ytPlayer)return;const s=ytPlayer.getPlayerState();if(s===YT.PlayerState.PLAYING)ytPlayer.pauseVideo();else ytPlayer.playVideo()};
+$("nextBtn").onclick=next;$("prevBtn").onclick=prev;
+$("apiKey").value=localStorage.getItem("jplayer_youtube_key")||"";
 </script>
 </body>
 </html>
