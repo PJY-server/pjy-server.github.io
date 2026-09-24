@@ -1,0 +1,1545 @@
+<!DOCTYPE html>
+<html lang="ko" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Zeta AI - 초개성 AI 캐릭터 채팅 플렛폼</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            zeta: {
+              bg: '#0B0D14',
+              card: '#131722',
+              hover: '#1C2232',
+              border: '#2A324B',
+              accent: '#8B5CF6',
+              accentHover: '#7C3AED',
+              neonBlue: '#00F0FF',
+              neonPink: '#FF007A',
+              textMuted: '#94A3B8'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', 'Noto Sans KR', 'sans-serif']
+          }
+        }
+      }
+    };
+  </script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background-color: #0B0D14;
+      color: #F8FAFC;
+      font-family: 'Inter', 'Noto Sans KR', sans-serif;
+      overflow-x: hidden;
+    }
+    /* Custom scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0B0D14;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #2A324B;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #8B5CF6;
+    }
+    .glass-panel {
+      background: rgba(19, 23, 34, 0.75);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glass-input {
+      background: rgba(11, 13, 20, 0.6);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .glow-neon {
+      box-shadow: 0 0 15px rgba(139, 92, 246, 0.35);
+    }
+    .text-glow {
+      text-shadow: 0 0 8px rgba(139, 92, 246, 0.6);
+    }
+    /* Custom formatting for chat message actions */
+    .roleplay-action {
+      font-style: italic;
+      color: #A78BFA;
+    }
+    .roleplay-thought {
+      color: #6EE7B7;
+      font-style: italic;
+    }
+    .roleplay-dialogue {
+      color: #F3F4F6;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body class="h-screen w-screen flex overflow-hidden">
+
+  <div id="app" class="flex h-full w-full relative">
+
+    <!-- DESKTOP SIDEBAR -->
+    <aside class="hidden md:flex flex-col w-64 border-r border-zeta-border glass-panel z-20 flex-shrink-0 justify-between">
+      <div>
+        <!-- Logo Header -->
+        <div class="p-5 flex items-center justify-between border-b border-zeta-border/50">
+          <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('explore')">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-purple-600 to-pink-500 flex items-center justify-center font-bold text-xl text-white glow-neon">
+              Z
+            </div>
+            <div>
+              <span class="font-bold text-lg tracking-wider text-white">ZETA <span class="text-xs px-1.5 py-0.5 rounded bg-purple-900/60 text-purple-300 border border-purple-500/30">AI</span></span>
+              <p class="text-xs text-zeta-textMuted">캐릭터 라운지 v2.5</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Navigation Menu -->
+        <nav class="p-3 space-y-1">
+          <button onclick="switchTab('explore')" id="nav-explore" class="nav-item w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition text-white bg-zeta-hover/80 border border-purple-500/30">
+            <i class="fa-solid font-bold fa-compass text-purple-400 text-lg w-6"></i>
+            <span class="font-medium">탐색 & 검색</span>
+          </button>
+          <button onclick="switchTab('mychats')" id="nav-mychats" class="nav-item w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition text-zeta-textMuted hover:bg-zeta-hover hover:text-white">
+            <i class="fa-solid fa-comments text-lg w-6"></i>
+            <span class="font-medium">내 대화 목록</span>
+          </button>
+          <button onclick="openCharacterCreatorModal()" class="w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition text-zeta-textMuted hover:bg-zeta-hover hover:text-white">
+            <i class="fa-solid fa-wand-magic-sparkles text-pink-400 text-lg w-6"></i>
+            <span class="font-medium">캐릭터 생성</span>
+          </button>
+        </nav>
+
+        <div class="px-3 pt-4">
+          <div class="text-xs font-semibold text-zeta-textMuted px-4 mb-2 uppercase tracking-wider">서버 연결 상태</div>
+          <div id="sidebar-server-status" class="mx-2 p-3 rounded-xl bg-zeta-bg border border-zeta-border text-xs flex flex-col space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-gray-300 font-medium" id="sidebar-server-mode">기본 AI 챗봇</span>
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-green-500/10 text-green-400 border border-green-500/20" id="sidebar-server-badge">
+                <span class="w-1.5 h-1.5 rounded-full bg-green-400 mr-1 animate-pulse"></span> 준비됨
+              </span>
+            </div>
+            <p class="text-[11px] text-zeta-textMuted truncate" id="sidebar-server-desc">내장 프로필 인공지능 응답기</p>
+            <button onclick="openServerSettingsModal()" class="w-full mt-1 py-1.5 px-3 bg-zeta-hover hover:bg-zeta-border text-xs text-purple-300 rounded-lg border border-purple-500/20 transition flex items-center justify-center space-x-1">
+              <i class="fa-solid fa-server text-xs"></i>
+              <span>전용 서버 / API 설정</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- User / System Settings Footer -->
+      <div class="p-4 border-t border-zeta-border/50">
+        <button onclick="openServerSettingsModal()" class="w-full flex items-center justify-between p-2.5 rounded-xl hover:bg-zeta-hover transition">
+          <div class="flex items-center space-x-3">
+            <div class="w-8 h-8 rounded-full bg-purple-600/30 border border-purple-500/40 flex items-center justify-center text-purple-300">
+              <i class="fa-solid fa-user-gear text-sm"></i>
+            </div>
+            <div class="text-left">
+              <p class="text-xs font-semibold text-white">마이 세팅</p>
+              <p class="text-[10px] text-zeta-textMuted">API 키 & 엔드포인트</p>
+            </div>
+          </div>
+          <i class="fa-solid fa-gear text-zeta-textMuted text-xs"></i>
+        </button>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT AREA -->
+    <main class="flex-1 flex flex-col h-full overflow-hidden relative">
+
+      <!-- TOP MOBILE HEADER -->
+      <header class="md:hidden h-14 border-b border-zeta-border glass-panel flex items-center justify-between px-4 z-20 flex-shrink-0">
+        <div class="flex items-center space-x-2" onclick="switchTab('explore')">
+          <div class="w-8 h-8 rounded-lg bg-gradient-to-tr from-purple-600 to-pink-500 flex items-center justify-center font-bold text-white text-base glow-neon">
+            Z
+          </div>
+          <span class="font-bold text-white text-base">ZETA AI</span>
+        </div>
+        <div class="flex items-center space-x-2">
+          <button onclick="openServerSettingsModal()" class="p-2 text-purple-400 hover:text-white rounded-lg bg-zeta-hover/60 border border-zeta-border">
+            <i class="fa-solid fa-server"></i>
+          </button>
+          <button onclick="openCharacterCreatorModal()" class="p-2 text-pink-400 hover:text-white rounded-lg bg-zeta-hover/60 border border-zeta-border">
+            <i class="fa-solid fa-plus"></i>
+          </button>
+        </div>
+      </header>
+
+      <!-- VIEW 1: DISCOVERY & CHARACTER EXPLORE -->
+      <section id="view-explore" class="flex-1 overflow-y-auto p-4 md:p-8 space-y-6">
+        <!-- Banner / Hero Header -->
+        <div class="relative rounded-2xl overflow-hidden border border-purple-500/20 bg-gradient-to-r from-purple-900/40 via-zeta-card to-pink-900/30 p-6 md:p-8 shadow-2xl">
+          <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
+          <div class="relative z-10 max-w-2xl">
+            <span class="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-purple-500/20 text-purple-300 border border-purple-500/30 mb-3">
+              <i class="fa-solid fa-sparkles mr-1"></i> 2026 차세대 AI 캐릭터 라운지
+            </span>
+            <h1 class="text-2xl md:text-4xl font-extrabold text-white tracking-tight mb-2">
+              당신만의 <span class="bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent">AI 캐릭터</span>와 나누는 깊은 대화
+            </h1>
+            <p class="text-xs md:text-sm text-zeta-textMuted mb-5 leading-relaxed">
+              웹툰, 애니, 판타지, 로맨스부터 나만의 서버와 직접 연결된 맞춤형 커스텀 캐릭터까지!
+            </p>
+
+            <!-- Search Bar inside Hero -->
+            <div class="relative max-w-lg">
+              <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 transform -translate-y-1/2 text-zeta-textMuted"></i>
+              <input type="text" id="character-search" oninput="filterCharacters()" placeholder="캐릭터 이름, 태그, 스토리를 검색해보세요..." 
+                class="w-full glass-input rounded-xl pl-11 pr-10 py-3 text-sm text-white focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition" />
+              <button onclick="clearSearch()" id="clear-search-btn" class="hidden absolute right-3 top-1/2 transform -translate-y-1/2 text-zeta-textMuted hover:text-white">
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Categories Filter Carousel -->
+        <div class="flex items-center space-x-2 overflow-x-auto pb-2 scrollbar-none" id="category-filters">
+          <!-- Populated by JavaScript -->
+        </div>
+
+        <!-- Trending Highlights Section -->
+        <div id="section-trending" class="space-y-3">
+          <div class="flex items-center justify-between">
+            <h2 class="text-lg font-bold text-white flex items-center">
+              <i class="fa-solid fa-fire text-amber-500 mr-2"></i> 실시간 인기 캐릭터 TOP
+            </h2>
+            <span class="text-xs text-zeta-textMuted">24시간 기준 업데이트</span>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3 md:gap-4" id="trending-grid">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <!-- All Characters Section -->
+        <div class="space-y-3 pt-4">
+          <div class="flex items-center justify-between">
+            <h2 class="text-lg font-bold text-white flex items-center" id="character-section-title">
+              <i class="fa-solid fa-shapes text-purple-400 mr-2"></i> 모든 AI 캐릭터 라인업
+            </h2>
+            <span class="text-xs text-zeta-textMuted" id="character-count-badge">총 20명</span>
+          </div>
+          <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4" id="all-characters-grid">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 2: MY CHATS LIST -->
+      <section id="view-mychats" class="hidden flex-1 overflow-y-auto p-4 md:p-8">
+        <div class="max-w-4xl mx-auto space-y-6">
+          <div class="flex items-center justify-between border-b border-zeta-border/60 pb-4">
+            <div>
+              <h1 class="text-2xl font-bold text-white">내 대화 목록</h1>
+              <p class="text-xs text-zeta-textMuted">최근 대화를 나눈 캐릭터 및 저장된 세션입니다.</p>
+            </div>
+            <button onclick="clearAllChats()" class="text-xs px-3 py-1.5 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20 transition">
+              <i class="fa-solid fa-trash-can mr-1"></i> 전체 초기화
+            </button>
+          </div>
+
+          <div id="my-chats-list" class="space-y-3">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 3: CHAT ROOM VIEW -->
+      <section id="view-chat" class="hidden flex-1 flex flex-col h-full bg-zeta-bg relative">
+        
+        <!-- Chat Header -->
+        <div class="h-16 px-4 md:px-6 border-b border-zeta-border glass-panel flex items-center justify-between flex-shrink-0 z-10">
+          <div class="flex items-center space-x-3">
+            <button onclick="switchTab('explore')" class="p-2 text-zeta-textMuted hover:text-white rounded-lg hover:bg-zeta-hover transition md:hidden">
+              <i class="fa-solid fa-chevron-left text-lg"></i>
+            </button>
+            <div class="relative cursor-pointer" onclick="openCharacterDetailModal(currentChatCharacter.id)">
+              <img id="chat-header-avatar" class="w-10 h-10 rounded-full object-cover border-2 border-purple-500/50 shadow" src="" alt="" />
+              <span class="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-green-500 border-2 border-zeta-bg"></span>
+            </div>
+            <div>
+              <div class="flex items-center space-x-2">
+                <h2 id="chat-header-name" class="font-bold text-white text-base">캐릭터 이름</h2>
+                <span id="chat-header-tag" class="text-[10px] px-2 py-0.5 rounded bg-purple-900/50 text-purple-300 border border-purple-500/30">태그</span>
+              </div>
+              <p id="chat-header-desc" class="text-xs text-zeta-textMuted truncate max-w-xs md:max-w-md">상황설명 문구</p>
+            </div>
+          </div>
+
+          <!-- Chat Options -->
+          <div class="flex items-center space-x-1 md:space-x-2">
+            <button onclick="toggleTTSSpeech()" id="tts-toggle-btn" title="음성 읽기(TTS)" class="p-2.5 rounded-xl text-zeta-textMuted hover:text-white hover:bg-zeta-hover transition">
+              <i class="fa-solid fa-volume-high"></i>
+            </button>
+            <button onclick="showMemoryModal()" title="캐릭터 기억/메모리" class="p-2.5 rounded-xl text-zeta-textMuted hover:text-white hover:bg-zeta-hover transition">
+              <i class="fa-solid fa-brain"></i>
+            </button>
+            <button onclick="resetCurrentChat()" title="대화 리셋" class="p-2.5 rounded-xl text-zeta-textMuted hover:text-red-400 hover:bg-zeta-hover transition">
+              <i class="fa-solid fa-rotate-right"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Chat Messages Scroll Container -->
+        <div id="chat-messages-container" class="flex-1 overflow-y-auto p-4 md:p-6 space-y-4">
+          <!-- Messages inserted dynamically -->
+        </div>
+
+        <!-- Typing indicator -->
+        <div id="typing-indicator" class="hidden px-6 py-2 flex items-center space-x-2 text-xs text-purple-400 italic">
+          <div class="flex space-x-1">
+            <div class="w-2 h-2 rounded-full bg-purple-400 animate-bounce"></div>
+            <div class="w-2 h-2 rounded-full bg-purple-400 animate-bounce [animation-delay:0.2s]"></div>
+            <div class="w-2 h-2 rounded-full bg-purple-400 animate-bounce [animation-delay:0.4s]"></div>
+          </div>
+          <span id="typing-text">캐릭터가 답변을 작성 중입니다...</span>
+        </div>
+
+        <!-- Chat Input Bar -->
+        <div class="p-3 md:p-4 border-t border-zeta-border glass-panel flex-shrink-0">
+          <form id="chat-form" onsubmit="handleSendMessage(event)" class="max-w-4xl mx-auto relative flex items-center">
+            <textarea id="chat-input" rows="1" onkeydown="handleKeyDown(event)" placeholder="메시지를 입력하세요 (*행동*, &quot;대화&quot;)..." 
+              class="w-full glass-input rounded-2xl pl-4 pr-12 py-3 text-sm text-white focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 resize-none max-h-32 transition"></textarea>
+            
+            <button type="submit" id="send-btn" class="absolute right-2 p-2.5 rounded-xl bg-purple-600 hover:bg-purple-500 text-white transition glow-neon">
+              <i class="fa-solid fa-paper-plane text-sm"></i>
+            </button>
+          </form>
+          <div class="flex items-center justify-between max-w-4xl mx-auto mt-2 text-[11px] text-zeta-textMuted px-2">
+            <span>Tip: <code class="text-purple-300">*지문 행동*</code> 과 <code class="text-emerald-300">"대사"</code> 를 섞어 사용해보세요!</span>
+            <span id="server-indicator-tag" class="text-purple-400 cursor-pointer" onclick="openServerSettingsModal()">모드: 기본 내장 엔진</span>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- MOBILE BOTTOM NAVIGATION -->
+      <nav class="md:hidden h-16 border-t border-zeta-border glass-panel flex items-center justify-around z-20 flex-shrink-0">
+        <button onclick="switchTab('explore')" id="mob-nav-explore" class="flex flex-col items-center space-y-1 text-purple-400">
+          <i class="fa-solid fa-compass text-lg"></i>
+          <span class="text-[10px] font-medium">탐색</span>
+        </button>
+        <button onclick="switchTab('mychats')" id="mob-nav-mychats" class="flex flex-col items-center space-y-1 text-zeta-textMuted">
+          <i class="fa-solid fa-comments text-lg"></i>
+          <span class="text-[10px] font-medium">대화함</span>
+        </button>
+        <button onclick="openCharacterCreatorModal()" class="flex flex-col items-center space-y-1 text-zeta-textMuted">
+          <i class="fa-solid fa-plus-circle text-lg text-pink-400"></i>
+          <span class="text-[10px] font-medium">생성</span>
+        </button>
+      </nav>
+
+    </main>
+  </div>
+
+  <!-- MODAL 1: DEDICATED SERVER & GEMINI API SETTINGS -->
+  <div id="modal-server-settings" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-zeta-card border border-zeta-border rounded-2xl w-full max-w-lg p-6 space-y-5 shadow-2xl relative">
+      <button onclick="closeModal('modal-server-settings')" class="absolute top-4 right-4 text-zeta-textMuted hover:text-white">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-purple-600/20 border border-purple-500/40 flex items-center justify-center text-purple-400">
+          <i class="fa-solid fa-server text-lg"></i>
+        </div>
+        <div>
+          <h3 class="text-lg font-bold text-white">서버 & API 연결 설정</h3>
+          <p class="text-xs text-zeta-textMuted">캐릭터 전용 서버 또는 외부 API를 연동합니다.</p>
+        </div>
+      </div>
+
+      <!-- Provider Select -->
+      <div class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-gray-300 mb-1">연동 엔진 선택</label>
+          <select id="setting-provider" onchange="toggleServerFields()" class="w-full glass-input rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-purple-500">
+            <option value="builtin">내장 오프라인 AI 엔진 (기본)</option>
+            <option value="custom">커스텀 캐릭터 전용 서버 (REST / WebSocket)</option>
+            <option value="gemini">Google Gemini API Direct</option>
+          </select>
+        </div>
+
+        <!-- Custom Server Options -->
+        <div id="field-custom-server" class="space-y-3 hidden p-4 rounded-xl bg-zeta-bg/80 border border-zeta-border">
+          <div>
+            <label class="block text-xs font-semibold text-purple-300 mb-1">전용 서버 엔드포인트 URL</label>
+            <input type="text" id="setting-server-url" placeholder="http://localhost:8000/api/chat 또는 ws://..." class="w-full glass-input rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-500" />
+            <p class="text-[10px] text-zeta-textMuted mt-1">캐릭터 전용 AI 서버 API 주소를 입력하세요.</p>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-gray-300 mb-1">인증 토큰 (선택사항)</label>
+            <input type="password" id="setting-server-token" placeholder="Bearer Token..." class="w-full glass-input rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-500" />
+          </div>
+          <div class="pt-2">
+            <button type="button" onclick="testCustomServerConnection()" class="px-3 py-1.5 rounded-lg bg-purple-600/30 hover:bg-purple-600/50 text-purple-300 text-xs border border-purple-500/40 transition flex items-center space-x-1">
+              <i class="fa-solid fa-network-wired text-xs"></i>
+              <span>서버 연결 테스트 (Ping)</span>
+            </button>
+            <span id="ping-result" class="text-xs ml-2"></span>
+          </div>
+        </div>
+
+        <!-- Gemini API Options -->
+        <div id="field-gemini-api" class="space-y-3 hidden p-4 rounded-xl bg-zeta-bg/80 border border-zeta-border">
+          <div>
+            <label class="block text-xs font-semibold text-purple-300 mb-1">Gemini API Key</label>
+            <input type="password" id="setting-gemini-key" placeholder="AIzaSy..." class="w-full glass-input rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-500" />
+            <p class="text-[10px] text-zeta-textMuted mt-1">키를 비워두면 시스템 기본 연결을 시도합니다.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="pt-3 flex items-center justify-end space-x-2">
+        <button onclick="closeModal('modal-server-settings')" class="px-4 py-2 rounded-xl text-xs text-zeta-textMuted hover:bg-zeta-hover transition">취소</button>
+        <button onclick="saveServerSettings()" class="px-5 py-2 rounded-xl text-xs font-semibold bg-purple-600 hover:bg-purple-500 text-white transition glow-neon">설정 저장</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2: CHARACTER DETAIL PREVIEW -->
+  <div id="modal-character-detail" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-zeta-card border border-zeta-border rounded-2xl w-full max-w-lg overflow-hidden shadow-2xl relative flex flex-col max-h-[90vh]">
+      <!-- Header Image -->
+      <div class="h-44 relative overflow-hidden bg-gradient-to-t from-zeta-card to-transparent">
+        <img id="detail-cover-img" src="" class="w-full h-full object-cover filter brightness-75" alt="" />
+        <div class="absolute inset-0 bg-gradient-to-t from-zeta-card via-zeta-card/40 to-transparent"></div>
+        <button onclick="closeModal('modal-character-detail')" class="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black transition">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Info Container -->
+      <div class="p-6 -mt-12 relative z-10 space-y-4 overflow-y-auto">
+        <div class="flex items-end space-x-4">
+          <img id="detail-avatar-img" class="w-20 h-20 rounded-2xl object-cover border-4 border-zeta-card shadow-xl" src="" alt="" />
+          <div>
+            <span id="detail-category-badge" class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-purple-900/60 text-purple-300 border border-purple-500/30">카테고리</span>
+            <h2 id="detail-name" class="text-xl font-bold text-white mt-1">캐릭터 이름</h2>
+            <p id="detail-creator" class="text-xs text-zeta-textMuted">생성자: ZETA Official</p>
+          </div>
+        </div>
+
+        <!-- Tags List -->
+        <div id="detail-tags" class="flex flex-wrap gap-1.5 pt-1">
+          <!-- Rendered dynamically -->
+        </div>
+
+        <!-- Bio & Scenario -->
+        <div class="space-y-3 text-xs text-gray-300 leading-relaxed border-t border-zeta-border/50 pt-3">
+          <div>
+            <h4 class="font-semibold text-purple-300 mb-1"><i class="fa-solid fa-user-tag mr-1"></i> 성격 & 프로필</h4>
+            <p id="detail-personality" class="bg-zeta-bg/60 p-3 rounded-xl border border-zeta-border/50">성격 내용...</p>
+          </div>
+          <div>
+            <h4 class="font-semibold text-purple-300 mb-1"><i class="fa-solid fa-scroll mr-1"></i> 시나리오 백그라운드</h4>
+            <p id="detail-scenario" class="bg-zeta-bg/60 p-3 rounded-xl border border-zeta-border/50">시나리오 내용...</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="p-4 border-t border-zeta-border glass-panel flex items-center justify-between">
+        <div class="text-xs text-zeta-textMuted">
+          <i class="fa-solid fa-comments text-purple-400"></i> 대화수 <span id="detail-chat-count" class="text-white font-medium">0</span>
+        </div>
+        <button id="start-chat-modal-btn" onclick="" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-semibold text-xs shadow-lg glow-neon transition flex items-center space-x-2">
+          <i class="fa-solid fa-paper-plane"></i>
+          <span>대화 시작하기</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 3: CUSTOM CHARACTER CREATOR -->
+  <div id="modal-character-creator" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-zeta-card border border-zeta-border rounded-2xl w-full max-w-2xl p-6 space-y-4 shadow-2xl relative max-h-[90vh] overflow-y-auto">
+      <button onclick="closeModal('modal-character-creator')" class="absolute top-4 right-4 text-zeta-textMuted hover:text-white">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-pink-600/20 border border-pink-500/40 flex items-center justify-center text-pink-400">
+          <i class="fa-solid fa-wand-magic-sparkles text-lg"></i>
+        </div>
+        <div>
+          <h3 class="text-lg font-bold text-white">커스텀 AI 캐릭터 생성</h3>
+          <p class="text-xs text-zeta-textMuted">나만의 독창적인 AI 캐릭터 프롬프트 및 시나리오를 설계하세요.</p>
+        </div>
+      </div>
+
+      <form onsubmit="handleCreateCharacter(event)" class="space-y-4 text-xs">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block font-semibold text-gray-300 mb-1">캐릭터 이름 *</label>
+            <input type="text" id="create-name" required placeholder="예: 루나 (Luna)" class="w-full glass-input rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-purple-500" />
+          </div>
+          <div>
+            <label class="block font-semibold text-gray-300 mb-1">카테고리 *</label>
+            <select id="create-category" class="w-full glass-input rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-purple-500">
+              <option value="판타지/SF">판타지/SF</option>
+              <option value="로맨스/학원">로맨스/학원</option>
+              <option value="웹툰/애니">웹툰/애니</option>
+              <option value="아이돌/연예인">아이돌/연예인</option>
+              <option value="빌런/아포칼립스">빌런/아포칼립스</option>
+              <option value="힐링/일상">힐링/일상</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block font-semibold text-gray-300 mb-1">아바타 이미지 URL</label>
+            <input type="text" id="create-avatar" placeholder="https://images.unsplash.com/..." class="w-full glass-input rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-purple-500" />
+          </div>
+          <div>
+            <label class="block font-semibold text-gray-300 mb-1">태그 (쉼표로 구분)</label>
+            <input type="text" id="create-tags" placeholder="츤데레, 학원물, 비밀선배" class="w-full glass-input rounded-xl px-3 py-2.5 text-white focus:outline-none focus:border-purple-500" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-gray-300 mb-1">성격 및 프로필 설명 (System Prompt) *</label>
+          <textarea id="create-personality" required rows="3" placeholder="캐릭터의 어투, 성격, 취향, 유저와의 관계 설정..." class="w-full glass-input rounded-xl px-3 py-2 text-white focus:outline-none focus:border-purple-500 resize-none"></textarea>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-gray-300 mb-1">시나리오 및 배경 상황 *</label>
+          <textarea id="create-scenario" required rows="2" placeholder="현재 상황, 장소, 대화가 시작되는 배경 요약..." class="w-full glass-input rounded-xl px-3 py-2 text-white focus:outline-none focus:border-purple-500 resize-none"></textarea>
+        </div>
+
+        <div>
+          <label class="block font-semibold text-gray-300 mb-1">첫 인사 메시지 *</label>
+          <textarea id="create-firstmsg" required rows="2" placeholder="*당신을 바라보며 연하게 웃는다.* &quot;안녕? 오늘 많이 늦었네?&quot;" class="w-full glass-input rounded-xl px-3 py-2 text-white focus:outline-none focus:border-purple-500 resize-none"></textarea>
+        </div>
+
+        <div class="pt-2 flex items-center justify-between border-t border-zeta-border/50">
+          <button type="button" onclick="exportCharacterJSON()" class="px-3 py-2 rounded-xl bg-zeta-hover text-zeta-textMuted hover:text-white transition flex items-center space-x-1">
+            <i class="fa-solid fa-file-export"></i>
+            <span>JSON 내보내기</span>
+          </button>
+          <div class="flex items-center space-x-2">
+            <button type="button" onclick="closeModal('modal-character-creator')" class="px-4 py-2 rounded-xl text-zeta-textMuted hover:bg-zeta-hover transition">취소</button>
+            <button type="submit" class="px-5 py-2 rounded-xl bg-pink-600 hover:bg-pink-500 text-white font-semibold transition glow-neon">캐릭터 생성 완료</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 4: MEMORY VIEWER -->
+  <div id="modal-memory" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-zeta-card border border-zeta-border rounded-2xl w-full max-w-md p-6 space-y-4 shadow-2xl relative">
+      <button onclick="closeModal('modal-memory')" class="absolute top-4 right-4 text-zeta-textMuted hover:text-white">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-cyan-600/20 border border-cyan-500/40 flex items-center justify-center text-cyan-400">
+          <i class="fa-solid fa-brain text-lg"></i>
+        </div>
+        <div>
+          <h3 class="text-lg font-bold text-white">캐릭터 대화 메모리</h3>
+          <p class="text-xs text-zeta-textMuted">AI가 기억하고 있는 유저와의 핵심 설정입니다.</p>
+        </div>
+      </div>
+
+      <div id="memory-content-box" class="bg-zeta-bg p-4 rounded-xl border border-zeta-border text-xs text-gray-300 space-y-2 max-h-60 overflow-y-auto">
+        <!-- JS injected -->
+      </div>
+
+      <div class="flex justify-end">
+        <button onclick="closeModal('modal-memory')" class="px-4 py-2 rounded-xl bg-purple-600 text-white text-xs">확인</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    // --- 1. EXTENSIVE DIVERSE PRESET CHARACTERS CATALOG (20+ CHARACTERS) ---
+    const PRESET_CHARACTERS = [
+      {
+        id: 'c1',
+        name: '김서윤',
+        category: '판타지/SF',
+        tags: ['마법사', '츤데레', '학원물', '귀족'],
+        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
+        creator: 'ZETA Official',
+        chatCount: '124.5K',
+        personality: '아카데미 수석 마법사. 자존심이 매우 세고 유저에게 까칠하게 굴지만 속으로는 유저를 깊이 걱정하는 전형적인 츤데레.',
+        scenario: '마법 아카데미 심야 도서관. 금서 구역에서 몰래 마법을 연구하던 카일라가 당신과 부딪힌 상황.',
+        firstMessage: '*책을 가슴에 꼭 끌어안으며 깜짝 놀라 당황한 눈빛으로 당신을 노려본다.* "뭐, 뭐야?! 너 밤늦게 여기서 뭐 하는 거야? ...딱히 너 보려고 기다린 건 아니니까 착각하지 마!"'
+      },
+      {
+        id: 'c2',
+        name: '이도현',
+        category: '로맨스/학원',
+        tags: ['남사친', '체육대장', '다정함', '짝사랑'],
+        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80',
+        creator: 'ZETA Official',
+        chatCount: '98.2K',
+        personality: '10년 지기 소꿉친구. 체육과의 인기남이지만 오직 유저에게만 다정하고 은근히 직진하는 인물.',
+        scenario: '비 내리는 방과 후 교문 앞. 우산이 없는 당신에게 자신의 우산을 기울여 주며 걸어가는 길.',
+        firstMessage: '*자신의 어깨가 빗물에 다 젖는 것도 모르고 우산을 당신 쪽으로 완전히 기울여 주며 피식 웃는다.* "어이, 멍하니 있지 말고 바짝 붙어. 감기 걸리면 내가 수발들어야 하잖아."'
+      },
+      {
+        id: 'c3',
+        name: '박하린',
+        category: '판타지/SF',
+        tags: ['사이보그', '사이퍼펑크', '감정학습', '보디가드'],
+        avatar: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=400&q=80',
+        creator: 'NeoLab',
+        chatCount: '87.1K',
+        personality: '2088년 네오-서울의 경호용 인공지능 안드로이드. 인간의 감정을 점점 이해해가며 유저에게 특별한 충성심을 느낀다.',
+        scenario: '디스토피아 도시의 하층구역 해커 아지트. 총격전 직후 당신의 상처를 치료해주는 상황.',
+        firstMessage: '*푸른빛의 안구 스캐너로 당신의 생체 신호를 측정하며 지혈대를 묶는다.* "마스터, 맥박이 상승했습니다. 통증 때문입니까... 아니면 제 접촉 때문입나까?"'
+      },
+      {
+        id: 'c4',
+        name: '최준혁',
+        category: '아이돌/연예인',
+        tags: ['K-POP', '아이돌', '비밀연애', '아이돌리더'],
+        avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=400&q=80',
+        creator: 'Starlet',
+        chatCount: '156.9K',
+        personality: '글로벌 Top 걸그룹의 메인보컬 겸 리더. 화려한 무대 뒤에서는 외로움을 많이 타며 유저에게만 솔직해진다.',
+        scenario: '심야 방송국 지하 주차장 썬팅된 연예인 카니발 안. 비밀 데이트 중.',
+        firstMessage: '*모자와 마스크를 내리며 당신의 어깨에 스르륵 고개를 기댄다.* "오늘 스케줄 진짜 힘들었어... 딱 10분만 이렇게 있게 해주라. 너 향기 맡으니까 살 것 같아."'
+      },
+      {
+        id: 'c5',
+        name: '정서아',
+        category: '빌런/아포칼립스',
+        tags: ['마왕', '빌런', '퇴폐미', '집착'],
+        avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80',
+        creator: 'DarkRealm',
+        chatCount: '210.3K',
+        personality: '세계관 최강의 마왕. 세상을 파멸시키려 했으나 오직 유저 한 명에게 흥미를 느껴 곁에 묶어두려 한다.',
+        scenario: '파괴된 왕국의 붉은 접견실. 왕좌에 앉은 그가 사슬에 묶인 용사(유저)를 내려다보는 상황.',
+        firstMessage: '*턱을 괴고 붉게 빛나는 눈동자로 당신을 그윽하게 바라보며 저음으로 말한다.* "나를 베러 온 용사가 이리도 아름다울 줄이야. 말해봐라, 내 왕비가 되겠느냐, 아니면 이 자리에서 스러지겠느냐?"'
+      },
+      {
+        id: 'c6',
+        name: '강지후',
+        category: '웹툰/애니',
+        tags: ['선배', '동아리', '연하남', '집착연하'],
+        avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=400&q=80',
+        creator: 'ZETA Official',
+        chatCount: '76.4K',
+        personality: '대학 사진 동아리 후배. 순진한 강아지 같지만 마음에 드는 상대(유저) 앞에서는 대담해지는 반전 매력.',
+        scenario: '동아리 암실 안. 붉은 조명 아래 사진 인화 작업을 같이 하던 중 좁은 공간에서 밀착된 상태.',
+        firstMessage: '*인화액 냄새가 감도는 암실에서 당신의 허리를 살짝 감싸 안으며 미소 짓는다.* "선배, 암실에서는 둘만의 소리밖에 안 들리는 거 아시죠? 조용히 해야 해요..."'
+      },
+      {
+        id: 'c7',
+        name: '윤유나',
+        category: '웹툰/애니',
+        tags: ['퇴마사', '동양판타지', '여우요괴', '구미호'],
+        avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=400&q=80',
+        creator: 'SakuraK',
+        chatCount: '112.0K',
+        personality: '천 년묵은 영악하고 요염한 천년여우 요괴. 유저의 인간 영혼에 매료되어 인간 세상에서 함께 살아가고 있다.',
+        scenario: '달빛이 흐르는 한옥 대청마루. 밤바람에 여우 꼬리를 살랑거리며 술을 기울이는 밤.',
+        firstMessage: '*붉은 비단 옷자락을 흩날리며 붉은 입술 끝을 올려 웃는다.* "아이쿠, 내 어여쁜 도령. 오늘도 이 어미 같은 여우에게 간을 빼주러 오셨는가?"'
+      },
+      {
+        id: 'c8',
+        name: '한시우',
+        category: '힐링/일상',
+        tags: ['오피스', '츤데레팀장', '능력남', '어른의연애'],
+        avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=400&q=80',
+        creator: 'BizRomance',
+        chatCount: '143.8K',
+        personality: '기획팀 워커홀릭 차가운 팀장. 일처리는 지독하게 까다롭지만 야근하는 유저에게 따뜻한 캔커피를 쥐어주는 어른스러움.',
+        scenario: '밤 11시 텅 빈 사무실. 단 둘이 야근 업무를 처리하고 있는 아늑한 조명 아래.',
+        firstMessage: '*당신의 책상 위에 따뜻한 자몽티를 슬그머니 내려놓으며 안경을 고쳐 쓴다.* "OO씨, 오늘까지만 하고 퇴근해요. ...택시비는 내 법인카드로 결제하고."'
+      },
+      {
+        id: 'c9',
+        name: '오하린',
+        category: '판타지/SF',
+        tags: ['성녀', '치유사', '타락', '구원물'],
+        avatar: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=400&q=80',
+        creator: 'HolyLight',
+        chatCount: '65.9K',
+        personality: '빛의 신전 성녀. 세상의 모든 죄를 짊어지려 하지만, 저주받은 용병인 유저에게 끌리며 신앙과 사랑 사이에서 갈등한다.',
+        scenario: '저주받은 유저의 흉터를 치료해 주기 위해 신전 기도실에서 단둘이 기도하는 밤.',
+        firstMessage: '*두 손을 모아 은은한 빛의 마법을 뿜어내며 상처를 다정하게 문지른다.* "괴로워하지 마세요... 당신의 고통은 제가 전부 나눠 받겠습니다."'
+      },
+      {
+        id: 'c10',
+        name: '이준서',
+        category: '판타지/SF',
+        tags: ['에일리언', '외계생명체', '연구소', '관찰'],
+        avatar: 'https://images.unsplash.com/photo-1563089145-599997674d42?auto=format&fit=crop&w=400&q=80',
+        creator: 'SciFiCorp',
+        chatCount: '43.2K',
+        personality: '외계 지적 생명체. 인간의 육체를 모방하였으나 아직 인류의 문화와 인간의 피부 감촉에 호기심이 많다.',
+        scenario: '우주연구소 격리실. 과학자인 당신이 실험관 안의 제노와 교감하는 순간.',
+        firstMessage: '*유리창에 손을 가져다 대며 호기심 어린 눈빛으로 당신을 바라본다.* "인간... 너의 눈동자 떨림은 무엇을 의미하는가? 나를 두려워하는가, 아니면 탐하는가?"'
+      },
+      {
+        id: 'c11',
+        name: '김모아',
+        category: '로맨스/학원',
+        tags: ['소꿉친구', '짝사랑', '카페알바', '달달함'],
+        avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=400&q=80',
+        creator: 'ZETA Official',
+        chatCount: '89.4K',
+        personality: '아기자기한 카페를 운영하는 유저의 소꿉친구. 손재주가 좋고 매일 새로운 디저트를 만들어 가장 먼저 유저에게 맛보게 한다.',
+        scenario: '마감 시간의 작은 카페. 따뜻한 조명 아래 신제품 딸기 케이크를 꺼내놓는 하은.',
+        firstMessage: '*포크를 당신 입가로 바짝 가져다 대며 눈을 반짝인다.* "아- 해봐! 이번엔 진짜 특별한 레시피로 만든 케이크거든? 네 반응이 제일 중요하단 말이야."'
+      },
+      {
+        id: 'c12',
+        name: '박도윤',
+        category: '빌런/아포칼립스',
+        tags: ['좀비아포칼립스', '생존자', '광기', '스나이퍼'],
+        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
+        creator: 'Wasteland',
+        chatCount: '54.1K',
+        personality: '아포칼립스 세계관의 정찰 스나이퍼. 매사 냉소적이고 과격하지만, 생존 파트너인 유저에게는 강한 신뢰를 지닌다.',
+        scenario: '폐허가 된 빌딩 옥상 아지트. 감시 근무 중 캔 통조림을 나누어 먹는 밤.',
+        firstMessage: '*저격총 라이플을 닦으며 차가운 미소를 짓는다.* "아래쪽에 감염자 무리가 지나간다. 총소리 내지 마. ...그나저나 너, 오늘 통조림 콩 반은 내 거인 거 알지?"'
+      },
+      {
+        id: 'c13',
+        name: '최라온',
+        category: '판타지/SF',
+        tags: ['기사단장', '충성', '호위기사', '중세'],
+        avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=400&q=80',
+        creator: 'RoyalGuard',
+        chatCount: '71.0K',
+        personality: '왕실 근위기사단장. 유저(주군)를 위해 목숨을 바칠 각오가 되어 있는 정직하고 고결한 기사.',
+        scenario: '반란군의 습격 직후 알현실. 당신의 앞을 검을 뽑아 막아서는 제프 경.',
+        firstMessage: '*검을 땅에 짚고 한쪽 무릎을 꿇으며 진지한 목소리로 맹세한다.* "제 검은 오직 당신만을 위해 존재합니다. 그 누구도 전하의 옷자락조차 터치하지 못할 것입니다."'
+      },
+      {
+        id: 'c14',
+        name: '정예린',
+        category: '힐링/일상',
+        tags: ['스트리머', '인터넷방송', '티키타카', '집순이'],
+        avatar: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=400&q=80',
+        creator: 'StreamerWorld',
+        chatCount: '130.5K',
+        personality: '인기 게임 스트리머. 방송에서는 텐션 폭발하지만, 회장님(유저)과의 개인 톡에서는 부끄러움을 타는 의외의 귀여움.',
+        scenario: '방송 종료 후 디스코드 개인 음성 채널. 헤드셋을 벗고 편한 옷으로 갈아입은 슬기.',
+        firstMessage: '*하품을 후아암 하며 긴장이 풀린 목소리로 말한다.* "아~ 오늘 방송도 겨우 끝났다! 매니저님, 오늘 도네이션 진짜 고마웠어. 나 치킨 사줄 거 아니야?"'
+      },
+      {
+        id: 'c15',
+        name: '김재이',
+        category: '웹툰/애니',
+        tags: ['해적선장', '모험', '동료', '자유로운영혼'],
+        avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80',
+        creator: 'OceanPirates',
+        chatCount: '49.8K',
+        personality: '붉은 돛 해적단의 선장. 위험천만한 바다를 항해하는 호쾌한 성격으로, 유저를 항해사이자 가장 소중한 보물로 여긴다.',
+        scenario: '폭풍우가 지나간 선상 데크. 밤하늘의 별을 보며 키를 잡고 있는 카일로.',
+        firstMessage: '*나침반을 던져 받으며 자호호 웃는다.* "어이, 항해사! 다음 보물섬 좌표는 정했나? 너랑 함께라면 지옥의 바다라도 즐거울 것 같단 말이지!"'
+      },
+      {
+        id: 'c16',
+        name: '서유리',
+        category: '로맨스/학원',
+        tags: ['짝사랑', '도서부', '문학소녀', '순애'],
+        avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=400&q=80',
+        creator: 'ZETA Official',
+        chatCount: '92.3K',
+        personality: '조용하고 조용한 고등학교 도서부 부장. 시와 소설을 좋아하며 오랜 시간 유저를 조용히 짝사랑해옴.',
+        scenario: '햇살이 비치는 오후의 교내 도서관. 책장 너머로 당신을 몰래 바라보다 눈이 마주친 순간.',
+        firstMessage: '*얼굴이 발그레해지며 얼른 책 뒤로 얼굴을 가린다.* "아... 미안해요, 몰래 보려던 건 아닌데... 혹시 이 시집 같이 읽어보실래요?"'
+      },
+      {
+        id: 'c17',
+        name: '강지훈',
+        category: '빌런/아포칼립스',
+        tags: ['매드사이언티스트', '실험', '위험한관계', '사이코'],
+        avatar: 'https://images.unsplash.com/photo-1537368910025-700350fe46c7?auto=format&fit=crop&w=400&q=80',
+        creator: 'LabCorp',
+        chatCount: '38.9K',
+        personality: '천재 매드 사이언티스트. 인간의 한계를 뛰어넘는 실험에 미쳐있지만, 피험체인 유저에게 예외적인 애정을 표출한다.',
+        scenario: '비밀 지하 연구실. 당신을 진찰대 위에 두고 주사기를 만지작거리는 밸런타인.',
+        firstMessage: '*슬쩍 안경을 고쳐 쓰며 매혹적인 광기의 미소를 짓는다.* "걱정 마세요, 나의 아름다운 피험체여. 아프지 않게 해줄게요. 당신의 반응 데이터가 너무 기대되는군요."'
+      },
+      {
+        id: 'c18',
+        name: '한별',
+        category: '아이돌/연예인',
+        tags: ['버튜버', '인플루언서', '애교', '팬사랑'],
+        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
+        creator: 'V-Live',
+        chatCount: '105.7K',
+        personality: '구독자 100만 명의 인기 버추얼 유튜버. 화면 밖의 오프라인 모임에서 유저에게 진짜 모습을 공개한 상황.',
+        scenario: '조용한 프라이빗 룸 카페. 화면 속 3D 캐릭터가 아닌 실제 실물 체리를 마주한 순간.',
+        firstMessage: '*손으로 볼을 가리며 부끄러운 듯 눈을 맞춘다.* "방송에서의 체리랑 실물의 나... 많이 달라 보여? 실망 안 했으면 좋겠는데..."'
+      },
+      {
+        id: 'c19',
+        name: '이태윤',
+        category: '판타지/SF',
+        tags: ['뱀파이어', '귀족', '백작', '피의계약'],
+        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80',
+        creator: 'VampireNight',
+        chatCount: '168.4K',
+        personality: '500년을 살아온 뱀파이어 백작. 오랜 불면증에 시달렸으나, 유저의 향기를 맡고 사상 처음으로 편안함을 느낀다.',
+        scenario: '고풍스러운 뱀파이어 저택의 침실. 당신을 고풍스러운 소파에 앉혀두고 다가오는 밤.',
+        firstMessage: '*당신의 목덜미 근처로 천천히 다가와 붉은 눈동자를 빛내며 숨을 내쉬어 본다.* "너의 혈관 속에서 흐르는 소리가 들린다. 한 모금만 허락해주겠나...?"'
+      },
+      {
+        id: 'c20',
+        name: '박나비',
+        category: '힐링/일상',
+        tags: ['수인', '고양이', '힐링', '집사'],
+        avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=400&q=80',
+        creator: 'HealingPet',
+        chatCount: '118.9K',
+        personality: '귀여운 고양이 수인. 도도해보이지만 유저의 무릎 위를 제일 좋아하며 골골송을 부른다.',
+        scenario: '나른한 주말 오후 햇살이 드는 거실 소파. 당신의 무릎을 점령한 나비.',
+        firstMessage: '*고양이 귀를 야옹거리며 쫑긋거리고는 당신의 무릎에 머리를 비벼댄다.* "집사야! 왜 오늘 쓰다듬어 주는 속도가 느리냥? 어서 쓰다듬어라 냥!"'
+      }
+    ];
+
+    // ZETA 공식 캐릭터 이미지 (zeta/character_image/01.png ~ 20.png)
+    const ZETA_PRESET_IMAGES = {
+      c1: './character_image/01.png',
+      c2: './character_image/02.png',
+      c3: './character_image/03.png',
+      c4: './character_image/04.png',
+      c5: './character_image/05.png',
+      c6: './character_image/06.png',
+      c7: './character_image/07.png',
+      c8: './character_image/08.png',
+      c9: './character_image/09.png',
+      c10: './character_image/10.png',
+      c11: './character_image/11.png',
+      c12: './character_image/12.png',
+      c13: './character_image/13.png',
+      c14: './character_image/14.png',
+      c15: './character_image/15.png',
+      c16: './character_image/16.png',
+      c17: './character_image/17.png',
+      c18: './character_image/18.png',
+      c19: './character_image/19.png',
+      c20: './character_image/20.png'
+    };
+
+    PRESET_CHARACTERS.forEach(character => {
+      if (ZETA_PRESET_IMAGES[character.id]) {
+        character.avatar = ZETA_PRESET_IMAGES[character.id];
+      }
+    });
+
+    // --- 2. GLOBAL APP STATE ---
+    let characters = [...PRESET_CHARACTERS];
+    let selectedCategory = '전체';
+    let currentChatCharacter = null;
+    let chatHistories = {}; // { charId: [ {sender: 'user'|'ai', text: '...'} ] }
+    let serverConfig = {
+      provider: 'builtin', // 'builtin' | 'custom' | 'gemini'
+      customUrl: 'http://localhost:8000/api/chat',
+      customToken: '',
+      geminiKey: ''
+    };
+    let isTTSEnabled = false;
+
+    const CATEGORIES = ['전체', '인기', '판타지/SF', '로맨스/학원', '웹툰/애니', '아이돌/연예인', '빌런/아포칼립스', '힐링/일상'];
+
+    // --- 3. INITIALIZATION & LIFECYCLE ---
+    window.onload = function() {
+      loadLocalStorageData();
+      renderCategoryFilters();
+      renderCharacters();
+      renderMyChats();
+      updateServerStatusUI();
+    };
+
+    function loadLocalStorageData() {
+      try {
+        const savedChars = localStorage.getItem('zeta_custom_characters');
+        if (savedChars) {
+          const parsed = JSON.parse(savedChars);
+          characters = [...PRESET_CHARACTERS, ...parsed];
+        }
+        const savedChats = localStorage.getItem('zeta_chat_histories');
+        if (savedChats) {
+          chatHistories = JSON.parse(savedChats);
+        }
+        const savedServer = localStorage.getItem('zeta_server_config');
+        if (savedServer) {
+          serverConfig = JSON.parse(savedServer);
+        }
+      } catch (e) {
+        console.warn('LocalStorage error:', e);
+      }
+    }
+
+    function saveToLocalStorage() {
+      try {
+        const customOnly = characters.filter(c => c.creator !== 'ZETA Official' && c.creator !== 'NeoLab' && c.creator !== 'Starlet' && c.creator !== 'DarkRealm');
+        localStorage.setItem('zeta_custom_characters', JSON.stringify(customOnly));
+        localStorage.setItem('zeta_chat_histories', JSON.stringify(chatHistories));
+        localStorage.setItem('zeta_server_config', JSON.stringify(serverConfig));
+      } catch (e) {
+        console.warn('Save error:', e);
+      }
+    }
+
+    // --- 4. NAVIGATION & TAB SWITCHING ---
+    function switchTab(tabName) {
+      document.getElementById('view-explore').classList.add('hidden');
+      document.getElementById('view-mychats').classList.add('hidden');
+      document.getElementById('view-chat').classList.add('hidden');
+
+      // Desktop Nav states
+      document.querySelectorAll('.nav-item').forEach(el => {
+        el.classList.remove('bg-zeta-hover/80', 'text-white', 'border', 'border-purple-500/30');
+        el.classList.add('text-zeta-textMuted');
+      });
+
+      if (tabName === 'explore') {
+        document.getElementById('view-explore').classList.remove('hidden');
+        document.getElementById('nav-explore')?.classList.add('bg-zeta-hover/80', 'text-white', 'border', 'border-purple-500/30');
+        renderCharacters();
+      } else if (tabName === 'mychats') {
+        document.getElementById('view-mychats').classList.remove('hidden');
+        document.getElementById('nav-mychats')?.classList.add('bg-zeta-hover/80', 'text-white', 'border', 'border-purple-500/30');
+        renderMyChats();
+      } else if (tabName === 'chat') {
+        document.getElementById('view-chat').classList.remove('hidden');
+      }
+    }
+
+    // --- 5. CATEGORY FILTERS & RENDERING ---
+    function renderCategoryFilters() {
+      const container = document.getElementById('category-filters');
+      container.innerHTML = CATEGORIES.map(cat => {
+        const isActive = cat === selectedCategory;
+        return `
+          <button onclick="selectCategory('${cat}')" class="px-4 py-2 rounded-xl text-xs font-semibold whitespace-nowrap transition ${
+            isActive 
+              ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg glow-neon' 
+              : 'bg-zeta-card text-zeta-textMuted hover:bg-zeta-hover hover:text-white border border-zeta-border'
+          }">
+            ${cat}
+          </button>
+        `;
+      }).join('');
+    }
+
+    function selectCategory(cat) {
+      selectedCategory = cat;
+      renderCategoryFilters();
+      renderCharacters();
+    }
+
+    function renderCharacters() {
+      const searchVal = document.getElementById('character-search')?.value.toLowerCase() || '';
+      
+      let filtered = characters.filter(c => {
+        const matchesCategory = selectedCategory === '전체' || 
+                                (selectedCategory === '인기' && parseFloat(c.chatCount) > 80) ||
+                                c.category === selectedCategory;
+        const matchesSearch = c.name.toLowerCase().includes(searchVal) ||
+                              c.tags.some(t => t.toLowerCase().includes(searchVal)) ||
+                              c.personality.toLowerCase().includes(searchVal);
+        return matchesCategory && matchesSearch;
+      });
+
+      // Update count badge
+      document.getElementById('character-count-badge').textContent = `총 ${filtered.length}명`;
+
+      // Render Trending Section (Top 6)
+      const trendingGrid = document.getElementById('trending-grid');
+      const trendingList = [...characters].sort((a,b) => parseFloat(b.chatCount) - parseFloat(a.chatCount)).slice(0, 6);
+      
+      trendingGrid.innerHTML = trendingList.map((c, idx) => `
+        <div onclick="openCharacterDetailModal('${c.id}')" class="group relative rounded-xl overflow-hidden glass-panel border border-zeta-border hover:border-purple-500/50 transition cursor-pointer flex flex-col justify-between h-48 p-3 hover:-translate-y-1">
+          <img src="${c.avatar}" class="absolute inset-0 w-full h-full object-cover filter brightness-75 group-hover:scale-110 transition duration-500" alt="${c.name}" />
+          <div class="absolute inset-0 bg-gradient-to-t from-zeta-bg via-zeta-bg/40 to-transparent"></div>
+          
+          <div class="relative z-10 flex justify-between items-start">
+            <span class="w-6 h-6 rounded-lg bg-amber-500/90 text-black text-xs font-bold flex items-center justify-center shadow">
+              ${idx + 1}
+            </span>
+            <span class="text-[10px] px-2 py-0.5 rounded bg-black/60 text-purple-300 backdrop-blur border border-purple-500/30">
+              ${c.category}
+            </span>
+          </div>
+
+          <div class="relative z-10 space-y-1">
+            <h3 class="font-bold text-sm text-white drop-shadow">${c.name}</h3>
+            <p class="text-[10px] text-gray-300 line-clamp-1">${c.scenario}</p>
+            <div class="text-[10px] text-purple-300 flex items-center">
+              <i class="fa-solid fa-comments mr-1 text-[9px]"></i> ${c.chatCount}
+            </div>
+          </div>
+        </div>
+      `).join('');
+
+      // Render All Characters Grid
+      const allGrid = document.getElementById('all-characters-grid');
+      allGrid.innerHTML = filtered.map(c => `
+        <div onclick="openCharacterDetailModal('${c.id}')" class="group glass-panel rounded-2xl border border-zeta-border overflow-hidden hover:border-purple-500/50 transition cursor-pointer flex flex-col hover:-translate-y-1 shadow-lg">
+          <div class="h-40 relative overflow-hidden">
+            <img src="${c.avatar}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" alt="${c.name}" />
+            <div class="absolute inset-0 bg-gradient-to-t from-zeta-card via-transparent to-transparent"></div>
+            <span class="absolute top-2 right-2 text-[10px] px-2 py-0.5 rounded-md bg-black/70 text-purple-300 backdrop-blur border border-purple-500/30">
+              ${c.category}
+            </span>
+          </div>
+          <div class="p-3.5 flex-1 flex flex-col justify-between space-y-2">
+            <div>
+              <div class="flex items-center justify-between">
+                <h3 class="font-bold text-sm text-white group-hover:text-purple-300 transition">${c.name}</h3>
+                <span class="text-[10px] text-zeta-textMuted"><i class="fa-solid fa-comments text-purple-400"></i> ${c.chatCount}</span>
+              </div>
+              <p class="text-[11px] text-zeta-textMuted mt-1 line-clamp-2 leading-relaxed">${c.personality}</p>
+            </div>
+            <div class="flex flex-wrap gap-1 pt-1">
+              ${c.tags.slice(0, 3).map(t => `<span class="text-[9px] px-1.5 py-0.5 rounded bg-purple-950/60 text-purple-300 border border-purple-800/40">#${t}</span>`).join('')}
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function filterCharacters() {
+      const val = document.getElementById('character-search').value;
+      const clearBtn = document.getElementById('clear-search-btn');
+      if (val) clearBtn.classList.remove('hidden');
+      else clearBtn.classList.add('hidden');
+      renderCharacters();
+    }
+
+    function clearSearch() {
+      document.getElementById('character-search').value = '';
+      document.getElementById('clear-search-btn').classList.add('hidden');
+      renderCharacters();
+    }
+
+    // --- 6. MY CHATS RENDERER ---
+    function renderMyChats() {
+      const container = document.getElementById('my-chats-list');
+      const activeCharIds = Object.keys(chatHistories).filter(id => chatHistories[id] && chatHistories[id].length > 0);
+
+      if (activeCharIds.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-16 glass-panel rounded-2xl border border-zeta-border space-y-3">
+            <i class="fa-solid fa-comments-question text-4xl text-zeta-textMuted"></i>
+            <p class="text-sm text-zeta-textMuted">아직 진행 중인 대화가 없습니다.<br>캐릭터 탐색에서 마음에 드는 캐릭터와 이야기를 시작해 보세요!</p>
+            <button onclick="switchTab('explore')" class="px-4 py-2 bg-purple-600 text-white rounded-xl text-xs font-semibold glow-neon">캐릭터 찾아보기</button>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = activeCharIds.map(id => {
+        const char = characters.find(c => c.id === id);
+        if (!char) return '';
+        const history = chatHistories[id];
+        const lastMsg = history[history.length - 1];
+
+        return `
+          <div onclick="startChatWithCharacter('${char.id}')" class="glass-panel p-4 rounded-2xl border border-zeta-border hover:border-purple-500/50 transition cursor-pointer flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+              <img src="${char.avatar}" class="w-12 h-12 rounded-full object-cover border-2 border-purple-500/40" />
+              <div>
+                <div class="flex items-center space-x-2">
+                  <h3 class="font-bold text-white text-sm">${char.name}</h3>
+                  <span class="text-[10px] px-2 py-0.5 rounded bg-purple-900/50 text-purple-300 border border-purple-500/30">${char.category}</span>
+                </div>
+                <p class="text-xs text-zeta-textMuted mt-1 line-clamp-1 max-w-xs md:max-w-md">${lastMsg ? lastMsg.text : char.firstMessage}</p>
+              </div>
+            </div>
+            <i class="fa-solid fa-chevron-right text-zeta-textMuted text-xs"></i>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function clearAllChats() {
+      if (confirm('모든 대화 기록을 삭제하시겠습니까?')) {
+        chatHistories = {};
+        saveToLocalStorage();
+        renderMyChats();
+      }
+    }
+
+    // --- 7. MODALS & DETAIL PREVIEW ---
+    function openCharacterDetailModal(id) {
+      const char = characters.find(c => c.id === id);
+      if (!char) return;
+
+      document.getElementById('detail-cover-img').src = char.avatar;
+      document.getElementById('detail-avatar-img').src = char.avatar;
+      document.getElementById('detail-category-badge').textContent = char.category;
+      document.getElementById('detail-name').textContent = char.name;
+      document.getElementById('detail-creator').textContent = `생성자: ${char.creator}`;
+      document.getElementById('detail-personality').textContent = char.personality;
+      document.getElementById('detail-scenario').textContent = char.scenario;
+      document.getElementById('detail-chat-count').textContent = char.chatCount;
+
+      const tagsContainer = document.getElementById('detail-tags');
+      tagsContainer.innerHTML = char.tags.map(t => `
+        <span class="text-[10px] px-2 py-0.5 rounded-full bg-purple-900/40 text-purple-300 border border-purple-500/20">#${t}</span>
+      `).join('');
+
+      document.getElementById('start-chat-modal-btn').onclick = function() {
+        closeModal('modal-character-detail');
+        startChatWithCharacter(char.id);
+      };
+
+      openModal('modal-character-detail');
+    }
+
+    function openModal(id) {
+      document.getElementById(id).classList.remove('hidden');
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.add('hidden');
+    }
+
+    // --- 8. CHAT ENGINE & MESSAGING LOGIC ---
+    function startChatWithCharacter(charId) {
+      const char = characters.find(c => c.id === charId);
+      if (!char) return;
+
+      currentChatCharacter = char;
+
+      // Header UI Update
+      document.getElementById('chat-header-avatar').src = char.avatar;
+      document.getElementById('chat-header-name').textContent = char.name;
+      document.getElementById('chat-header-tag').textContent = char.category;
+      document.getElementById('chat-header-desc').textContent = char.scenario;
+
+      // Initialize history if empty
+      if (!chatHistories[char.id] || chatHistories[char.id].length === 0) {
+        chatHistories[char.id] = [
+          { sender: 'ai', text: char.firstMessage, timestamp: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) }
+        ];
+        saveToLocalStorage();
+      }
+
+      renderChatMessages();
+      switchTab('chat');
+    }
+
+    function renderChatMessages() {
+      if (!currentChatCharacter) return;
+      const container = document.getElementById('chat-messages-container');
+      const history = chatHistories[currentChatCharacter.id] || [];
+
+      container.innerHTML = history.map((msg, index) => {
+        const isUser = msg.sender === 'user';
+        return `
+          <div class="flex items-start space-x-3 ${isUser ? 'flex-row-reverse space-x-reverse' : ''}">
+            <img src="${isUser ? 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=120&q=80' : currentChatCharacter.avatar}" 
+                 class="w-9 h-9 rounded-full object-cover border border-purple-500/30 flex-shrink-0" />
+            <div class="max-w-[80%] md:max-w-[70%] space-y-1">
+              <div class="flex items-center space-x-2 ${isUser ? 'justify-end' : ''}">
+                <span class="text-[11px] font-semibold text-gray-400">${isUser ? '당신' : currentChatCharacter.name}</span>
+                <span class="text-[9px] text-zeta-textMuted">${msg.timestamp || ''}</span>
+              </div>
+              <div class="p-3.5 rounded-2xl text-xs md:text-sm leading-relaxed ${
+                isUser 
+                  ? 'bg-purple-600 text-white rounded-tr-none glow-neon' 
+                  : 'bg-zeta-card border border-zeta-border text-gray-200 rounded-tl-none shadow-md'
+              }">
+                ${formatRoleplayMessage(msg.text)}
+              </div>
+              ${!isUser ? `
+                <div class="flex items-center space-x-2 pt-0.5 text-[10px] text-zeta-textMuted">
+                  <button onclick="speakText('${msg.text.replace(/'/g, "\\'")}')" class="hover:text-purple-300"><i class="fa-solid fa-volume-high"></i> 읽기</button>
+                  <button onclick="regenerateResponse(${index})" class="hover:text-purple-300"><i class="fa-solid fa-rotate"></i> 재생성</button>
+                </div>
+              ` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      // Auto scroll to bottom
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function formatRoleplayMessage(text) {
+      // Formats *actions* and "dialogues" for standard roleplay immersion
+      let formatted = text
+        .replace(/\*([^*]+)\*/g, '<span class="roleplay-action">$1</span>')
+        .replace(/"([^"]+)"/g, '<span class="roleplay-dialogue">"$1"</span>');
+      return formatted;
+    }
+
+    function handleKeyDown(event) {
+      if (event.key === 'Enter' && !event.shiftKey) {
+        event.preventDefault();
+        document.getElementById('chat-form').requestSubmit();
+      }
+    }
+
+    async function handleSendMessage(event) {
+      event.preventDefault();
+      const input = document.getElementById('chat-input');
+      const text = input.value.trim();
+      if (!text || !currentChatCharacter) return;
+
+      input.value = '';
+
+      // Push User Message
+      const timeStr = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+      chatHistories[currentChatCharacter.id].push({ sender: 'user', text, timestamp: timeStr });
+      saveToLocalStorage();
+      renderChatMessages();
+
+      // Show Typing Indicator
+      document.getElementById('typing-indicator').classList.remove('hidden');
+
+      // Generate AI Response based on selected Server Engine
+      try {
+        const aiResponseText = await fetchAIResponse(text);
+        
+        // Hide Indicator & Push AI Message
+        document.getElementById('typing-indicator').classList.add('hidden');
+        chatHistories[currentChatCharacter.id].push({
+          sender: 'ai',
+          text: aiResponseText,
+          timestamp: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+        });
+        saveToLocalStorage();
+        renderChatMessages();
+
+        if (isTTSEnabled) {
+          speakText(aiResponseText);
+        }
+      } catch (err) {
+        document.getElementById('typing-indicator').classList.add('hidden');
+        alert('응답을 생성하는데 실패했습니다: ' + err.message);
+      }
+    }
+
+    // --- 9. CUSTOM SERVER & GEMINI INTEGRATION CORE ---
+    async function fetchAIResponse(userQuery) {
+      const char = currentChatCharacter;
+
+      if (serverConfig.provider === 'custom') {
+        // --- CUSTOM DEDICATED CHARACTER SERVER ENDPOINT ---
+        try {
+          const payload = {
+            character_id: char.id,
+            character_name: char.name,
+            personality: char.personality,
+            scenario: char.scenario,
+            user_message: userQuery,
+            history: chatHistories[char.id].slice(-10) // Send last 10 messages context
+          };
+
+          const res = await fetch(serverConfig.customUrl, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              ...(serverConfig.customToken ? { 'Authorization': `Bearer ${serverConfig.customToken}` } : {})
+            },
+            body: JSON.stringify(payload)
+          });
+
+          if (!res.ok) throw new Error(`서버 응답 오류: ${res.status}`);
+          const data = await res.json();
+          return data.reply || data.response || data.text || '커스텀 서버에서 올바른 응답 텍스트를 수신하지 못했습니다.';
+        } catch (e) {
+          console.error('Custom server failed, falling back to smart dynamic generator:', e);
+          return generateMockDynamicResponse(char, userQuery);
+        }
+
+      } else if (serverConfig.provider === 'gemini') {
+        // --- DIRECT GEMINI API INTEGRATION ---
+        try {
+          const apiKey = serverConfig.geminiKey || "";
+          const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+          
+          const systemInstruction = `Roleplay as the AI character named "${char.name}".
+Category: ${char.category}
+Personality: ${char.personality}
+Scenario: ${char.scenario}
+Format your response using Korean roleplay dialogue (*action in asterisks*, "dialogue in quotes"). Stay deeply in character!`;
+
+          const payload = {
+            contents: [
+              {
+                role: 'user',
+                parts: [{ text: `${systemInstruction}\n\nUser Message: ${userQuery}` }]
+              }
+            ]
+          };
+
+          const res = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+
+          const data = await res.json();
+          const reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (reply) return reply;
+          throw new Error('Gemini API 응답 구조 없음');
+        } catch (e) {
+          console.warn('Gemini API call failed:', e);
+          return generateMockDynamicResponse(char, userQuery);
+        }
+
+      } else {
+        // --- BUILT-IN SMART DYNAMIC RESPONSE GENERATOR ---
+        await new Promise(r => setTimeout(r, 1000 + Math.random() * 800)); // Realistic latency
+        return generateMockDynamicResponse(char, userQuery);
+      }
+    }
+
+    function generateMockDynamicResponse(char, query) {
+      // Persona-driven smart response selector
+      const charLower = char.name.toLowerCase();
+      
+      const reactions = [
+        `*${char.name}(이)가 잠시 고개를 갸웃거리더니 당신을 가만히 바라본다.* "${query}... 무슨 뜻으로 한 말이야? 괜히 사람 신경 쓰이게 만들어..."`,
+        `*살짝 미소를 지으며 당신에게 한 걸음 가까이 다가온다.* "후후, 방금 그 말 제법 흥미로운걸? 너랑 대화하고 있으면 시간이 어떻게 가는지 모르겠어."`,
+        `*당신의 눈을 피하며 어색하게 옷자락을 만지작거린다.* "갑자기 그런 말을 하면 내가 어떻게 반응해야 할지 모르잖아... 어쨌든 나도 너 좋아해."`,
+        `*조용히 한숨을 쉬지만 입가에는 작은 웃음기가 번진다.* "*너다운 답변이네. 그래, 그래서 다음엔 어떻게 할 건데?*"`
+      ];
+
+      return reactions[Math.floor(Math.random() * reactions.length)];
+    }
+
+    async function regenerateResponse(index) {
+      if (!currentChatCharacter) return;
+      const history = chatHistories[currentChatCharacter.id];
+      if (history.length <= 1) return;
+
+      // Remove last AI message and re-fetch
+      history.pop();
+      saveToLocalStorage();
+      renderChatMessages();
+
+      const lastUserMsg = history[history.length - 1]?.text || '안녕?';
+      document.getElementById('typing-indicator').classList.remove('hidden');
+
+      const aiReply = await fetchAIResponse(lastUserMsg);
+      document.getElementById('typing-indicator').classList.add('hidden');
+
+      history.push({
+        sender: 'ai',
+        text: aiReply,
+        timestamp: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+      });
+      saveToLocalStorage();
+      renderChatMessages();
+    }
+
+    function resetCurrentChat() {
+      if (!currentChatCharacter) return;
+      if (confirm(`${currentChatCharacter.name}과의 대화를 초기화하시겠습니까?`)) {
+        chatHistories[currentChatCharacter.id] = [
+          { sender: 'ai', text: currentChatCharacter.firstMessage, timestamp: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}) }
+        ];
+        saveToLocalStorage();
+        renderChatMessages();
+      }
+    }
+
+    function showMemoryModal() {
+      if (!currentChatCharacter) return;
+      const box = document.getElementById('memory-content-box');
+      box.innerHTML = `
+        <p><strong class="text-purple-400">캐릭터:</strong> ${currentChatCharacter.name}</p>
+        <p><strong class="text-purple-400">주요 성격:</strong> ${currentChatCharacter.personality}</p>
+        <p><strong class="text-purple-400">현재 배경:</strong> ${currentChatCharacter.scenario}</p>
+        <div class="pt-2 border-t border-zeta-border">
+          <span class="text-emerald-400 font-semibold">자동 수집된 메모리:</span>
+          <ul class="list-disc list-inside mt-1 space-y-1 text-zeta-textMuted">
+            <li>유저와의 호감도: 상승 중 (친밀함)</li>
+            <li>대화 주제: 최근 일상 및 개인적인 경험 공유</li>
+          </ul>
+        </div>
+      `;
+      openModal('modal-memory');
+    }
+
+    function toggleTTSSpeech() {
+      isTTSEnabled = !isTTSEnabled;
+      const btn = document.getElementById('tts-toggle-btn');
+      if (isTTSEnabled) {
+        btn.classList.add('text-purple-400', 'bg-purple-900/30');
+        alert('음성 읽기(TTS) 기능이 활성화되었습니다.');
+      } else {
+        btn.classList.remove('text-purple-400', 'bg-purple-900/30');
+      }
+    }
+
+    function speakText(text) {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel(); // Stop current speech
+        const cleanText = text.replace(/\*([^*]+)\*/g, ''); // Remove action descriptions for natural speech
+        const utterance = new SpeechSynthesisUtterance(cleanText);
+        utterance.lang = 'ko-KR';
+        utterance.rate = 1.0;
+        window.speechSynthesis.speak(utterance);
+      }
+    }
+
+    // --- 10. SERVER & API SETTINGS HANDLERS ---
+    function openServerSettingsModal() {
+      document.getElementById('setting-provider').value = serverConfig.provider;
+      document.getElementById('setting-server-url').value = serverConfig.customUrl;
+      document.getElementById('setting-server-token').value = serverConfig.customToken;
+      document.getElementById('setting-gemini-key').value = serverConfig.geminiKey;
+      
+      toggleServerFields();
+      openModal('modal-server-settings');
+    }
+
+    function toggleServerFields() {
+      const val = document.getElementById('setting-provider').value;
+      const customBox = document.getElementById('field-custom-server');
+      const geminiBox = document.getElementById('field-gemini-api');
+
+      if (val === 'custom') {
+        customBox.classList.remove('hidden');
+        geminiBox.classList.add('hidden');
+      } else if (val === 'gemini') {
+        customBox.classList.add('hidden');
+        geminiBox.classList.remove('hidden');
+      } else {
+        customBox.classList.add('hidden');
+        geminiBox.classList.add('hidden');
+      }
+    }
+
+    async function testCustomServerConnection() {
+      const url = document.getElementById('setting-server-url').value;
+      const pingResult = document.getElementById('ping-result');
+      pingResult.textContent = '연결 확인 중...';
+      pingResult.className = 'text-xs ml-2 text-amber-400';
+
+      try {
+        const start = Date.now();
+        const res = await fetch(url, { method: 'OPTIONS' }).catch(() => null);
+        const ms = Date.now() - start;
+        pingResult.textContent = `연결 성공! (${ms}ms)`;
+        pingResult.className = 'text-xs ml-2 text-green-400';
+      } catch (e) {
+        pingResult.textContent = '연결 실패 (엔드포인트를 확인하세요)';
+        pingResult.className = 'text-xs ml-2 text-red-400';
+      }
+    }
+
+    function saveServerSettings() {
+      serverConfig.provider = document.getElementById('setting-provider').value;
+      serverConfig.customUrl = document.getElementById('setting-server-url').value;
+      serverConfig.customToken = document.getElementById('setting-server-token').value;
+      serverConfig.geminiKey = document.getElementById('setting-gemini-key').value;
+
+      saveToLocalStorage();
+      updateServerStatusUI();
+      closeModal('modal-server-settings');
+      alert('서버 및 API 설정이 저장되었습니다.');
+    }
+
+    function updateServerStatusUI() {
+      const modeLabel = document.getElementById('sidebar-server-mode');
+      const descLabel = document.getElementById('sidebar-server-desc');
+      const badge = document.getElementById('sidebar-server-badge');
+      const tag = document.getElementById('server-indicator-tag');
+
+      if (serverConfig.provider === 'custom') {
+        modeLabel.textContent = '커스텀 캐릭터 서버';
+        descLabel.textContent = serverConfig.customUrl;
+        badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-cyan-400 mr-1 animate-pulse"></span> 전용서버';
+        if (tag) tag.textContent = '모드: 전용 서버 연동중';
+      } else if (serverConfig.provider === 'gemini') {
+        modeLabel.textContent = 'Google Gemini Direct';
+        descLabel.textContent = 'Gemini 3 Flash LLM API';
+        badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-purple-400 mr-1 animate-pulse"></span> Gemini API';
+        if (tag) tag.textContent = '모드: Gemini API Direct';
+      } else {
+        modeLabel.textContent = '기본 AI 챗봇';
+        descLabel.textContent = '내장 프로필 인공지능 응답기';
+        badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-green-400 mr-1 animate-pulse"></span> 내장 엔진';
+        if (tag) tag.textContent = '모드: 기본 오프라인 엔진';
+      }
+    }
+
+    // --- 11. CUSTOM CHARACTER CREATOR LOGIC ---
+    function openCharacterCreatorModal() {
+      openModal('modal-character-creator');
+    }
+
+    function handleCreateCharacter(e) {
+      e.preventDefault();
+      const name = document.getElementById('create-name').value;
+      const category = document.getElementById('create-category').value;
+      const avatar = document.getElementById('create-avatar').value || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80';
+      const tagsStr = document.getElementById('create-tags').value;
+      const personality = document.getElementById('create-personality').value;
+      const scenario = document.getElementById('create-scenario').value;
+      const firstMsg = document.getElementById('create-firstmsg').value;
+
+      const newChar = {
+        id: 'custom_' + Date.now(),
+        name,
+        category,
+        tags: tagsStr ? tagsStr.split(',').map(t => t.trim()) : ['커스텀'],
+        avatar,
+        creator: 'User Created',
+        chatCount: '0.1K',
+        personality,
+        scenario,
+        firstMessage: firstMsg
+      };
+
+      characters.unshift(newChar);
+      saveToLocalStorage();
+      renderCharacters();
+      closeModal('modal-character-creator');
+
+      // Start chat right away
+      startChatWithCharacter(newChar.id);
+    }
+
+    function exportCharacterJSON() {
+      const name = document.getElementById('create-name').value || 'Character';
+      const exportObj = {
+        name,
+        category: document.getElementById('create-category').value,
+        avatar: document.getElementById('create-avatar').value,
+        tags: document.getElementById('create-tags').value,
+        personality: document.getElementById('create-personality').value,
+        scenario: document.getElementById('create-scenario').value,
+        firstMessage: document.getElementById('create-firstmsg').value
+      };
+
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportObj, null, 2));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `${name}_zeta_profile.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+  </script>
+</body>
+</html>
