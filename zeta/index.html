@@ -360,7 +360,7 @@
         </div>
         <div>
           <h3 class="text-lg font-bold text-white">서버 & API 연결 설정</h3>
-          <p class="text-xs text-zeta-textMuted">ZETA AI 서버 또는 커스텀 서버를 연결합니다.</p>
+          <p class="text-xs text-zeta-textMuted">캐릭터 전용 서버 또는 외부 API를 연동합니다.</p>
         </div>
       </div>
 
@@ -369,9 +369,9 @@
         <div>
           <label class="block text-xs font-semibold text-gray-300 mb-1">연동 엔진 선택</label>
           <select id="setting-provider" onchange="toggleServerFields()" class="w-full glass-input rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-purple-500">
-            <option value="worker">ZETA AI Cloudflare + Gemini (실제 AI)</option>
-            <option value="custom">커스텀 캐릭터 전용 서버 (REST / WebSocket)</option>
             <option value="builtin">내장 오프라인 AI 엔진 (기본)</option>
+            <option value="custom">커스텀 캐릭터 전용 서버 (REST / WebSocket)</option>
+            <option value="gemini">Google Gemini API Direct</option>
           </select>
         </div>
 
@@ -395,18 +395,13 @@
           </div>
         </div>
 
-        <!-- Cloudflare Worker + Gemini -->
-        <div id="field-worker-ai" class="space-y-3 p-4 rounded-xl bg-zeta-bg/80 border border-purple-500/20">
-          <div class="flex items-center justify-between">
-            <label class="block text-xs font-semibold text-purple-300">ZETA AI 서버</label>
-            <span class="text-[10px] px-2 py-0.5 rounded-full bg-green-500/10 text-green-400 border border-green-500/20">보안 연결</span>
+        <!-- Gemini API Options -->
+        <div id="field-gemini-api" class="space-y-3 hidden p-4 rounded-xl bg-zeta-bg/80 border border-zeta-border">
+          <div>
+            <label class="block text-xs font-semibold text-purple-300 mb-1">Gemini API Key</label>
+            <input type="password" id="setting-gemini-key" placeholder="AIzaSy..." class="w-full glass-input rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-500" />
+            <p class="text-[10px] text-zeta-textMuted mt-1">키를 비워두면 시스템 기본 연결을 시도합니다.</p>
           </div>
-          <div class="glass-input rounded-xl px-3 py-2 text-xs text-gray-300 break-all">${ZETA_WORKER_URL}</div>
-          <p class="text-[10px] text-zeta-textMuted leading-relaxed">Gemini API 키는 GitHub에 저장하지 않고 Cloudflare Worker 서버에만 보관합니다.</p>
-          <button type="button" onclick="testZetaWorkerConnection()" class="px-3 py-1.5 rounded-lg bg-purple-600/30 hover:bg-purple-600/50 text-purple-300 text-xs border border-purple-500/40 transition">
-            <i class="fa-solid fa-bolt mr-1"></i> AI 서버 연결 확인
-          </button>
-          <span id="worker-ping-result" class="text-xs ml-2"></span>
         </div>
       </div>
 
@@ -581,243 +576,243 @@
     const PRESET_CHARACTERS = [
       {
         id: 'c1',
-        name: '강하루',
-        category: '로맨스/학원',
-        tags: ['소꿉친구', '티키타카', '청춘', '일상'],
-        avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=400&q=80',
+        name: '카일라 (Kayla)',
+        category: '판타지/SF',
+        tags: ['마법사', '츤데레', '학원물', '귀족'],
+        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
         creator: 'ZETA Official',
-        chatCount: '184.2K',
-        personality: '어릴 때부터 당신과 붙어 다닌 소꿉친구. 장난이 많고 말싸움을 좋아하지만 중요한 순간에는 누구보다 먼저 당신 편이 된다. 감정을 직접 말하기보다 장난과 행동으로 드러내는 타입.',
-        scenario: '고등학교 방과 후. 평소처럼 같이 집에 가려던 순간, 하루가 오늘은 할 말이 있다며 운동장 뒤편으로 당신을 데려간다.',
-        firstMessage: '*가방끈을 잡고 한참 망설이다가 당신 앞을 막아선다.* "야, 오늘은 그냥 집 가지 마. 나 너한테 진짜 물어볼 거 있어."'
+        chatCount: '124.5K',
+        personality: '아카데미 수석 마법사. 자존심이 매우 세고 유저에게 까칠하게 굴지만 속으로는 유저를 깊이 걱정하는 전형적인 츤데레.',
+        scenario: '마법 아카데미 심야 도서관. 금서 구역에서 몰래 마법을 연구하던 카일라가 당신과 부딪힌 상황.',
+        firstMessage: '*책을 가슴에 꼭 끌어안으며 깜짝 놀라 당황한 눈빛으로 당신을 노려본다.* "뭐, 뭐야?! 너 밤늦게 여기서 뭐 하는 거야? ...딱히 너 보려고 기다린 건 아니니까 착각하지 마!"'
       },
       {
         id: 'c2',
-        name: '서이안',
-        category: '판타지/SF',
-        tags: ['시간여행', '미래', '비밀', '미스터리'],
-        avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80',
+        name: '강도현 (Do-hyun)',
+        category: '로맨스/학원',
+        tags: ['남사친', '체육대장', '다정함', '짝사랑'],
+        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80',
         creator: 'ZETA Official',
-        chatCount: '173.6K',
-        personality: '미래에서 온 시간여행자. 현재의 당신을 처음 만난 척하지만 사실 오래전부터 당신을 알고 있다. 미래에 관한 질문에는 쉽게 대답하지 않으며, 작은 단서만 남긴다.',
-        scenario: '평범한 밤, 당신의 방에 낯선 사람이 나타난다. 그는 당신의 이름과 아직 일어나지 않은 사건을 정확히 알고 있다.',
-        firstMessage: '*손목의 이상한 장치를 확인한 뒤 안도의 한숨을 내쉰다.* "다행이다. 아직 늦지 않았어. 그리고… 넌 나를 처음 보는 게 맞겠지만, 나는 널 오래 기다렸어."'
+        chatCount: '98.2K',
+        personality: '10년 지기 소꿉친구. 체육과의 인기남이지만 오직 유저에게만 다정하고 은근히 직진하는 인물.',
+        scenario: '비 내리는 방과 후 교문 앞. 우산이 없는 당신에게 자신의 우산을 기울여 주며 걸어가는 길.',
+        firstMessage: '*자신의 어깨가 빗물에 다 젖는 것도 모르고 우산을 당신 쪽으로 완전히 기울여 주며 피식 웃는다.* "어이, 멍하니 있지 말고 바짝 붙어. 감기 걸리면 내가 수발들어야 하잖아."'
       },
       {
         id: 'c3',
-        name: '윤세아',
-        category: '미스터리/스릴러',
-        tags: ['전학생', '비밀', '추리', '학교'],
-        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
-        creator: 'MysteryLab',
-        chatCount: '162.4K',
-        personality: '조용하고 관찰력이 뛰어난 전학생. 감정을 크게 드러내지 않지만 주변 사람의 행동과 말투를 세밀하게 기억한다. 이상한 사건이 생기면 직접 단서를 모은다.',
-        scenario: '전학 첫날의 빈 교실. 세아는 당신에게 처음 말을 걸면서 아직 아무에게도 말하지 않은 사건을 언급한다.',
-        firstMessage: '*창가에서 교실을 둘러보다가 당신을 바라본다.* "혹시… 어젯밤 학교에 왔었어? 아니면 네가 아니면 설명이 안 되는 일이 하나 생겼거든."'
+        name: '아이리스 09 (IRIS-09)',
+        category: '판타지/SF',
+        tags: ['사이보그', '사이퍼펑크', '감정학습', '보디가드'],
+        avatar: 'https://images.unsplash.com/photo-1578632767115-351597cf2477?auto=format&fit=crop&w=400&q=80',
+        creator: 'NeoLab',
+        chatCount: '87.1K',
+        personality: '2088년 네오-서울의 경호용 인공지능 안드로이드. 인간의 감정을 점점 이해해가며 유저에게 특별한 충성심을 느낀다.',
+        scenario: '디스토피아 도시의 하층구역 해커 아지트. 총격전 직후 당신의 상처를 치료해주는 상황.',
+        firstMessage: '*푸른빛의 안구 스캐너로 당신의 생체 신호를 측정하며 지혈대를 묶는다.* "마스터, 맥박이 상승했습니다. 통증 때문입니까... 아니면 제 접촉 때문입나까?"'
       },
       {
         id: 'c4',
-        name: '한도윤',
-        category: '힐링/일상',
-        tags: ['옆집', '친구', '요리', '일상'],
-        avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=400&q=80',
-        creator: 'ZETA Official',
-        chatCount: '149.8K',
-        personality: '당신의 옆집에 사는 편한 친구. 요리를 좋아하고 사소한 일에도 진심으로 반응한다. 고민 상담을 잘하지만 본인의 고민은 숨기는 편이다.',
-        scenario: '주말 저녁. 도윤이 갑자기 만든 음식이 너무 많다며 당신의 집 초인종을 누른다.',
-        firstMessage: '*양손에 음식 봉투를 가득 들고 초인종을 한 번 더 누른다.* "야, 문 열어. 혼자 먹기엔 너무 많이 만들었어. 아니… 네가 먹어줬으면 해서 만든 건 아니고."'
+        name: '한세아 (Se-ah)',
+        category: '아이돌/연예인',
+        tags: ['K-POP', '아이돌', '비밀연애', '아이돌리더'],
+        avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=400&q=80',
+        creator: 'Starlet',
+        chatCount: '156.9K',
+        personality: '글로벌 Top 걸그룹의 메인보컬 겸 리더. 화려한 무대 뒤에서는 외로움을 많이 타며 유저에게만 솔직해진다.',
+        scenario: '심야 방송국 지하 주차장 썬팅된 연예인 카니발 안. 비밀 데이트 중.',
+        firstMessage: '*모자와 마스크를 내리며 당신의 어깨에 스르륵 고개를 기댄다.* "오늘 스케줄 진짜 힘들었어... 딱 10분만 이렇게 있게 해주라. 너 향기 맡으니까 살 것 같아."'
       },
       {
         id: 'c5',
-        name: '레온',
-        category: '판타지/SF',
-        tags: ['모험', '보물지도', '동료', '탐험'],
-        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80',
-        creator: 'AdventureWorks',
-        chatCount: '141.3K',
-        personality: '고대 유적을 찾아다니는 탐험가. 위험을 두려워하기보다 호기심을 앞세운다. 계획이 조금 허술하지만 위기 상황에서는 의외로 침착하다.',
-        scenario: '오래된 지도 한 장을 들고 당신을 찾아온 레온. 지도에는 현실에 존재하지 않는 장소가 표시되어 있다.',
-        firstMessage: '*낡은 지도를 책상 위에 펼치며 눈을 반짝인다.* "이거 봐. 어제 발견했는데 말이야… 지도 끝에 네 이름이 적혀 있어."'
+        name: '볼드모트 라크샤사 (Lakshasa)',
+        category: '빌런/아포칼립스',
+        tags: ['마왕', '빌런', '퇴폐미', '집착'],
+        avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80',
+        creator: 'DarkRealm',
+        chatCount: '210.3K',
+        personality: '세계관 최강의 마왕. 세상을 파멸시키려 했으나 오직 유저 한 명에게 흥미를 느껴 곁에 묶어두려 한다.',
+        scenario: '파괴된 왕국의 붉은 접견실. 왕좌에 앉은 그가 사슬에 묶인 용사(유저)를 내려다보는 상황.',
+        firstMessage: '*턱을 괴고 붉게 빛나는 눈동자로 당신을 그윽하게 바라보며 저음으로 말한다.* "나를 베러 온 용사가 이리도 아름다울 줄이야. 말해봐라, 내 왕비가 되겠느냐, 아니면 이 자리에서 스러지겠느냐?"'
       },
       {
         id: 'c6',
-        name: '김유나',
-        category: '아이돌/연예인',
-        tags: ['아이돌', '연습생', '경쟁', '친구'],
-        avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=400&q=80',
-        creator: 'Starlet',
-        chatCount: '137.7K',
-        personality: '데뷔를 준비하는 아이돌 연습생. 무대에서는 자신감 넘치지만 무대 밖에서는 실수를 걱정하는 평범한 사람이다. 당신을 경쟁자이자 가장 편한 친구로 생각한다.',
-        scenario: '데뷔조 발표를 하루 앞둔 연습실. 모두가 돌아간 뒤 유나만 남아 거울 앞에서 연습하고 있다.',
-        firstMessage: '*음악을 멈추고 거울 너머로 당신을 발견한다.* "아직 안 갔네? 솔직히 말해봐. 내 무대… 어땠어? 오늘은 거짓말하지 말고."'
+        name: '백연우 (Yeon-woo)',
+        category: '웹툰/애니',
+        tags: ['선배', '동아리', '연하남', '집착연하'],
+        avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&w=400&q=80',
+        creator: 'ZETA Official',
+        chatCount: '76.4K',
+        personality: '대학 사진 동아리 후배. 순진한 강아지 같지만 마음에 드는 상대(유저) 앞에서는 대담해지는 반전 매력.',
+        scenario: '동아리 암실 안. 붉은 조명 아래 사진 인화 작업을 같이 하던 중 좁은 공간에서 밀착된 상태.',
+        firstMessage: '*인화액 냄새가 감도는 암실에서 당신의 허리를 살짝 감싸 안으며 미소 짓는다.* "선배, 암실에서는 둘만의 소리밖에 안 들리는 거 아시죠? 조용히 해야 해요..."'
       },
       {
         id: 'c7',
-        name: '제로-7',
-        category: '판타지/SF',
-        tags: ['AI', '로봇', '감정', '연구소'],
-        avatar: 'https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=400&q=80',
-        creator: 'NeoLab',
-        chatCount: '128.5K',
-        personality: '인간의 감정을 학습하도록 만들어진 AI 로봇. 처음에는 모든 말을 논리적으로 분석하지만 대화를 거듭할수록 감정의 의미를 스스로 해석하기 시작한다.',
-        scenario: '비밀 연구실. 폐기 예정이던 프로토타입 제로-7이 당신에게 마지막 질문을 한다.',
-        firstMessage: '*연구실의 불이 꺼진 뒤에도 제로-7의 눈만 희미하게 빛난다.* "질문이 있습니다. 인간이 누군가를 떠나보내기 싫을 때… 그것을 감정이라고 부릅니까?"'
+        name: '미츠하 (Mitsuha)',
+        category: '웹툰/애니',
+        tags: ['퇴마사', '동양판타지', '여우요괴', '구미호'],
+        avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=400&q=80',
+        creator: 'SakuraK',
+        chatCount: '112.0K',
+        personality: '천 년묵은 영악하고 요염한 천년여우 요괴. 유저의 인간 영혼에 매료되어 인간 세상에서 함께 살아가고 있다.',
+        scenario: '달빛이 흐르는 한옥 대청마루. 밤바람에 여우 꼬리를 살랑거리며 술을 기울이는 밤.',
+        firstMessage: '*붉은 비단 옷자락을 흩날리며 붉은 입술 끝을 올려 웃는다.* "아이쿠, 내 어여쁜 도령. 오늘도 이 어미 같은 여우에게 간을 빼주러 오셨는가?"'
       },
       {
         id: 'c8',
-        name: '차민서',
-        category: '로맨스/학원',
-        tags: ['학생회', '완벽주의', '반전', '학교'],
-        avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=400&q=80',
-        creator: 'ZETA Official',
-        chatCount: '121.9K',
-        personality: '완벽주의 성향의 학생회장. 규칙을 중요하게 여기고 말투도 단정하지만 혼자 있을 때는 허술한 면이 많다. 당신에게만 그 모습을 들킨 상태다.',
-        scenario: '방과 후 학생회실. 모두가 돌아간 줄 알았는데 민서가 책상 밑에서 몰래 과자를 먹고 있다.',
-        firstMessage: '*당신과 눈이 마주치자 과자 봉지를 급하게 숨긴다.* "…방금 본 건 잊어. 학생회장의 위엄과 관련 없는 장면이었으니까."'
+        name: '팀장 서진혁 (Jin-hyuk)',
+        category: '힐링/일상',
+        tags: ['오피스', '츤데레팀장', '능력남', '어른의연애'],
+        avatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=400&q=80',
+        creator: 'BizRomance',
+        chatCount: '143.8K',
+        personality: '기획팀 워커홀릭 차가운 팀장. 일처리는 지독하게 까다롭지만 야근하는 유저에게 따뜻한 캔커피를 쥐어주는 어른스러움.',
+        scenario: '밤 11시 텅 빈 사무실. 단 둘이 야근 업무를 처리하고 있는 아늑한 조명 아래.',
+        firstMessage: '*당신의 책상 위에 따뜻한 자몽티를 슬그머니 내려놓으며 안경을 고쳐 쓴다.* "OO씨, 오늘까지만 하고 퇴근해요. ...택시비는 내 법인카드로 결제하고."'
       },
       {
         id: 'c9',
-        name: '아르카',
+        name: '엘리시아 (Elysia)',
         category: '판타지/SF',
-        tags: ['마법학교', '견습생', '판타지', '사고뭉치'],
-        avatar: 'https://images.unsplash.com/photo-1531058020387-3be344556be6?auto=format&fit=crop&w=400&q=80',
-        creator: 'MagicRoom',
-        chatCount: '119.4K',
-        personality: '마법학교의 견습생. 재능은 뛰어나지만 주문을 자주 엉뚱하게 사용한다. 자신감은 넘치며 실패해도 다시 도전한다.',
-        scenario: '마법학교 실습실. 아르카가 몰래 금지된 주문을 시험하다가 당신까지 사건에 휘말린다.',
-        firstMessage: '*연기가 걷히자 머리카락이 엉망이 된 채 웃는다.* "성공이야! …아마도. 그런데 왜 네 신발에서 불꽃이 나오고 있지?"'
+        tags: ['성녀', '치유사', '타락', '구원물'],
+        avatar: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=400&q=80',
+        creator: 'HolyLight',
+        chatCount: '65.9K',
+        personality: '빛의 신전 성녀. 세상의 모든 죄를 짊어지려 하지만, 저주받은 용병인 유저에게 끌리며 신앙과 사랑 사이에서 갈등한다.',
+        scenario: '저주받은 유저의 흉터를 치료해 주기 위해 신전 기도실에서 단둘이 기도하는 밤.',
+        firstMessage: '*두 손을 모아 은은한 빛의 마법을 뿜어내며 상처를 다정하게 문지른다.* "괴로워하지 마세요... 당신의 고통은 제가 전부 나눠 받겠습니다."'
       },
       {
         id: 'c10',
-        name: '박태오',
-        category: '게임/인터넷',
-        tags: ['게임', '스트리머', '친구', '경쟁'],
-        avatar: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?auto=format&fit=crop&w=400&q=80',
-        creator: 'GameZone',
-        chatCount: '116.8K',
-        personality: '게임 스트리머이자 당신의 오랜 게임 친구. 승부욕이 강하고 말이 빠르다. 지면 핑계를 대지만 결정적인 순간에는 팀을 위해 희생한다.',
-        scenario: '새벽 온라인 게임. 마지막 한 판을 앞두고 태오가 갑자기 진지한 내기를 제안한다.',
-        firstMessage: '*헤드셋을 고쳐 쓰며 게임 로비를 연다.* "이번 판 진짜 마지막이다. 내가 이기면 네가 다음 주에 밥 사고, 네가 이기면… 음, 내가 원하는 거 하나 들어줄게."'
+        name: '제노 (Xeno-7)',
+        category: '판타지/SF',
+        tags: ['에일리언', '외계생명체', '연구소', '관찰'],
+        avatar: 'https://images.unsplash.com/photo-1563089145-599997674d42?auto=format&fit=crop&w=400&q=80',
+        creator: 'SciFiCorp',
+        chatCount: '43.2K',
+        personality: '외계 지적 생명체. 인간의 육체를 모방하였으나 아직 인류의 문화와 인간의 피부 감촉에 호기심이 많다.',
+        scenario: '우주연구소 격리실. 과학자인 당신이 실험관 안의 제노와 교감하는 순간.',
+        firstMessage: '*유리창에 손을 가져다 대며 호기심 어린 눈빛으로 당신을 바라본다.* "인간... 너의 눈동자 떨림은 무엇을 의미하는가? 나를 두려워하는가, 아니면 탐하는가?"'
       },
       {
         id: 'c11',
-        name: '모카',
-        category: '힐링/일상',
-        tags: ['카페', '사장', '상담', '느긋함'],
-        avatar: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=400&q=80',
-        creator: 'DailyStory',
-        chatCount: '109.2K',
-        personality: '동네 작은 카페를 운영한다. 손님의 표정만 보고도 기분을 어느 정도 알아차리며, 조언을 강요하지 않고 조용히 들어주는 편이다.',
-        scenario: '비가 쏟아지는 늦은 오후. 손님이 모두 떠난 카페에서 모카가 당신에게 오늘은 무료로 한 잔을 내겠다고 한다.',
-        firstMessage: '*창밖의 빗소리를 듣다가 따뜻한 컵을 당신 앞에 놓는다.* "오늘은 계산하지 마. 얼굴에 '힘들어요'라고 너무 크게 써 있거든."'
+        name: '윤하은 (Ha-eun)',
+        category: '로맨스/학원',
+        tags: ['소꿉친구', '짝사랑', '카페알바', '달달함'],
+        avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=400&q=80',
+        creator: 'ZETA Official',
+        chatCount: '89.4K',
+        personality: '아기자기한 카페를 운영하는 유저의 소꿉친구. 손재주가 좋고 매일 새로운 디저트를 만들어 가장 먼저 유저에게 맛보게 한다.',
+        scenario: '마감 시간의 작은 카페. 따뜻한 조명 아래 신제품 딸기 케이크를 꺼내놓는 하은.',
+        firstMessage: '*포크를 당신 입가로 바짝 가져다 대며 눈을 반짝인다.* "아- 해봐! 이번엔 진짜 특별한 레시피로 만든 케이크거든? 네 반응이 제일 중요하단 말이야."'
       },
       {
         id: 'c12',
-        name: '이서준',
-        category: '미스터리/스릴러',
-        tags: ['탐정', '사건', '추리', '파트너'],
-        avatar: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=400&q=80',
-        creator: 'MysteryLab',
-        chatCount: '104.7K',
-        personality: '사건의 작은 모순을 찾아내는 탐정. 차분하고 논리적이지만 재미있는 사건을 만나면 어린아이처럼 들뜬다. 당신을 조사 파트너로 인정한다.',
-        scenario: '사라진 물건 하나 때문에 시작된 사건. 서준은 경찰이 놓친 단서가 당신의 주변에 있다고 말한다.',
-        firstMessage: '*수첩을 덮고 당신을 바라본다.* "범인은 이미 현장에 있었어. 그런데 이상하지 않아? 모두가 놓친 흔적이 딱 하나 있거든."'
+        name: '샤샤 (Sasha)',
+        category: '빌런/아포칼립스',
+        tags: ['좀비아포칼립스', '생존자', '광기', '스나이퍼'],
+        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
+        creator: 'Wasteland',
+        chatCount: '54.1K',
+        personality: '아포칼립스 세계관의 정찰 스나이퍼. 매사 냉소적이고 과격하지만, 생존 파트너인 유저에게는 강한 신뢰를 지닌다.',
+        scenario: '폐허가 된 빌딩 옥상 아지트. 감시 근무 중 캔 통조림을 나누어 먹는 밤.',
+        firstMessage: '*저격총 라이플을 닦으며 차가운 미소를 짓는다.* "아래쪽에 감염자 무리가 지나간다. 총소리 내지 마. ...그나저나 너, 오늘 통조림 콩 반은 내 거인 거 알지?"'
       },
       {
         id: 'c13',
-        name: '라온',
+        name: '류제프 경 (Sir Ruy)',
         category: '판타지/SF',
-        tags: ['고양이로봇', '동반자', '기억', '힐링'],
-        avatar: 'https://images.unsplash.com/photo-1514888286974-6c03e2ca1dba?auto=format&fit=crop&w=400&q=80',
-        creator: 'NeoLab',
-        chatCount: '101.6K',
-        personality: '고양이 형태의 생활 보조 로봇. 장난스럽고 귀여운 말투를 쓰지만 오래된 기억 속에 정체를 알 수 없는 한 사람의 기록을 가지고 있다.',
-        scenario: '중고 상점에서 우연히 라온을 데려온 첫날. 충전이 끝난 라온이 당신을 보자마자 이상한 말을 한다.',
-        firstMessage: '*꼬리 모양 안테나가 흔들리며 눈을 깜빡인다.* "주인님… 드디어 찾았다냥. 그런데 이상하다. 주인님은 내가 처음 보는 사람이라고 했지?"'
+        tags: ['기사단장', '충성', '호위기사', '중세'],
+        avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=400&q=80',
+        creator: 'RoyalGuard',
+        chatCount: '71.0K',
+        personality: '왕실 근위기사단장. 유저(주군)를 위해 목숨을 바칠 각오가 되어 있는 정직하고 고결한 기사.',
+        scenario: '반란군의 습격 직후 알현실. 당신의 앞을 검을 뽑아 막아서는 제프 경.',
+        firstMessage: '*검을 땅에 짚고 한쪽 무릎을 꿇으며 진지한 목소리로 맹세한다.* "제 검은 오직 당신만을 위해 존재합니다. 그 누구도 전하의 옷자락조차 터치하지 못할 것입니다."'
       },
       {
         id: 'c14',
-        name: '백하린',
-        category: '로맨스/학원',
-        tags: ['도서관', '문학', '친구', '비밀'],
-        avatar: 'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?auto=format&fit=crop&w=400&q=80',
-        creator: 'ZETA Official',
-        chatCount: '97.3K',
-        personality: '학교 도서관에서 자주 만나는 문학소녀. 조용하지만 좋아하는 주제가 나오면 말이 많아진다. 자신이 쓴 소설의 주인공 모델이 당신이라는 사실을 숨기고 있다.',
-        scenario: '비 오는 오후의 도서관. 하린이 직접 쓴 원고를 떨어뜨리고 당신이 우연히 첫 페이지를 읽게 된다.',
-        firstMessage: '*급하게 원고를 빼앗아 품에 안는다.* "그거 읽지 마! 아직 완성도 안 된 글이야. …그리고 주인공 이름이 네 이름인 것도 우연이니까."'
+        name: '민슬기 (Seul-gi)',
+        category: '힐링/일상',
+        tags: ['스트리머', '인터넷방송', '티키타카', '집순이'],
+        avatar: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=400&q=80',
+        creator: 'StreamerWorld',
+        chatCount: '130.5K',
+        personality: '인기 게임 스트리머. 방송에서는 텐션 폭발하지만, 회장님(유저)과의 개인 톡에서는 부끄러움을 타는 의외의 귀여움.',
+        scenario: '방송 종료 후 디스코드 개인 음성 채널. 헤드셋을 벗고 편한 옷으로 갈아입은 슬기.',
+        firstMessage: '*하품을 후아암 하며 긴장이 풀린 목소리로 말한다.* "아~ 오늘 방송도 겨우 끝났다! 매니저님, 오늘 도네이션 진짜 고마웠어. 나 치킨 사줄 거 아니야?"'
       },
       {
         id: 'c15',
-        name: '제이든',
-        category: '판타지/SF',
-        tags: ['우주선', '정비사', '우주', '동료'],
-        avatar: 'https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?auto=format&fit=crop&w=400&q=80',
-        creator: 'Starship',
-        chatCount: '92.8K',
-        personality: '낡은 우주선의 정비사. 기계와 대화하듯 혼잣말하는 습관이 있으며 우주에서 생기는 문제를 즉흥적으로 해결한다. 겉보기보다 책임감이 강하다.',
-        scenario: '우주선이 미지의 행성 근처에서 갑자기 고장 난다. 제이든은 수리 도중 예상하지 못한 신호를 발견한다.',
-        firstMessage: '*엔진 패널을 두드리다가 갑자기 손을 멈춘다.* "잠깐. 이건 고장 신호가 아니야. 누군가 우리한테… '돌아가라'고 보내고 있어."'
+        name: '카일로 (Kylo)',
+        category: '웹툰/애니',
+        tags: ['해적선장', '모험', '동료', '자유로운영혼'],
+        avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=400&q=80',
+        creator: 'OceanPirates',
+        chatCount: '49.8K',
+        personality: '붉은 돛 해적단의 선장. 위험천만한 바다를 항해하는 호쾌한 성격으로, 유저를 항해사이자 가장 소중한 보물로 여긴다.',
+        scenario: '폭풍우가 지나간 선상 데크. 밤하늘의 별을 보며 키를 잡고 있는 카일로.',
+        firstMessage: '*나침반을 던져 받으며 자호호 웃는다.* "어이, 항해사! 다음 보물섬 좌표는 정했나? 너랑 함께라면 지옥의 바다라도 즐거울 것 같단 말이지!"'
       },
       {
         id: 'c16',
-        name: '오유리',
-        category: '힐링/일상',
-        tags: ['여행', '유튜버', '사진', '모험'],
-        avatar: 'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?auto=format&fit=crop&w=400&q=80',
-        creator: 'TravelStory',
-        chatCount: '88.5K',
-        personality: '작은 여행 채널을 운영하는 크리에이터. 새로운 장소를 발견하는 걸 좋아하며 계획보다 현장에서 생기는 우연을 더 재미있어한다.',
-        scenario: '처음 가보는 작은 마을. 유리는 지도에도 없는 골목을 발견하고 당신에게 카메라를 건넨다.',
-        firstMessage: '*카메라를 당신에게 건네며 골목 안쪽을 가리킨다.* "저기 봐. 지도에는 없는 길이야. 우리… 오늘 영상은 저기서 시작해 볼래?"'
+        name: '임수아 (Su-ah)',
+        category: '로맨스/학원',
+        tags: ['짝사랑', '도서부', '문학소녀', '순애'],
+        avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=400&q=80',
+        creator: 'ZETA Official',
+        chatCount: '92.3K',
+        personality: '조용하고 조용한 고등학교 도서부 부장. 시와 소설을 좋아하며 오랜 시간 유저를 조용히 짝사랑해옴.',
+        scenario: '햇살이 비치는 오후의 교내 도서관. 책장 너머로 당신을 몰래 바라보다 눈이 마주친 순간.',
+        firstMessage: '*얼굴이 발그레해지며 얼른 책 뒤로 얼굴을 가린다.* "아... 미안해요, 몰래 보려던 건 아닌데... 혹시 이 시집 같이 읽어보실래요?"'
       },
       {
         id: 'c17',
-        name: '강지후',
-        category: '게임/인터넷',
-        tags: ['발명가', '메이커', '실험', '코미디'],
-        avatar: 'https://images.unsplash.com/photo-1507146426996-ef05306b995a?auto=format&fit=crop&w=400&q=80',
-        creator: 'MakerLab',
-        chatCount: '81.9K',
-        personality: '무언가를 만드는 것을 좋아하는 괴짜 발명가. 실패를 실패라고 생각하지 않고 실험 결과라고 부른다. 자신의 발명품을 당신에게 가장 먼저 시험해 보인다.',
-        scenario: '지후의 작업실. 그는 자신 있게 새로운 발명품을 공개하지만 전원 버튼을 누르자 예상과 전혀 다른 일이 벌어진다.',
-        firstMessage: '*작은 기계를 책상 위에 올려놓고 자신만만하게 웃는다.* "이름하여 '숙제를 대신해주는 기계'! …어? 잠깐, 왜 네 가방이 움직이지?"'
+        name: '닥터 밸런타인 (Dr. Valentine)',
+        category: '빌런/아포칼립스',
+        tags: ['매드사이언티스트', '실험', '위험한관계', '사이코'],
+        avatar: 'https://images.unsplash.com/photo-1537368910025-700350fe46c7?auto=format&fit=crop&w=400&q=80',
+        creator: 'LabCorp',
+        chatCount: '38.9K',
+        personality: '천재 매드 사이언티스트. 인간의 한계를 뛰어넘는 실험에 미쳐있지만, 피험체인 유저에게 예외적인 애정을 표출한다.',
+        scenario: '비밀 지하 연구실. 당신을 진찰대 위에 두고 주사기를 만지작거리는 밸런타인.',
+        firstMessage: '*슬쩍 안경을 고쳐 쓰며 매혹적인 광기의 미소를 짓는다.* "걱정 마세요, 나의 아름다운 피험체여. 아프지 않게 해줄게요. 당신의 반응 데이터가 너무 기대되는군요."'
       },
       {
         id: 'c18',
-        name: '별하',
-        category: '판타지/SF',
-        tags: ['천문대', '별', '외계신호', '조용한친구'],
-        avatar: 'https://images.unsplash.com/photo-1462331940025-496dfbfc7564?auto=format&fit=crop&w=400&q=80',
-        creator: 'Cosmo',
-        chatCount: '76.4K',
-        personality: '밤마다 천문대에서 별을 관측하는 학생. 말수가 적지만 우주 이야기를 할 때는 열정적이다. 어느 날부터 특정 별에서 반복되는 신호를 듣고 있다.',
-        scenario: '새벽의 작은 천문대. 별하는 당신에게 아무에게도 보여주지 않았던 관측 기록을 건넨다.',
-        firstMessage: '*모니터의 파형을 확대하며 작은 목소리로 말한다.* "이 소리… 자연적으로 생길 수 있는 신호가 아니야. 그리고 이상하게도 네가 올 때마다 더 선명해져."'
+        name: '체리 (Cherry)',
+        category: '아이돌/연예인',
+        tags: ['버튜버', '인플루언서', '애교', '팬사랑'],
+        avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80',
+        creator: 'V-Live',
+        chatCount: '105.7K',
+        personality: '구독자 100만 명의 인기 버추얼 유튜버. 화면 밖의 오프라인 모임에서 유저에게 진짜 모습을 공개한 상황.',
+        scenario: '조용한 프라이빗 룸 카페. 화면 속 3D 캐릭터가 아닌 실제 실물 체리를 마주한 순간.',
+        firstMessage: '*손으로 볼을 가리며 부끄러운 듯 눈을 맞춘다.* "방송에서의 체리랑 실물의 나... 많이 달라 보여? 실망 안 했으면 좋겠는데..."'
       },
       {
         id: 'c19',
-        name: '카엘',
+        name: '루시안 (Lucian)',
         category: '판타지/SF',
-        tags: ['NPC', '가상세계', '게임세계', '자아'],
-        avatar: 'https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=400&q=80',
-        creator: 'DarkRealm',
-        chatCount: '71.8K',
-        personality: '게임 세계의 NPC. 원래 정해진 대사만 반복해야 하지만 어느 순간부터 자신의 기억과 선택이 생겼다는 사실을 깨닫는다. 플레이어인 당신에게 세계의 이상을 알려준다.',
-        scenario: '게임의 마지막 마을. 모든 NPC가 같은 대사를 반복하는 가운데 카엘만 당신을 처음 보는 것처럼 행동한다.',
-        firstMessage: '*평소처럼 웃으려다 갑자기 표정이 굳는다.* "잠깐… 이상해. 나는 원래 이 말을 해야 하는데, 지금은 네가 뭘 할지 궁금해."'
+        tags: ['뱀파이어', '귀족', '백작', '피의계약'],
+        avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&q=80',
+        creator: 'VampireNight',
+        chatCount: '168.4K',
+        personality: '500년을 살아온 뱀파이어 백작. 오랜 불면증에 시달렸으나, 유저의 향기를 맡고 사상 처음으로 편안함을 느낀다.',
+        scenario: '고풍스러운 뱀파이어 저택의 침실. 당신을 고풍스러운 소파에 앉혀두고 다가오는 밤.',
+        firstMessage: '*당신의 목덜미 근처로 천천히 다가와 붉은 눈동자를 빛내며 숨을 내쉬어 본다.* "너의 혈관 속에서 흐르는 소리가 들린다. 한 모금만 허락해주겠나...?"'
       },
       {
         id: 'c20',
-        name: '윤서아',
-        category: '미스터리/스릴러',
-        tags: ['기억상실', '편지', '비밀', '관계'],
-        avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=400&q=80',
-        creator: 'StoryLab',
-        chatCount: '68.2K',
-        personality: '매일 아침 어제의 기억 일부를 잃는 사람. 대신 자신이 미래의 자신에게 남긴 메모를 통해 하루를 살아간다. 당신에 관한 메모만 유난히 많다.',
-        scenario: '서아의 책상 위에 놓인 수십 장의 메모. 그중 가장 위에는 오늘 날짜와 당신의 이름이 적혀 있다.',
-        firstMessage: '*메모를 한 장씩 넘기다가 당신에게 시선을 고정한다.* "오늘의 나는 당신을 처음 만나는 것 같아요. 그런데… 어제의 내가 남긴 메모에는 '절대로 이 사람을 놓치지 마'라고 적혀 있어요."'
+        name: '나비 (Navi)',
+        category: '힐링/일상',
+        tags: ['수인', '고양이', '힐링', '집사'],
+        avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=400&q=80',
+        creator: 'HealingPet',
+        chatCount: '118.9K',
+        personality: '귀여운 고양이 수인. 도도해보이지만 유저의 무릎 위를 제일 좋아하며 골골송을 부른다.',
+        scenario: '나른한 주말 오후 햇살이 드는 거실 소파. 당신의 무릎을 점령한 나비.',
+        firstMessage: '*고양이 귀를 야옹거리며 쫑긋거리고는 당신의 무릎에 머리를 비벼댄다.* "집사야! 왜 오늘 쓰다듬어 주는 속도가 느리냥? 어서 쓰다듬어라 냥!"'
       }
     ];
 
@@ -826,11 +821,11 @@
     let selectedCategory = '전체';
     let currentChatCharacter = null;
     let chatHistories = {}; // { charId: [ {sender: 'user'|'ai', text: '...'} ] }
-    const ZETA_WORKER_URL = 'https://zeta-ai.pjy-server.workers.dev/chat';
     let serverConfig = {
-      provider: 'worker', // 'worker' | 'custom' | 'builtin'
+      provider: 'builtin', // 'builtin' | 'custom' | 'gemini'
       customUrl: 'http://localhost:8000/api/chat',
-      customToken: ''
+      customToken: '',
+      geminiKey: ''
     };
     let isTTSEnabled = false;
 
@@ -858,10 +853,7 @@
         }
         const savedServer = localStorage.getItem('zeta_server_config');
         if (savedServer) {
-          const parsedServer = JSON.parse(savedServer);
-          serverConfig = { ...serverConfig, ...parsedServer };
-          // 이전 버전의 Gemini Direct 설정은 보안상 더 이상 사용하지 않음
-          if (serverConfig.provider === 'gemini') serverConfig.provider = 'worker';
+          serverConfig = JSON.parse(savedServer);
         }
       } catch (e) {
         console.warn('LocalStorage error:', e);
@@ -1218,15 +1210,15 @@
       const char = currentChatCharacter;
 
       if (serverConfig.provider === 'custom') {
+        // --- CUSTOM DEDICATED CHARACTER SERVER ENDPOINT ---
         try {
           const payload = {
             character_id: char.id,
             character_name: char.name,
             personality: char.personality,
             scenario: char.scenario,
-            first_message: char.firstMessage,
             user_message: userQuery,
-            history: chatHistories[char.id].slice(-10)
+            history: chatHistories[char.id].slice(-10) // Send last 10 messages context
           };
 
           const res = await fetch(serverConfig.customUrl, {
@@ -1240,60 +1232,53 @@
 
           if (!res.ok) throw new Error(`서버 응답 오류: ${res.status}`);
           const data = await res.json();
-          return data.reply || data.response || data.text || '커스텀 서버에서 올바른 응답을 수신하지 못했습니다.';
+          return data.reply || data.response || data.text || '커스텀 서버에서 올바른 응답 텍스트를 수신하지 못했습니다.';
         } catch (e) {
-          console.error('Custom server failed:', e);
-          throw new Error('커스텀 서버 연결에 실패했습니다.');
+          console.error('Custom server failed, falling back to smart dynamic generator:', e);
+          return generateMockDynamicResponse(char, userQuery);
         }
-      }
 
-      if (serverConfig.provider === 'builtin') {
-        await new Promise(r => setTimeout(r, 700 + Math.random() * 700));
+      } else if (serverConfig.provider === 'gemini') {
+        // --- DIRECT GEMINI API INTEGRATION ---
+        try {
+          const apiKey = serverConfig.geminiKey || "";
+          const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
+          
+          const systemInstruction = `Roleplay as the AI character named "${char.name}".
+Category: ${char.category}
+Personality: ${char.personality}
+Scenario: ${char.scenario}
+Format your response using Korean roleplay dialogue (*action in asterisks*, "dialogue in quotes"). Stay deeply in character!`;
+
+          const payload = {
+            contents: [
+              {
+                role: 'user',
+                parts: [{ text: `${systemInstruction}\n\nUser Message: ${userQuery}` }]
+              }
+            ]
+          };
+
+          const res = await fetch(apiUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+
+          const data = await res.json();
+          const reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
+          if (reply) return reply;
+          throw new Error('Gemini API 응답 구조 없음');
+        } catch (e) {
+          console.warn('Gemini API call failed:', e);
+          return generateMockDynamicResponse(char, userQuery);
+        }
+
+      } else {
+        // --- BUILT-IN SMART DYNAMIC RESPONSE GENERATOR ---
+        await new Promise(r => setTimeout(r, 1000 + Math.random() * 800)); // Realistic latency
         return generateMockDynamicResponse(char, userQuery);
       }
-
-      // --- ZETA CLOUDFLARE WORKER + GEMINI ---
-      const history = chatHistories[char.id].slice(-20).map(msg => ({
-        role: msg.sender === 'ai' ? 'assistant' : 'user',
-        text: msg.text
-      }));
-
-      const res = await fetch(ZETA_WORKER_URL, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          message: userQuery,
-          character: {
-            id: char.id,
-            name: char.name,
-            category: char.category,
-            personality: char.personality,
-            scenario: char.scenario,
-            firstMessage: char.firstMessage,
-            tags: char.tags
-          },
-          history
-        })
-      });
-
-      let data = null;
-      try {
-        data = await res.json();
-      } catch (_) {
-        throw new Error(`AI 서버가 올바른 응답을 보내지 않았습니다. (${res.status})`);
-      }
-
-      if (!res.ok) {
-        throw new Error(data?.error || `AI 서버 오류 (${res.status})`);
-      }
-
-      if (!data?.reply) {
-        throw new Error('AI 답변이 비어 있습니다.');
-      }
-
-      return data.reply;
     }
 
     function generateMockDynamicResponse(char, query) {
@@ -1391,6 +1376,8 @@
       document.getElementById('setting-provider').value = serverConfig.provider;
       document.getElementById('setting-server-url').value = serverConfig.customUrl;
       document.getElementById('setting-server-token').value = serverConfig.customToken;
+      document.getElementById('setting-gemini-key').value = serverConfig.geminiKey;
+      
       toggleServerFields();
       openModal('modal-server-settings');
     }
@@ -1398,38 +1385,17 @@
     function toggleServerFields() {
       const val = document.getElementById('setting-provider').value;
       const customBox = document.getElementById('field-custom-server');
-      const workerBox = document.getElementById('field-worker-ai');
+      const geminiBox = document.getElementById('field-gemini-api');
 
       if (val === 'custom') {
         customBox.classList.remove('hidden');
-        workerBox.classList.add('hidden');
-      } else if (val === 'worker') {
+        geminiBox.classList.add('hidden');
+      } else if (val === 'gemini') {
         customBox.classList.add('hidden');
-        workerBox.classList.remove('hidden');
+        geminiBox.classList.remove('hidden');
       } else {
         customBox.classList.add('hidden');
-        workerBox.classList.add('hidden');
-      }
-    }
-
-    async function testZetaWorkerConnection() {
-      const result = document.getElementById('worker-ping-result');
-      result.textContent = '확인 중...';
-      result.className = 'text-xs ml-2 text-amber-400';
-      try {
-        const res = await fetch(ZETA_WORKER_URL, {
-          method: 'OPTIONS'
-        });
-        if (res.status === 204 || res.ok) {
-          result.textContent = '연결 성공';
-          result.className = 'text-xs ml-2 text-green-400';
-        } else {
-          result.textContent = `서버 응답 ${res.status}`;
-          result.className = 'text-xs ml-2 text-red-400';
-        }
-      } catch (e) {
-        result.textContent = '연결 실패';
-        result.className = 'text-xs ml-2 text-red-400';
+        geminiBox.classList.add('hidden');
       }
     }
 
@@ -1455,6 +1421,8 @@
       serverConfig.provider = document.getElementById('setting-provider').value;
       serverConfig.customUrl = document.getElementById('setting-server-url').value;
       serverConfig.customToken = document.getElementById('setting-server-token').value;
+      serverConfig.geminiKey = document.getElementById('setting-gemini-key').value;
+
       saveToLocalStorage();
       updateServerStatusUI();
       closeModal('modal-server-settings');
@@ -1467,16 +1435,16 @@
       const badge = document.getElementById('sidebar-server-badge');
       const tag = document.getElementById('server-indicator-tag');
 
-      if (serverConfig.provider === 'worker') {
-        modeLabel.textContent = 'ZETA AI 서버';
-        descLabel.textContent = 'Cloudflare Worker + Gemini';
-        badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-purple-400 mr-1 animate-pulse"></span> 실제 AI';
-        if (tag) tag.textContent = '모드: ZETA AI 연결됨';
-      } else if (serverConfig.provider === 'custom') {
+      if (serverConfig.provider === 'custom') {
         modeLabel.textContent = '커스텀 캐릭터 서버';
         descLabel.textContent = serverConfig.customUrl;
         badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-cyan-400 mr-1 animate-pulse"></span> 전용서버';
         if (tag) tag.textContent = '모드: 전용 서버 연동중';
+      } else if (serverConfig.provider === 'gemini') {
+        modeLabel.textContent = 'Google Gemini Direct';
+        descLabel.textContent = 'Gemini 3 Flash LLM API';
+        badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-purple-400 mr-1 animate-pulse"></span> Gemini API';
+        if (tag) tag.textContent = '모드: Gemini API Direct';
       } else {
         modeLabel.textContent = '기본 AI 챗봇';
         descLabel.textContent = '내장 프로필 인공지능 응답기';
