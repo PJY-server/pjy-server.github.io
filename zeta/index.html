@@ -1269,38 +1269,38 @@
         }
 
       } else if (serverConfig.provider === 'gemini') {
-        // --- DIRECT GEMINI API INTEGRATION ---
+        // --- CLOUDFLARE WORKER GEMINI INTEGRATION ---
         try {
-          const apiKey = serverConfig.geminiKey || "";
-          const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
-          
-          const systemInstruction = `Roleplay as the AI character named "${char.name}".
-Category: ${char.category}
-Personality: ${char.personality}
-Scenario: ${char.scenario}
-Format your response using Korean roleplay dialogue (*action in asterisks*, "dialogue in quotes"). Stay deeply in character!`;
+          const workerUrl = 'https://zeta-ai.pjy-server.workers.dev/chat';
 
           const payload = {
-            contents: [
-              {
-                role: 'user',
-                parts: [{ text: `${systemInstruction}\n\nUser Message: ${userQuery}` }]
-              }
-            ]
+            character_id: char.id,
+            character_name: char.name,
+            category: char.category,
+            personality: char.personality,
+            scenario: char.scenario,
+            user_message: userQuery,
+            history: chatHistories[char.id].slice(-10)
           };
 
-          const res = await fetch(apiUrl, {
+          const res = await fetch(workerUrl, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
           });
 
+          if (!res.ok) {
+            const errorText = await res.text().catch(() => '');
+            throw new Error(`Worker 응답 오류: ${res.status} ${errorText}`);
+          }
+
           const data = await res.json();
-          const reply = data.candidates?.[0]?.content?.parts?.[0]?.text;
+          const reply = data.reply || data.response || data.text;
           if (reply) return reply;
-          throw new Error('Gemini API 응답 구조 없음');
+
+          throw new Error('Worker 응답에 답변 텍스트가 없습니다.');
         } catch (e) {
-          console.warn('Gemini API call failed:', e);
+          console.warn('Cloudflare Worker Gemini call failed:', e);
           return generateMockDynamicResponse(char, userQuery);
         }
 
