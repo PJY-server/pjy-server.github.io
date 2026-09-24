@@ -1300,8 +1300,8 @@
 
           throw new Error('Worker 응답에 답변 텍스트가 없습니다.');
         } catch (e) {
-          console.warn('Cloudflare Worker Gemini call failed:', e);
-          return generateMockDynamicResponse(char, userQuery);
+          console.error('Cloudflare Worker Gemini call failed:', e);
+          throw e;
         }
 
       } else {
@@ -1471,10 +1471,10 @@
         badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-cyan-400 mr-1 animate-pulse"></span> 전용서버';
         if (tag) tag.textContent = '모드: 전용 서버 연동중';
       } else if (serverConfig.provider === 'gemini') {
-        modeLabel.textContent = 'Google Gemini Direct';
-        descLabel.textContent = 'Gemini 3 Flash LLM API';
+        modeLabel.textContent = 'Cloudflare Worker + Gemini';
+        descLabel.textContent = '보안 Worker를 통한 Gemini 3 Flash LLM';
         badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-purple-400 mr-1 animate-pulse"></span> Gemini API';
-        if (tag) tag.textContent = '모드: Gemini API Direct';
+        if (tag) tag.textContent = '모드: Cloudflare Worker + Gemini';
       } else {
         modeLabel.textContent = '기본 AI 챗봇';
         descLabel.textContent = '내장 프로필 인공지능 응답기';
