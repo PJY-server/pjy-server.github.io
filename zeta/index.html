@@ -816,6 +816,36 @@
       }
     ];
 
+    // ZETA 공식 캐릭터 이미지 (zeta/1.png ~ zeta/20.png)
+    const ZETA_PRESET_IMAGES = {
+      c1: './1.png',
+      c2: './2.png',
+      c3: './3.png',
+      c4: './4.png',
+      c5: './5.png',
+      c6: './6.png',
+      c7: './7.png',
+      c8: './8.png',
+      c9: './9.png',
+      c10: './10.png',
+      c11: './11.png',
+      c12: './12.png',
+      c13: './13.png',
+      c14: './14.png',
+      c15: './15.png',
+      c16: './16.png',
+      c17: './17.png',
+      c18: './18.png',
+      c19: './19.png',
+      c20: './20.png'
+    };
+
+    PRESET_CHARACTERS.forEach(character => {
+      if (ZETA_PRESET_IMAGES[character.id]) {
+        character.avatar = ZETA_PRESET_IMAGES[character.id];
+      }
+    });
+
     // --- 2. GLOBAL APP STATE ---
     let characters = [...PRESET_CHARACTERS];
     let selectedCategory = '전체';
