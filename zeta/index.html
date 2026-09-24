@@ -1274,7 +1274,8 @@
           const workerUrl = 'https://zeta-ai.pjy-server.workers.dev/chat';
 
           const payload = {
-            message: userQuery,
+            message: String(userQuery || '').trim(),
+            user_message: String(userQuery || '').trim(),
             character: {
               id: char.id,
               name: char.name,
@@ -1283,7 +1284,7 @@
               scenario: char.scenario,
               firstMessage: char.firstMessage || ''
             },
-            history: chatHistories[char.id].slice(-20)
+            history: (chatHistories[char.id] || []).slice(-20)
           };
 
           const res = await fetch(workerUrl, {
