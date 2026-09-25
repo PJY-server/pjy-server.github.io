@@ -128,34 +128,18 @@
           <div class="text-xs font-semibold text-zeta-textMuted px-4 mb-2 uppercase tracking-wider">서버 연결 상태</div>
           <div id="sidebar-server-status" class="mx-2 p-3 rounded-xl bg-zeta-bg border border-zeta-border text-xs flex flex-col space-y-2">
             <div class="flex items-center justify-between">
-              <span class="text-gray-300 font-medium" id="sidebar-server-mode">기본 AI 챗봇</span>
-              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-green-500/10 text-green-400 border border-green-500/20" id="sidebar-server-badge">
-                <span class="w-1.5 h-1.5 rounded-full bg-green-400 mr-1 animate-pulse"></span> 준비됨
+              <span class="text-gray-300 font-medium" id="sidebar-server-mode">Cloudflare Worker + Gemini</span>
+              <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-purple-500/10 text-purple-400 border border-purple-500/20" id="sidebar-server-badge">
+                <span class="w-1.5 h-1.5 rounded-full bg-purple-400 mr-1 animate-pulse"></span> 연결됨
               </span>
             </div>
-            <p class="text-[11px] text-zeta-textMuted truncate" id="sidebar-server-desc">내장 프로필 인공지능 응답기</p>
-            <button onclick="openServerSettingsModal()" class="w-full mt-1 py-1.5 px-3 bg-zeta-hover hover:bg-zeta-border text-xs text-purple-300 rounded-lg border border-purple-500/20 transition flex items-center justify-center space-x-1">
-              <i class="fa-solid fa-server text-xs"></i>
-              <span>전용 서버 / API 설정</span>
-            </button>
+            <p class="text-[11px] text-zeta-textMuted truncate" id="sidebar-server-desc">보안 Worker를 통한 Gemini AI</p>
           </div>
         </div>
       </div>
 
       <!-- User / System Settings Footer -->
       <div class="p-4 border-t border-zeta-border/50">
-        <button onclick="openServerSettingsModal()" class="w-full flex items-center justify-between p-2.5 rounded-xl hover:bg-zeta-hover transition">
-          <div class="flex items-center space-x-3">
-            <div class="w-8 h-8 rounded-full bg-purple-600/30 border border-purple-500/40 flex items-center justify-center text-purple-300">
-              <i class="fa-solid fa-user-gear text-sm"></i>
-            </div>
-            <div class="text-left">
-              <p class="text-xs font-semibold text-white">마이 세팅</p>
-              <p class="text-[10px] text-zeta-textMuted">API 키 & 엔드포인트</p>
-            </div>
-          </div>
-          <i class="fa-solid fa-gear text-zeta-textMuted text-xs"></i>
-        </button>
       </div>
     </aside>
 
@@ -171,9 +155,6 @@
           <span class="font-bold text-white text-base">ZETA AI</span>
         </div>
         <div class="flex items-center space-x-2">
-          <button onclick="openServerSettingsModal()" class="p-2 text-purple-400 hover:text-white rounded-lg bg-zeta-hover/60 border border-zeta-border">
-            <i class="fa-solid fa-server"></i>
-          </button>
           <button onclick="openCharacterCreatorModal()" class="p-2 text-pink-400 hover:text-white rounded-lg bg-zeta-hover/60 border border-zeta-border">
             <i class="fa-solid fa-plus"></i>
           </button>
@@ -322,7 +303,7 @@
           </form>
           <div class="flex items-center justify-between max-w-4xl mx-auto mt-2 text-[11px] text-zeta-textMuted px-2">
             <span>Tip: <code class="text-purple-300">*지문 행동*</code> 과 <code class="text-emerald-300">"대사"</code> 를 섞어 사용해보세요!</span>
-            <span id="server-indicator-tag" class="text-purple-400 cursor-pointer" onclick="openServerSettingsModal()">모드: 기본 내장 엔진</span>
+            <span id="server-indicator-tag" class="text-purple-400 cursor-pointer" >모드: 기본 내장 엔진</span>
           </div>
         </div>
 
@@ -345,71 +326,6 @@
       </nav>
 
     </main>
-  </div>
-
-  <!-- MODAL 1: DEDICATED SERVER & GEMINI API SETTINGS -->
-  <div id="modal-server-settings" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-zeta-card border border-zeta-border rounded-2xl w-full max-w-lg p-6 space-y-5 shadow-2xl relative">
-      <button onclick="closeModal('modal-server-settings')" class="absolute top-4 right-4 text-zeta-textMuted hover:text-white">
-        <i class="fa-solid fa-xmark text-lg"></i>
-      </button>
-
-      <div class="flex items-center space-x-3">
-        <div class="w-10 h-10 rounded-xl bg-purple-600/20 border border-purple-500/40 flex items-center justify-center text-purple-400">
-          <i class="fa-solid fa-server text-lg"></i>
-        </div>
-        <div>
-          <h3 class="text-lg font-bold text-white">서버 & API 연결 설정</h3>
-          <p class="text-xs text-zeta-textMuted">캐릭터 전용 서버 또는 외부 API를 연동합니다.</p>
-        </div>
-      </div>
-
-      <!-- Provider Select -->
-      <div class="space-y-4">
-        <div>
-          <label class="block text-xs font-semibold text-gray-300 mb-1">연동 엔진 선택</label>
-          <select id="setting-provider" onchange="toggleServerFields()" class="w-full glass-input rounded-xl px-3 py-2.5 text-sm text-white focus:outline-none focus:border-purple-500">
-            <option value="builtin">내장 오프라인 AI 엔진 (기본)</option>
-            <option value="custom">커스텀 캐릭터 전용 서버 (REST / WebSocket)</option>
-            <option value="gemini">Google Gemini API Direct</option>
-          </select>
-        </div>
-
-        <!-- Custom Server Options -->
-        <div id="field-custom-server" class="space-y-3 hidden p-4 rounded-xl bg-zeta-bg/80 border border-zeta-border">
-          <div>
-            <label class="block text-xs font-semibold text-purple-300 mb-1">전용 서버 엔드포인트 URL</label>
-            <input type="text" id="setting-server-url" placeholder="http://localhost:8000/api/chat 또는 ws://..." class="w-full glass-input rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-500" />
-            <p class="text-[10px] text-zeta-textMuted mt-1">캐릭터 전용 AI 서버 API 주소를 입력하세요.</p>
-          </div>
-          <div>
-            <label class="block text-xs font-semibold text-gray-300 mb-1">인증 토큰 (선택사항)</label>
-            <input type="password" id="setting-server-token" placeholder="Bearer Token..." class="w-full glass-input rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-500" />
-          </div>
-          <div class="pt-2">
-            <button type="button" onclick="testCustomServerConnection()" class="px-3 py-1.5 rounded-lg bg-purple-600/30 hover:bg-purple-600/50 text-purple-300 text-xs border border-purple-500/40 transition flex items-center space-x-1">
-              <i class="fa-solid fa-network-wired text-xs"></i>
-              <span>서버 연결 테스트 (Ping)</span>
-            </button>
-            <span id="ping-result" class="text-xs ml-2"></span>
-          </div>
-        </div>
-
-        <!-- Gemini API Options -->
-        <div id="field-gemini-api" class="space-y-3 hidden p-4 rounded-xl bg-zeta-bg/80 border border-zeta-border">
-          <div>
-            <label class="block text-xs font-semibold text-purple-300 mb-1">Gemini API Key</label>
-            <input type="password" id="setting-gemini-key" placeholder="AIzaSy..." class="w-full glass-input rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-purple-500" />
-            <p class="text-[10px] text-zeta-textMuted mt-1">키를 비워두면 시스템 기본 연결을 시도합니다.</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="pt-3 flex items-center justify-end space-x-2">
-        <button onclick="closeModal('modal-server-settings')" class="px-4 py-2 rounded-xl text-xs text-zeta-textMuted hover:bg-zeta-hover transition">취소</button>
-        <button onclick="saveServerSettings()" class="px-5 py-2 rounded-xl text-xs font-semibold bg-purple-600 hover:bg-purple-500 text-white transition glow-neon">설정 저장</button>
-      </div>
-    </div>
   </div>
 
   <!-- MODAL 2: CHARACTER DETAIL PREVIEW -->
@@ -851,11 +767,8 @@
     let selectedCategory = '전체';
     let currentChatCharacter = null;
     let chatHistories = {}; // { charId: [ {sender: 'user'|'ai', text: '...'} ] }
-    let serverConfig = {
-      provider: 'builtin', // 'builtin' | 'custom' | 'gemini'
-      customUrl: 'http://localhost:8000/api/chat',
-      customToken: '',
-      geminiKey: ''
+    const serverConfig = {
+      provider: 'gemini'
     };
     let isTTSEnabled = false;
 
@@ -881,10 +794,6 @@
         if (savedChats) {
           chatHistories = JSON.parse(savedChats);
         }
-        const savedServer = localStorage.getItem('zeta_server_config');
-        if (savedServer) {
-          serverConfig = JSON.parse(savedServer);
-        }
       } catch (e) {
         console.warn('LocalStorage error:', e);
       }
@@ -895,8 +804,7 @@
         const customOnly = characters.filter(c => c.creator !== 'ZETA Official' && c.creator !== 'NeoLab' && c.creator !== 'Starlet' && c.creator !== 'DarkRealm');
         localStorage.setItem('zeta_custom_characters', JSON.stringify(customOnly));
         localStorage.setItem('zeta_chat_histories', JSON.stringify(chatHistories));
-        localStorage.setItem('zeta_server_config', JSON.stringify(serverConfig));
-      } catch (e) {
+        } catch (e) {
         console.warn('Save error:', e);
       }
     }
@@ -1239,80 +1147,40 @@
     async function fetchAIResponse(userQuery) {
       const char = currentChatCharacter;
 
-      if (serverConfig.provider === 'custom') {
-        // --- CUSTOM DEDICATED CHARACTER SERVER ENDPOINT ---
-        try {
-          const payload = {
-            character_id: char.id,
-            character_name: char.name,
-            personality: char.personality,
-            scenario: char.scenario,
-            message: userQuery,
-            history: chatHistories[char.id].slice(-10) // Send last 10 messages context
-          };
+      // ZETA는 Cloudflare Worker + Gemini만 사용합니다.
+      const workerUrl = 'https://zeta-ai.pjy-server.workers.dev/chat';
 
-          const res = await fetch(serverConfig.customUrl, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              ...(serverConfig.customToken ? { 'Authorization': `Bearer ${serverConfig.customToken}` } : {})
-            },
-            body: JSON.stringify(payload)
-          });
+      const payload = {
+        message: String(userQuery || '').trim(),
+        user_message: String(userQuery || '').trim(),
+        character: {
+          id: char.id,
+          name: char.name,
+          category: char.category,
+          personality: char.personality,
+          scenario: char.scenario,
+          firstMessage: char.firstMessage || ''
+        },
+        history: (chatHistories[char.id] || []).slice(-20)
+      };
 
-          if (!res.ok) throw new Error(`서버 응답 오류: ${res.status}`);
-          const data = await res.json();
-          return data.reply || data.response || data.text || '커스텀 서버에서 올바른 응답 텍스트를 수신하지 못했습니다.';
-        } catch (e) {
-          console.error('Custom server failed, falling back to smart dynamic generator:', e);
-          return generateMockDynamicResponse(char, userQuery);
-        }
+      const res = await fetch(workerUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
 
-      } else if (serverConfig.provider === 'gemini') {
-        // --- CLOUDFLARE WORKER GEMINI INTEGRATION ---
-        try {
-          const workerUrl = 'https://zeta-ai.pjy-server.workers.dev/chat';
-
-          const payload = {
-            message: String(userQuery || '').trim(),
-            user_message: String(userQuery || '').trim(),
-            character: {
-              id: char.id,
-              name: char.name,
-              category: char.category,
-              personality: char.personality,
-              scenario: char.scenario,
-              firstMessage: char.firstMessage || ''
-            },
-            history: (chatHistories[char.id] || []).slice(-20)
-          };
-
-          const res = await fetch(workerUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          });
-
-          if (!res.ok) {
-            const errorText = await res.text().catch(() => '');
-            throw new Error(`Worker 응답 오류: ${res.status} ${errorText}`);
-          }
-
-          const data = await res.json();
-          const reply = data.reply || data.response || data.text;
-          if (reply) return reply;
-
-          throw new Error('Worker 응답에 답변 텍스트가 없습니다.');
-        } catch (e) {
-          console.error('Cloudflare Worker Gemini call failed:', e);
-          throw e;
-        }
-
-      } else {
-        // --- BUILT-IN SMART DYNAMIC RESPONSE GENERATOR ---
-        await new Promise(r => setTimeout(r, 1000 + Math.random() * 800)); // Realistic latency
-        return generateMockDynamicResponse(char, userQuery);
+      if (!res.ok) {
+        const errorText = await res.text().catch(() => '');
+        throw new Error(`Worker 응답 오류: ${res.status} ${errorText}`);
       }
+
+      const data = await res.json();
+      const reply = data.reply || data.response || data.text;
+
+      if (reply) return reply;
+
+      throw new Error('Worker 응답에 답변 텍스트가 없습니다.');
     }
 
     function generateMockDynamicResponse(char, query) {
@@ -1405,89 +1273,7 @@
       }
     }
 
-    // --- 10. SERVER & API SETTINGS HANDLERS ---
-    function openServerSettingsModal() {
-      document.getElementById('setting-provider').value = serverConfig.provider;
-      document.getElementById('setting-server-url').value = serverConfig.customUrl;
-      document.getElementById('setting-server-token').value = serverConfig.customToken;
-      document.getElementById('setting-gemini-key').value = serverConfig.geminiKey;
-      
-      toggleServerFields();
-      openModal('modal-server-settings');
-    }
-
-    function toggleServerFields() {
-      const val = document.getElementById('setting-provider').value;
-      const customBox = document.getElementById('field-custom-server');
-      const geminiBox = document.getElementById('field-gemini-api');
-
-      if (val === 'custom') {
-        customBox.classList.remove('hidden');
-        geminiBox.classList.add('hidden');
-      } else if (val === 'gemini') {
-        customBox.classList.add('hidden');
-        geminiBox.classList.remove('hidden');
-      } else {
-        customBox.classList.add('hidden');
-        geminiBox.classList.add('hidden');
-      }
-    }
-
-    async function testCustomServerConnection() {
-      const url = document.getElementById('setting-server-url').value;
-      const pingResult = document.getElementById('ping-result');
-      pingResult.textContent = '연결 확인 중...';
-      pingResult.className = 'text-xs ml-2 text-amber-400';
-
-      try {
-        const start = Date.now();
-        const res = await fetch(url, { method: 'OPTIONS' }).catch(() => null);
-        const ms = Date.now() - start;
-        pingResult.textContent = `연결 성공! (${ms}ms)`;
-        pingResult.className = 'text-xs ml-2 text-green-400';
-      } catch (e) {
-        pingResult.textContent = '연결 실패 (엔드포인트를 확인하세요)';
-        pingResult.className = 'text-xs ml-2 text-red-400';
-      }
-    }
-
-    function saveServerSettings() {
-      serverConfig.provider = document.getElementById('setting-provider').value;
-      serverConfig.customUrl = document.getElementById('setting-server-url').value;
-      serverConfig.customToken = document.getElementById('setting-server-token').value;
-      serverConfig.geminiKey = document.getElementById('setting-gemini-key').value;
-
-      saveToLocalStorage();
-      updateServerStatusUI();
-      closeModal('modal-server-settings');
-      alert('서버 및 API 설정이 저장되었습니다.');
-    }
-
-    function updateServerStatusUI() {
-      const modeLabel = document.getElementById('sidebar-server-mode');
-      const descLabel = document.getElementById('sidebar-server-desc');
-      const badge = document.getElementById('sidebar-server-badge');
-      const tag = document.getElementById('server-indicator-tag');
-
-      if (serverConfig.provider === 'custom') {
-        modeLabel.textContent = '커스텀 캐릭터 서버';
-        descLabel.textContent = serverConfig.customUrl;
-        badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-cyan-400 mr-1 animate-pulse"></span> 전용서버';
-        if (tag) tag.textContent = '모드: 전용 서버 연동중';
-      } else if (serverConfig.provider === 'gemini') {
-        modeLabel.textContent = 'Cloudflare Worker + Gemini';
-        descLabel.textContent = '보안 Worker를 통한 Gemini 3 Flash LLM';
-        badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-purple-400 mr-1 animate-pulse"></span> Gemini API';
-        if (tag) tag.textContent = '모드: Cloudflare Worker + Gemini';
-      } else {
-        modeLabel.textContent = '기본 AI 챗봇';
-        descLabel.textContent = '내장 프로필 인공지능 응답기';
-        badge.innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-green-400 mr-1 animate-pulse"></span> 내장 엔진';
-        if (tag) tag.textContent = '모드: 기본 오프라인 엔진';
-      }
-    }
-
-    // --- 11. CUSTOM CHARACTER CREATOR LOGIC ---
+    // --- 10. CUSTOM CHARACTER CREATOR LOGIC ---
     function openCharacterCreatorModal() {
       openModal('modal-character-creator');
     }
