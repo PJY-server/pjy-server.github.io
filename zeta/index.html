@@ -1004,33 +1004,45 @@
       // Update count badge
       document.getElementById('character-count-badge').textContent = `총 ${filtered.length}명`;
 
-      // Render Trending Section (Top 6)
+      // 카테고리 선택 시 인기 영역과 전체 영역에 같은 캐릭터가 중복으로 보이지 않도록
+      // 인기 캐릭터 영역은 '전체'에서만 표시합니다.
+      const trendingSection = document.getElementById('section-trending');
       const trendingGrid = document.getElementById('trending-grid');
-      const trendingList = [...characters].sort((a,b) => parseFloat(b.chatCount) - parseFloat(a.chatCount)).slice(0, 6);
-      
-      trendingGrid.innerHTML = trendingList.map((c, idx) => `
-        <div onclick="openCharacterDetailModal('${c.id}')" class="group relative rounded-xl overflow-hidden glass-panel border border-zeta-border hover:border-purple-500/50 transition cursor-pointer flex flex-col justify-between h-48 p-3 hover:-translate-y-1">
-          <img src="${c.avatar}" class="absolute inset-0 w-full h-full object-cover filter brightness-75 group-hover:scale-110 transition duration-500" alt="${c.name}" />
-          <div class="absolute inset-0 bg-gradient-to-t from-zeta-bg via-zeta-bg/40 to-transparent"></div>
-          
-          <div class="relative z-10 flex justify-between items-start">
-            <span class="w-6 h-6 rounded-lg bg-amber-500/90 text-black text-xs font-bold flex items-center justify-center shadow">
-              ${idx + 1}
-            </span>
-            <span class="text-[10px] px-2 py-0.5 rounded bg-black/60 text-purple-300 backdrop-blur border border-purple-500/30">
-              ${c.category}
-            </span>
-          </div>
+      const showTrending = selectedCategory === '전체';
 
-          <div class="relative z-10 space-y-1">
-            <h3 class="font-bold text-sm text-white drop-shadow">${c.name}</h3>
-            <p class="text-[10px] text-gray-300 line-clamp-1">${c.scenario}</p>
-            <div class="text-[10px] text-purple-300 flex items-center">
-              <i class="fa-solid fa-comments mr-1 text-[9px]"></i> ${c.chatCount}
+      trendingSection.classList.toggle('hidden', !showTrending);
+
+      if (showTrending) {
+        const trendingList = [...characters]
+          .sort((a,b) => parseFloat(b.chatCount) - parseFloat(a.chatCount))
+          .slice(0, 6);
+
+        trendingGrid.innerHTML = trendingList.map((c, idx) => `
+          <div onclick="openCharacterDetailModal('${c.id}')" class="group relative rounded-xl overflow-hidden glass-panel border border-zeta-border hover:border-purple-500/50 transition cursor-pointer flex flex-col justify-between h-48 p-3 hover:-translate-y-1">
+            <img src="${c.avatar}" class="absolute inset-0 w-full h-full object-cover filter brightness-75 group-hover:scale-110 transition duration-500" alt="${c.name}" />
+            <div class="absolute inset-0 bg-gradient-to-t from-zeta-bg via-zeta-bg/40 to-transparent"></div>
+            
+            <div class="relative z-10 flex justify-between items-start">
+              <span class="w-6 h-6 rounded-lg bg-amber-500/90 text-black text-xs font-bold flex items-center justify-center shadow">
+                ${idx + 1}
+              </span>
+              <span class="text-[10px] px-2 py-0.5 rounded bg-black/60 text-purple-300 backdrop-blur border border-purple-500/30">
+                ${c.category}
+              </span>
+            </div>
+
+            <div class="relative z-10 space-y-1">
+              <h3 class="font-bold text-sm text-white drop-shadow">${c.name}</h3>
+              <p class="text-[10px] text-gray-300 line-clamp-1">${c.scenario}</p>
+              <div class="text-[10px] text-purple-300 flex items-center">
+                <i class="fa-solid fa-comments mr-1 text-[9px]"></i> ${c.chatCount}
+              </div>
             </div>
           </div>
-        </div>
-      `).join('');
+        `).join('');
+      } else {
+        trendingGrid.innerHTML = '';
+      }
 
       // Render All Characters Grid
       const allGrid = document.getElementById('all-characters-grid');
