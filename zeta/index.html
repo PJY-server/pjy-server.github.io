@@ -1326,9 +1326,9 @@ function formatRoleplayMessage(text) {
         saveToLocalStorage();
         renderChatMessages();
 
-        if (isTTSEnabled) {
-          speakText(aiResponseText);
-        }
+   if (isTTSEnabled) {
+  speakText(chatHistories[currentChatCharacter.id].length - 1);
+}
       } catch (err) {
         document.getElementById('typing-indicator').classList.add('hidden');
         alert('응답을 생성하는데 실패했습니다: ' + err.message);
