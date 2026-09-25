@@ -917,25 +917,46 @@
     function loadLocalStorageData() {
       try {
         const savedChars = localStorage.getItem('zeta_custom_characters');
+        const presetIds = new Set(PRESET_CHARACTERS.map(c => c.id));
+
         if (savedChars) {
           const parsed = JSON.parse(savedChars);
-          characters = [...PRESET_CHARACTERS, ...parsed];
+
+          // 예전 버전에서 기본 캐릭터가 LocalStorage에 잘못 저장된 경우가 있어서
+          // 기본 캐릭터 ID는 제거하고, 같은 ID도 한 번만 유지합니다.
+          const customOnly = Array.isArray(parsed)
+            ? parsed.filter(c => c && c.id && !presetIds.has(c.id))
+            : [];
+
+          characters = [...PRESET_CHARACTERS, ...customOnly];
+        } else {
+          characters = [...PRESET_CHARACTERS];
         }
+
+        // 혹시라도 데이터가 중복되어 있으면 최종적으로 ID 기준으로 한 번 더 정리합니다.
+        characters = Array.from(
+          new Map(characters.map(c => [c.id, c])).values()
+        );
+
         const savedChats = localStorage.getItem('zeta_chat_histories');
         if (savedChats) {
           chatHistories = JSON.parse(savedChats);
         }
       } catch (e) {
         console.warn('LocalStorage error:', e);
+        characters = [...PRESET_CHARACTERS];
       }
     }
 
     function saveToLocalStorage() {
       try {
-        const customOnly = characters.filter(c => c.creator !== 'ZETA Official' && c.creator !== 'NeoLab' && c.creator !== 'Starlet' && c.creator !== 'DarkRealm');
+        // 기본 캐릭터는 절대 커스텀 캐릭터 저장소에 들어가지 않도록 ID로 구분합니다.
+        const presetIds = new Set(PRESET_CHARACTERS.map(c => c.id));
+        const customOnly = characters.filter(c => c && c.id && !presetIds.has(c.id));
+
         localStorage.setItem('zeta_custom_characters', JSON.stringify(customOnly));
         localStorage.setItem('zeta_chat_histories', JSON.stringify(chatHistories));
-        } catch (e) {
+      } catch (e) {
         console.warn('Save error:', e);
       }
     }
@@ -991,7 +1012,12 @@
     function renderCharacters() {
       const searchVal = document.getElementById('character-search')?.value.toLowerCase() || '';
       
-      let filtered = characters.filter(c => {
+      // 렌더링 직전에도 ID 기준 중복 제거
+      const uniqueCharacters = Array.from(
+        new Map(characters.map(c => [c.id, c])).values()
+      );
+
+      let filtered = uniqueCharacters.filter(c => {
         const matchesCategory = selectedCategory === '전체' || 
                                 (selectedCategory === '인기' && parseFloat(c.chatCount) > 80) ||
                                 c.category === selectedCategory;
@@ -1013,7 +1039,7 @@
       trendingSection.classList.toggle('hidden', !showTrending);
 
       if (showTrending) {
-        const trendingList = [...characters]
+        const trendingList = [...uniqueCharacters]
           .sort((a,b) => parseFloat(b.chatCount) - parseFloat(a.chatCount))
           .slice(0, 6);
 
