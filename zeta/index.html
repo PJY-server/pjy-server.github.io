@@ -910,6 +910,7 @@
       loadLocalStorageData();
       renderCategoryFilters();
       renderCharacters();
+      loadOnlineCharacters();
       renderMyChats();
       updateServerStatusUI();
     };
@@ -1460,36 +1461,94 @@
       openModal('modal-character-creator');
     }
 
-    function handleCreateCharacter(e) {
+    async function publishCharacterOnline(character) {
+      const workerUrl = 'https://zeta-ai.pjy-server.workers.dev/characters';
+      const res = await fetch(workerUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ character })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || `온라인 게시 오류: ${res.status}`);
+      return data.character || character;
+    }
+
+    async function loadOnlineCharacters() {
+      try {
+        const res = await fetch('https://zeta-ai.pjy-server.workers.dev/characters', {
+          method: 'GET',
+          cache: 'no-store'
+        });
+        if (!res.ok) throw new Error(`온라인 캐릭터 불러오기 실패: ${res.status}`);
+
+        const data = await res.json();
+        const onlineCharacters = Array.isArray(data.characters) ? data.characters : [];
+        const existingKeys = new Set(
+          characters.map(c => `${String(c.name || '').trim()}__${String(c.category || '').trim()}`)
+        );
+
+        for (const online of onlineCharacters) {
+          const key = `${String(online.name || '').trim()}__${String(online.category || '').trim()}`;
+          if (!key || existingKeys.has(key)) continue;
+          characters.unshift({ ...online, creator: online.creator || 'ZETA Community' });
+          existingKeys.add(key);
+        }
+        renderCharacters();
+      } catch (error) {
+        console.warn('온라인 캐릭터 불러오기 실패:', error);
+      }
+    }
+
+    async function handleCreateCharacter(e) {
       e.preventDefault();
-      const name = document.getElementById('create-name').value;
+
+      const name = document.getElementById('create-name').value.trim();
       const category = document.getElementById('create-category').value;
-      const avatar = document.getElementById('create-avatar').value || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80';
+      const avatar = document.getElementById('create-avatar').value.trim() || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&q=80';
       const tagsStr = document.getElementById('create-tags').value;
-      const personality = document.getElementById('create-personality').value;
-      const scenario = document.getElementById('create-scenario').value;
-      const firstMsg = document.getElementById('create-firstmsg').value;
+      const personality = document.getElementById('create-personality').value.trim();
+      const scenario = document.getElementById('create-scenario').value.trim();
+      const firstMsg = document.getElementById('create-firstmsg').value.trim();
 
       const newChar = {
-        id: 'custom_' + Date.now(),
+        id: 'online_' + Date.now(),
         name,
         category,
-        tags: tagsStr ? tagsStr.split(',').map(t => t.trim()) : ['커스텀'],
+        tags: tagsStr ? tagsStr.split(',').map(t => t.trim()).filter(Boolean) : ['커스텀'],
         avatar,
-        creator: 'User Created',
-        chatCount: '0.1K',
+        creator: 'ZETA Community',
+        chatCount: '0',
         personality,
         scenario,
         firstMessage: firstMsg
       };
 
-      characters.unshift(newChar);
-      saveToLocalStorage();
-      renderCharacters();
-      closeModal('modal-character-creator');
+      const submitButton = e.target.querySelector('button[type="submit"]');
+      const originalText = submitButton?.textContent || '캐릭터 생성 완료';
 
-      // Start chat right away
-      startChatWithCharacter(newChar.id);
+      try {
+        if (submitButton) {
+          submitButton.disabled = true;
+          submitButton.textContent = '온라인 게시 중...';
+        }
+
+        const publishedCharacter = await publishCharacterOnline(newChar);
+        characters.unshift(publishedCharacter);
+        saveToLocalStorage();
+        renderCharacters();
+        closeModal('modal-character-creator');
+
+        alert('캐릭터가 온라인에 게시되었습니다!\n이제 다른 사람도 볼 수 있습니다.');
+        startChatWithCharacter(publishedCharacter.id);
+      } catch (error) {
+        console.error('캐릭터 온라인 게시 실패:', error);
+        alert(error.message || '캐릭터를 온라인에 게시하지 못했습니다.');
+      } finally {
+        if (submitButton) {
+          submitButton.disabled = false;
+          submitButton.textContent = originalText;
+        }
+      }
     }
 
     function exportCharacterJSON() {
