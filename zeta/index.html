@@ -217,9 +217,92 @@
       .zeta-orb { width:120px;height:120px;right:-12px;top:18px;opacity:.55; }
       .zeta-orb::after { font-size:52px; }
     }
+  
+    /* ===== ZETA AUTH ===== */
+    #auth-screen {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(139,92,246,.20), transparent 35%),
+        radial-gradient(circle at 80% 80%, rgba(236,72,153,.14), transparent 35%),
+        #08090F;
+    }
+    #auth-screen.hidden { display:none; }
+    .auth-card {
+      width: min(420px, 100%);
+      padding: 28px;
+      border: 1px solid rgba(255,255,255,.09);
+      border-radius: 24px;
+      background: rgba(13,15,24,.90);
+      backdrop-filter: blur(18px);
+      box-shadow: 0 25px 90px rgba(0,0,0,.45);
+    }
+    .auth-input {
+      width:100%;
+      height:46px;
+      padding:0 14px;
+      border-radius:12px;
+      background:rgba(6,7,12,.72);
+      border:1px solid rgba(255,255,255,.10);
+      color:white;
+      outline:none;
+    }
+    .auth-input:focus { border-color:rgba(139,92,246,.7); box-shadow:0 0 0 3px rgba(139,92,246,.10); }
+    .auth-primary {
+      width:100%;
+      height:46px;
+      border-radius:12px;
+      background:linear-gradient(135deg,#8b5cf6,#ec4899);
+      color:white;
+      font-weight:700;
+    }
+
   </style>
 </head>
 <body class="h-screen w-screen flex overflow-hidden">
+
+  <!-- AUTH SCREEN -->
+  <div id="auth-screen">
+    <div class="auth-card">
+      <div class="text-center mb-7">
+        <div class="mx-auto mb-3 w-14 h-14 rounded-2xl bg-gradient-to-tr from-purple-600 to-pink-500 flex items-center justify-center text-2xl font-black text-white glow-neon">Z</div>
+        <h1 class="text-2xl font-black text-white">ZETA AI</h1>
+        <p id="auth-subtitle" class="text-xs text-zeta-textMuted mt-1">로그인하고 ZETA를 시작하세요.</p>
+      </div>
+
+      <form id="login-form" class="space-y-3">
+        <input id="login-username" class="auth-input" autocomplete="username" placeholder="아이디" maxlength="30" required>
+        <input id="login-password" class="auth-input" type="password" autocomplete="current-password" placeholder="비밀번호" maxlength="100" required>
+        <button class="auth-primary" type="submit">로그인</button>
+      </form>
+
+      <form id="signup-form" class="hidden space-y-3">
+        <input id="signup-username" class="auth-input" autocomplete="username" placeholder="아이디 (영문/숫자)" maxlength="30" required>
+        <input id="signup-nickname" class="auth-input" autocomplete="nickname" placeholder="닉네임" maxlength="30" required>
+        <input id="signup-password" class="auth-input" type="password" autocomplete="new-password" placeholder="비밀번호" maxlength="100" required>
+        <input id="signup-password-confirm" class="auth-input" type="password" autocomplete="new-password" placeholder="비밀번호 확인" maxlength="100" required>
+        <button class="auth-primary" type="submit">회원가입</button>
+      </form>
+
+      <p id="auth-message" class="text-xs text-red-400 text-center min-h-[18px] mt-3"></p>
+
+      <button id="auth-toggle" type="button" class="w-full mt-2 py-2 text-xs text-purple-300 hover:text-white transition">
+        회원가입
+      </button>
+
+      <a href="https://pjy-server.github.io/zeta/license.html" target="_blank" rel="noopener"
+         class="block text-center text-[10px] text-zeta-textMuted hover:text-white mt-3">
+        이용약관
+      </a>
+    </div>
+  </div>
+
+
 
   <div id="app" class="flex h-full w-full relative">
 
@@ -1622,6 +1705,141 @@ async function regenerateResponse(index) {
       downloadAnchor.click();
       downloadAnchor.remove();
     }
+  
+    // ===== ZETA AUTH =====
+    const AUTH_BASE_URL = 'https://zeta-ai.pjy-server.workers.dev';
+    let currentUser = null;
+
+    function setAuthMessage(message, isError = true) {
+      const el = document.getElementById('auth-message');
+      if (!el) return;
+      el.textContent = message || '';
+      el.className = 'text-xs text-center min-h-[18px] mt-3 ' + (isError ? 'text-red-400' : 'text-emerald-400');
+    }
+
+    function setAuthMode(signup) {
+      document.getElementById('login-form').classList.toggle('hidden', signup);
+      document.getElementById('signup-form').classList.toggle('hidden', !signup);
+      document.getElementById('auth-toggle').textContent = signup ? '로그인으로 돌아가기' : '회원가입';
+      document.getElementById('auth-subtitle').textContent = signup
+        ? '새 계정을 만들어 ZETA를 시작하세요.'
+        : '로그인하고 ZETA를 시작하세요.';
+      setAuthMessage('');
+    }
+
+    async function authRequest(path, body) {
+      const token = localStorage.getItem('zeta_session');
+      const headers = { 'Content-Type': 'application/json' };
+      if (token) headers.Authorization = 'Bearer ' + token;
+      const res = await fetch(AUTH_BASE_URL + path, {
+        method: body ? 'POST' : 'GET',
+        headers,
+        body: body ? JSON.stringify(body) : undefined,
+        cache: 'no-store'
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || '인증 요청에 실패했습니다.');
+      return data;
+    }
+
+    async function initAuth() {
+      const token = localStorage.getItem('zeta_session');
+      if (!token) {
+        document.getElementById('auth-screen').classList.remove('hidden');
+        return;
+      }
+
+      try {
+        const data = await authRequest('/auth/me');
+        currentUser = data.user;
+        document.getElementById('auth-screen').classList.add('hidden');
+        updateLoggedInUserUI();
+      } catch {
+        localStorage.removeItem('zeta_session');
+        document.getElementById('auth-screen').classList.remove('hidden');
+      }
+    }
+
+    function updateLoggedInUserUI() {
+      if (!currentUser) return;
+      const footer = document.querySelector('aside > .mt-auto');
+      if (!footer) return;
+      const existing = document.getElementById('zeta-user-box');
+      if (existing) existing.remove();
+
+      const box = document.createElement('div');
+      box.id = 'zeta-user-box';
+      box.className = 'mb-2 px-3 py-2 rounded-xl bg-zeta-bg border border-zeta-border';
+      box.innerHTML = `
+        <div class="text-xs font-semibold text-white truncate">${escapeHtml(currentUser.nickname || currentUser.username)}</div>
+        <div class="text-[10px] text-zeta-textMuted truncate">@${escapeHtml(currentUser.username)}</div>
+        <button onclick="logoutZeta()" class="mt-2 text-[10px] text-red-400 hover:text-red-300">로그아웃</button>
+      `;
+      footer.prepend(box);
+    }
+
+    async function logoutZeta() {
+      const token = localStorage.getItem('zeta_session');
+      try {
+        await fetch(AUTH_BASE_URL + '/auth/logout', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + token }
+        });
+      } catch {}
+      localStorage.removeItem('zeta_session');
+      currentUser = null;
+      location.reload();
+    }
+
+    document.getElementById('auth-toggle').addEventListener('click', () => {
+      setAuthMode(!document.getElementById('signup-form').classList.contains('hidden'));
+    });
+
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      setAuthMessage('로그인 중...', false);
+      try {
+        const data = await authRequest('/auth/login', {
+          username: document.getElementById('login-username').value.trim(),
+          password: document.getElementById('login-password').value
+        });
+        localStorage.setItem('zeta_session', data.token);
+        currentUser = data.user;
+        document.getElementById('auth-screen').classList.add('hidden');
+        updateLoggedInUserUI();
+        setAuthMessage('');
+      } catch (err) {
+        setAuthMessage(err.message);
+      }
+    });
+
+    document.getElementById('signup-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('signup-username').value.trim();
+      const nickname = document.getElementById('signup-nickname').value.trim();
+      const password = document.getElementById('signup-password').value;
+      const confirm = document.getElementById('signup-password-confirm').value;
+
+      if (password !== confirm) {
+        setAuthMessage('비밀번호가 서로 다릅니다.');
+        return;
+      }
+
+      setAuthMessage('회원가입 중...', false);
+      try {
+        const data = await authRequest('/auth/signup', { username, nickname, password });
+        localStorage.setItem('zeta_session', data.token);
+        currentUser = data.user;
+        document.getElementById('auth-screen').classList.add('hidden');
+        updateLoggedInUserUI();
+      } catch (err) {
+        setAuthMessage(err.message);
+      }
+    });
+
+    // 페이지가 열린 뒤 인증 상태 확인
+    initAuth();
+
   </script>
 </body>
 </html>
