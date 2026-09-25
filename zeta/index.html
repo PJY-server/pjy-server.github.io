@@ -914,37 +914,43 @@
       updateServerStatusUI();
     };
 
+    function getCharacterDedupeKey(c) {
+      return `${String(c?.name || '').trim()}__${String(c?.category || '').trim()}`;
+    }
+
+    function dedupeCharacters(list) {
+      const seen = new Set();
+      return list.filter(c => {
+        if (!c || !c.id) return false;
+        const key = getCharacterDedupeKey(c);
+        if (!key || seen.has(key)) return false;
+        seen.add(key);
+        return true;
+      });
+    }
+
     function loadLocalStorageData() {
       try {
         const savedChars = localStorage.getItem('zeta_custom_characters');
         const presetIds = new Set(PRESET_CHARACTERS.map(c => c.id));
-        const presetNames = new Set(PRESET_CHARACTERS.map(c => String(c.name).trim()));
+        const presetKeys = new Set(PRESET_CHARACTERS.map(c => getCharacterDedupeKey(c)));
 
+        let customOnly = [];
         if (savedChars) {
           const parsed = JSON.parse(savedChars);
-
-          // 이전 버전에서 기본 캐릭터가 서로 다른 ID로 복제되어 저장된 경우까지 제거합니다.
-          // ID뿐 아니라 이름도 기본 캐릭터와 같으면 중복으로 간주합니다.
-          const customOnly = Array.isArray(parsed)
-            ? parsed.filter(c =>
-                c &&
-                c.id &&
-                !presetIds.has(c.id) &&
-                !presetNames.has(String(c.name || '').trim())
-              )
-            : [];
-
-          characters = [...PRESET_CHARACTERS, ...customOnly];
-        } else {
-          characters = [...PRESET_CHARACTERS];
+          if (Array.isArray(parsed)) {
+            customOnly = parsed.filter(c => {
+              if (!c || !c.id || presetIds.has(c.id)) return false;
+              return !presetKeys.has(getCharacterDedupeKey(c));
+            });
+          }
         }
 
-        // ID가 달라도 같은 이름의 캐릭터가 여러 번 렌더링되지 않도록 최종 정리합니다.
-        characters = Array.from(
-          new Map(
-            characters.map(c => [String(c.name || c.id).trim(), c])
-          ).values()
-        );
+        characters = dedupeCharacters([...PRESET_CHARACTERS, ...customOnly]);
+
+        // 예전 LocalStorage에 들어 있던 중복 데이터도 즉시 정리합니다.
+        const cleanedCustom = characters.filter(c => !presetIds.has(c.id));
+        localStorage.setItem('zeta_custom_characters', JSON.stringify(cleanedCustom));
 
         const savedChats = localStorage.getItem('zeta_chat_histories');
         if (savedChats) {
@@ -958,10 +964,11 @@
 
     function saveToLocalStorage() {
       try {
-        // 기본 캐릭터는 절대 커스텀 캐릭터 저장소에 들어가지 않도록 ID로 구분합니다.
         const presetIds = new Set(PRESET_CHARACTERS.map(c => c.id));
-        const customOnly = characters.filter(c => c && c.id && !presetIds.has(c.id));
+        const cleaned = dedupeCharacters(characters);
+        characters = cleaned;
 
+        const customOnly = cleaned.filter(c => !presetIds.has(c.id));
         localStorage.setItem('zeta_custom_characters', JSON.stringify(customOnly));
         localStorage.setItem('zeta_chat_histories', JSON.stringify(chatHistories));
       } catch (e) {
@@ -1020,12 +1027,8 @@
     function renderCharacters() {
       const searchVal = document.getElementById('character-search')?.value.toLowerCase() || '';
       
-      // 렌더링 직전에도 ID 기준 중복 제거
-      const uniqueCharacters = Array.from(
-        new Map(
-          characters.map(c => [String(c.name || c.id).trim(), c])
-        ).values()
-      );
+      // 렌더링 직전에도 이름 + 카테고리 기준으로 중복 제거
+      const uniqueCharacters = dedupeCharacters(characters);
 
       let filtered = uniqueCharacters.filter(c => {
         const matchesCategory = selectedCategory === '전체' || 
