@@ -918,14 +918,20 @@
       try {
         const savedChars = localStorage.getItem('zeta_custom_characters');
         const presetIds = new Set(PRESET_CHARACTERS.map(c => c.id));
+        const presetNames = new Set(PRESET_CHARACTERS.map(c => String(c.name).trim()));
 
         if (savedChars) {
           const parsed = JSON.parse(savedChars);
 
-          // 예전 버전에서 기본 캐릭터가 LocalStorage에 잘못 저장된 경우가 있어서
-          // 기본 캐릭터 ID는 제거하고, 같은 ID도 한 번만 유지합니다.
+          // 이전 버전에서 기본 캐릭터가 서로 다른 ID로 복제되어 저장된 경우까지 제거합니다.
+          // ID뿐 아니라 이름도 기본 캐릭터와 같으면 중복으로 간주합니다.
           const customOnly = Array.isArray(parsed)
-            ? parsed.filter(c => c && c.id && !presetIds.has(c.id))
+            ? parsed.filter(c =>
+                c &&
+                c.id &&
+                !presetIds.has(c.id) &&
+                !presetNames.has(String(c.name || '').trim())
+              )
             : [];
 
           characters = [...PRESET_CHARACTERS, ...customOnly];
@@ -933,9 +939,11 @@
           characters = [...PRESET_CHARACTERS];
         }
 
-        // 혹시라도 데이터가 중복되어 있으면 최종적으로 ID 기준으로 한 번 더 정리합니다.
+        // ID가 달라도 같은 이름의 캐릭터가 여러 번 렌더링되지 않도록 최종 정리합니다.
         characters = Array.from(
-          new Map(characters.map(c => [c.id, c])).values()
+          new Map(
+            characters.map(c => [String(c.name || c.id).trim(), c])
+          ).values()
         );
 
         const savedChats = localStorage.getItem('zeta_chat_histories');
@@ -1014,7 +1022,9 @@
       
       // 렌더링 직전에도 ID 기준 중복 제거
       const uniqueCharacters = Array.from(
-        new Map(characters.map(c => [c.id, c])).values()
+        new Map(
+          characters.map(c => [String(c.name || c.id).trim(), c])
+        ).values()
       );
 
       let filtered = uniqueCharacters.filter(c => {
