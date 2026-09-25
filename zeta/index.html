@@ -1258,8 +1258,8 @@
               </div>
               ${!isUser ? `
                 <div class="flex items-center space-x-2 pt-0.5 text-[10px] text-zeta-textMuted">
-                  <button onclick="speakText('${msg.text.replace(/'/g, "\\'")}')" class="hover:text-purple-300"><i class="fa-solid fa-volume-high"></i> 읽기</button>
-                  <button onclick="regenerateResponse(${index})" class="hover:text-purple-300"><i class="fa-solid fa-rotate"></i> 재생성</button>
+                 <button onclick="speakText(${index})" class="hover:text-purple-300"><i class="fa-solid fa-volume-high"></i> 읽기</button>
+                 <button onclick="regenerateResponse(${index})" class="hover:text-purple-300"><i class="fa-solid fa-rotate"></i> 재생성</button>
                 </div>
               ` : ''}
             </div>
@@ -1271,14 +1271,23 @@
       container.scrollTop = container.scrollHeight;
     }
 
-    function formatRoleplayMessage(text) {
-      // Formats *actions* and "dialogues" for standard roleplay immersion
-      let formatted = text
-        .replace(/\*([^*]+)\*/g, '<span class="roleplay-action">$1</span>')
-        .replace(/"([^"]+)"/g, '<span class="roleplay-dialogue">"$1"</span>');
-      return formatted;
-    }
-
+    function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+    
+function formatRoleplayMessage(text) {
+  // 먼저 이스케이프한 뒤, 그 이스케이프된 텍스트 위에서 서식만 입힘
+  const escaped = escapeHtml(text);
+  let formatted = escaped
+    .replace(/\*([^*]+)\*/g, '<span class="roleplay-action">$1</span>')
+    .replace(/&quot;([^&]+?)&quot;/g, '<span class="roleplay-dialogue">&quot;$1&quot;</span>');
+  return formatted;
+}
     function handleKeyDown(event) {
       if (event.key === 'Enter' && !event.shiftKey) {
         event.preventDefault();
@@ -1445,16 +1454,52 @@
       }
     }
 
-    function speakText(text) {
-      if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel(); // Stop current speech
-        const cleanText = text.replace(/\*([^*]+)\*/g, ''); // Remove action descriptions for natural speech
-        const utterance = new SpeechSynthesisUtterance(cleanText);
-        utterance.lang = 'ko-KR';
-        utterance.rate = 1.0;
-        window.speechSynthesis.speak(utterance);
-      }
-    }
+function speakText(index) {
+  if (!currentChatCharacter) return;
+  const history = chatHistories[currentChatCharacter.id] || [];
+  const msg = history[index];
+  if (!msg) return;
+
+  if ('speechSynthesis' in window) {
+    window.speechSynthesis.cancel();
+    const cleanText = msg.text.replace(/\*([^*]+)\*/g, '');
+    const utterance = new SpeechSynthesisUtterance(cleanText);
+    utterance.lang = 'ko-KR';
+    utterance.rate = 1.0;
+    window.speechSynthesis.speak(utterance);
+  }
+}
+
+async function regenerateResponse(index) {
+  if (!currentChatCharacter) return;
+  const history = chatHistories[currentChatCharacter.id];
+  if (!history || !history[index] || history[index].sender !== 'ai') return;
+
+  // 클릭한 그 AI 메시지 바로 앞의 사용자 메시지를 찾아 재사용
+  const lastUserMsg = history.slice(0, index).reverse().find(m => m.sender === 'user')?.text || '안녕?';
+
+  // 클릭한 그 AI 메시지만 정확히 제거
+  history.splice(index, 1);
+  saveToLocalStorage();
+  renderChatMessages();
+
+  document.getElementById('typing-indicator').classList.remove('hidden');
+
+  try {
+    const aiReply = await fetchAIResponse(lastUserMsg);
+    history.splice(index, 0, {
+      sender: 'ai',
+      text: aiReply,
+      timestamp: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+    });
+  } catch (err) {
+    alert('재생성에 실패했습니다: ' + err.message);
+  } finally {
+    document.getElementById('typing-indicator').classList.add('hidden');
+    saveToLocalStorage();
+    renderChatMessages();
+  }
+}
 
     // --- 10. CUSTOM CHARACTER CREATOR LOGIC ---
     function openCharacterCreatorModal() {
