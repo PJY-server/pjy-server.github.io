@@ -1793,7 +1793,8 @@ async function regenerateResponse(index) {
     }
 
     document.getElementById('auth-toggle').addEventListener('click', () => {
-      setAuthMode(!document.getElementById('signup-form').classList.contains('hidden'));
+      const isSignup = !document.getElementById('signup-form').classList.contains('hidden');
+      setAuthMode(!isSignup);
     });
 
     document.getElementById('login-form').addEventListener('submit', async (e) => {
