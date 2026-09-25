@@ -1434,15 +1434,16 @@ function formatRoleplayMessage(text) {
       const payload = {
         message: String(userQuery || '').trim(),
         user_message: String(userQuery || '').trim(),
-        character: {
-          id: char.id,
-          name: char.name,
-          category: char.category,
-          personality: char.personality,
-          scenario: char.scenario,
-          firstMessage: char.firstMessage || ''
-        },
-        history: (chatHistories[char.id] || []).slice(-20)
+        characterId: char.id,
+        characterName: char.name,
+        category: char.category,
+        personality: char.personality,
+        scenario: char.scenario,
+        firstMessage: char.firstMessage || '',
+        history: (chatHistories[char.id] || []).slice(-20).map(m => ({
+          role: m.sender === 'ai' ? 'assistant' : 'user',
+          content: String(m.text || '')
+        }))
       };
 
       const res = await fetch(workerUrl, {
