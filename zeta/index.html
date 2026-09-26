@@ -1598,9 +1598,18 @@ async function regenerateResponse(index) {
 
     async function publishCharacterOnline(character) {
       const workerUrl = 'https://zeta-ai.pjy-server.workers.dev/characters';
+      const token = localStorage.getItem('zeta_session');
+
+      if (!token) {
+        throw new Error('로그인이 필요합니다.');
+      }
+
       const res = await fetch(workerUrl, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: 'Bearer ' + token
+        },
         body: JSON.stringify({ character })
       });
       const data = await res.json().catch(() => ({}));
@@ -1651,7 +1660,7 @@ async function regenerateResponse(index) {
         category,
         tags: tagsStr ? tagsStr.split(',').map(t => t.trim()).filter(Boolean) : ['커스텀'],
         avatar,
-        creator: 'ZETA Community',
+        creator: currentUser?.nickname || currentUser?.username || 'ZETA Community',
         chatCount: '0',
         personality,
         scenario,
