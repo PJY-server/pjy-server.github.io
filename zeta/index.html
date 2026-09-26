@@ -1960,7 +1960,7 @@ async function regenerateResponse(index) {
           method:'PUT',
           body:JSON.stringify({character:{
             name:document.getElementById('ze-name').value.trim(),
-            category:document.getElementById('ze-category').value.trim(),
+            category:document.getElementById('ze-category').value.trim(), visibility:document.getElementById('ze-visibility').value,
             avatar:document.getElementById('ze-avatar').value.trim(),
             tags:document.getElementById('ze-tags').value.split(',').map(x=>x.trim()).filter(Boolean),
             personality:document.getElementById('ze-personality').value.trim(),
@@ -2025,7 +2025,7 @@ async function regenerateResponse(index) {
     if(!c){ alert('캐릭터 정보를 찾을 수 없습니다.'); return; }
     makeModals();
     document.getElementById('ze-name').value=c.name||'';
-    document.getElementById('ze-category').value=c.category||'';
+    document.getElementById('ze-category').value=c.category||''; document.getElementById('ze-visibility').value=c.visibility||'public';
     document.getElementById('ze-avatar').value=c.avatar||'';
     document.getElementById('ze-tags').value=Array.isArray(c.tags)?c.tags.join(', '):'';
     document.getElementById('ze-personality').value=c.personality||'';
