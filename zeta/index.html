@@ -1969,8 +1969,8 @@ async function regenerateResponse(index) {
           }})
         });
         const updated=data.character;
-        const idx=Array.isArray(window.characters)?window.characters.findIndex(c=>c.id===id):-1;
-        if(idx>=0){ window.characters[idx]=updated; if(typeof saveToLocalStorage==='function') saveToLocalStorage(); if(typeof renderCharacters==='function') renderCharacters(); }
+        const idx=Array.isArray(characters)?characters.findIndex(c=>c.id===id):-1;
+        if(idx>=0){ characters[idx]=updated; if(typeof saveToLocalStorage==='function') saveToLocalStorage(); if(typeof renderCharacters==='function') renderCharacters(); }
         window.closeEnhanceModal('zeta-editchar-modal');
         toast('캐릭터가 수정되었습니다.');
         window.openMyCharacters();
@@ -2021,7 +2021,7 @@ async function regenerateResponse(index) {
   };
 
   window.editMyCharacter=function(id){
-    const c=(Array.isArray(window.characters)?window.characters:[]).find(x=>x.id===id);
+    const c=(Array.isArray(characters)?characters:[]).find(x=>x.id===id);
     if(!c){ alert('캐릭터 정보를 찾을 수 없습니다.'); return; }
     makeModals();
     document.getElementById('ze-name').value=c.name||'';
@@ -2040,7 +2040,7 @@ async function regenerateResponse(index) {
     if(!confirm('이 캐릭터를 삭제할까요? 삭제하면 온라인에서도 사라집니다.')) return;
     try{
       await zetaApi('/characters?id='+encodeURIComponent(id),{method:'DELETE'});
-      if(Array.isArray(window.characters)) window.characters=window.characters.filter(c=>c.id!==id);
+      if(Array.isArray(characters)) characters=characters.filter(c=>c.id!==id);
       if(typeof saveToLocalStorage==='function') saveToLocalStorage();
       if(typeof renderCharacters==='function') renderCharacters();
       toast('캐릭터가 삭제되었습니다.');
@@ -2050,7 +2050,7 @@ async function regenerateResponse(index) {
 
   window.openReportForCharacter=function(id){
     if(!zetaToken()){ alert('로그인이 필요합니다.'); return; }
-    const c=(Array.isArray(window.characters)?window.characters:[]).find(x=>x.id===id);
+    const c=(Array.isArray(characters)?characters:[]).find(x=>x.id===id);
     if(!c) return;
     makeModals();
     document.getElementById('zeta-report-name').textContent=c.name+' 신고';
@@ -2085,7 +2085,7 @@ async function regenerateResponse(index) {
     box.className='mt-4 flex flex-wrap gap-2';
     box.innerHTML='<span class="px-3 py-1.5 rounded-full text-[10px] bg-emerald-500/10 text-emerald-300 border border-emerald-500/20"><i class="fa-solid fa-circle text-[6px] mr-1"></i> Worker 연결</span><span id="zeta-online-count" class="px-3 py-1.5 rounded-full text-[10px] bg-purple-500/10 text-purple-300 border border-purple-500/20">온라인 캐릭터 확인 중</span>';
     hero.appendChild(box);
-    const update=()=>{ const count=(Array.isArray(window.characters)?window.characters:[]).filter(c=>String(c.id||'').startsWith('online_')).length; const el=document.getElementById('zeta-online-count'); if(el) el.textContent='온라인 캐릭터 '+count+'명'; };
+    const update=()=>{ const count=(Array.isArray(characters)?characters:[]).filter(c=>String(c.id||'').startsWith('online_')).length; const el=document.getElementById('zeta-online-count'); if(el) el.textContent='온라인 캐릭터 '+count+'명'; };
     setInterval(update,1200); update();
   }
 
