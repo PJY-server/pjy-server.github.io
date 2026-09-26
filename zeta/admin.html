@@ -2723,5 +2723,130 @@ init();
 
 </script>
 
+
+<!-- ZETA ADMIN ENHANCEMENT -->
+<script>
+(function(){
+  const WORKER='https://zeta-ai.pjy-server.workers.dev';
+  const token=localStorage.getItem('zeta_session');
+
+  function adminApi(path, options={}){
+    const headers=Object.assign({'Content-Type':'application/json'}, options.headers||{});
+    if(token) headers.Authorization='Bearer '+token;
+    return fetch(WORKER+path,Object.assign({},options,{headers})).then(async r=>{
+      const d=await r.json().catch(()=>({}));
+      if(!r.ok) throw new Error(d.error||('요청 실패 '+r.status));
+      return d;
+    });
+  }
+
+  function installSearch(){
+    if(document.getElementById('zeta-user-search')) return;
+    const sections=document.querySelectorAll('section.card');
+    if(sections.length<2) return;
+
+    const u=document.createElement('div');
+    u.className='px-5 pt-4';
+    u.innerHTML='<input id="zeta-user-search" class="input" placeholder="회원 검색: 아이디 또는 닉네임">';
+    sections[0].querySelector('.table-wrap')?.before(u);
+
+    const c=document.createElement('div');
+    c.className='px-5 pt-4 grid grid-cols-1 md:grid-cols-2 gap-2';
+    c.innerHTML='<input id="zeta-char-search" class="input" placeholder="캐릭터 검색: 이름 또는 생성자"><select id="zeta-char-category" class="input"><option value="">모든 카테고리</option></select>';
+    sections[1].querySelector('.table-wrap')?.before(c);
+
+    const cat=document.getElementById('zeta-char-category');
+    const fillCats=()=>{
+      const set=new Set((characters||[]).map(x=>x.category).filter(Boolean));
+      cat.innerHTML='<option value="">모든 카테고리</option>'+[...set].sort().map(x=>'<option>'+escapeHtml(x)+'</option>').join('');
+    };
+
+    const filterUsers=()=>{
+      const q=(document.getElementById('zeta-user-search').value||'').toLowerCase();
+      document.querySelectorAll('#users-table tr').forEach(tr=>tr.style.display=tr.textContent.toLowerCase().includes(q)?'':'none');
+    };
+    const filterChars=()=>{
+      const q=(document.getElementById('zeta-char-search').value||'').toLowerCase();
+      const catv=cat.value;
+      document.querySelectorAll('#characters-table tr').forEach(tr=>{
+        const t=tr.textContent.toLowerCase();
+        const okq=!q||t.includes(q);
+        const okc=!catv||t.includes(catv);
+        tr.style.display=okq&&okc?'':'none';
+      });
+    };
+    document.getElementById('zeta-user-search').oninput=filterUsers;
+    document.getElementById('zeta-char-search').oninput=filterChars;
+    cat.onchange=filterChars;
+
+    const oldU=window.renderUsers;
+    if(typeof oldU==='function' && !window.__zetaRenderWrapped){
+      window.renderUsers=function(){
+        oldU.apply(this,arguments);
+        filterUsers();
+        fillCats();
+        filterChars();
+      };
+      const oldC=window.renderCharacters;
+      window.renderCharacters=function(){
+        oldC.apply(this,arguments);
+        fillCats();
+        filterChars();
+      };
+      window.__zetaRenderWrapped=true;
+    }
+  }
+
+  function installReports(){
+    if(document.getElementById('zeta-reports-section')) return;
+    const main=document.querySelector('main');
+    if(!main) return;
+    const section=document.createElement('section');
+    section.id='zeta-reports-section';
+    section.className='card overflow-hidden mt-6';
+    section.innerHTML='<div class="p-5 border-b border-white/5 flex items-center justify-between gap-3"><div><div class="section-title"><i class="fa-solid fa-flag"></i><span>신고 관리</span></div><p class="text-xs text-white/35 mt-1">사용자가 신고한 캐릭터를 검토하고 처리합니다.</p></div><button id="zeta-report-refresh" class="btn btn-gray"><i class="fa-solid fa-rotate"></i> 새로고침</button></div><div class="table-wrap"><table><thead><tr><th>캐릭터</th><th>신고자</th><th>사유</th><th>상태</th><th>접수일</th><th>관리</th></tr></thead><tbody id="zeta-reports-table"><tr><td colspan="6" class="text-center text-white/35 py-10">불러오는 중...</td></tr></tbody></table></div>';
+    main.appendChild(section);
+
+    async function loadReports(){
+      const tbody=document.getElementById('zeta-reports-table');
+      try{
+        const data=await adminApi('/admin/reports');
+        const reports=Array.isArray(data.reports)?data.reports:[];
+        if(!reports.length){tbody.innerHTML='<tr><td colspan="6" class="text-center text-white/35 py-10">신고가 없습니다.</td></tr>';return;}
+        tbody.innerHTML=reports.map(r=>'<tr>'+
+          '<td><div class="font-bold">'+escapeHtml(r.characterName||'-')+'</div><div class="text-[10px] text-white/30">'+escapeHtml(r.characterId||'')+'</div></td>'+
+          '<td>'+escapeHtml(r.reporterNickname||r.reporterUsername||'-')+'</td>'+
+          '<td><div>'+escapeHtml(r.reason||'-')+'</div><div class="text-[10px] text-white/35 mt-1 max-w-xs truncate" title="'+escapeAttr(r.detail||'')+'">'+escapeHtml(r.detail||'')+'</div></td>'+
+          '<td><select class="input !w-auto !py-1 !px-2" data-report-status="'+escapeAttr(r.id)+'">'+
+            ['pending','reviewing','resolved','dismissed'].map(st=>'<option value="'+st+'" '+(r.status===st?'selected':'')+'>'+st+'</option>').join('')+
+          '</select></td>'+
+          '<td class="text-white/45 text-xs">'+formatDate(r.createdAt)+'</td>'+
+          '<td><button class="btn btn-blue" data-report-save="'+escapeAttr(r.id)+'"><i class="fa-solid fa-floppy-disk"></i></button> <button class="btn btn-red" data-report-delete="'+escapeAttr(r.id)+'"><i class="fa-solid fa-trash"></i></button></td>'+
+        '</tr>').join('');
+        tbody.querySelectorAll('[data-report-save]').forEach(b=>b.onclick=async()=>{
+          const id=b.dataset.reportSave; const status=tbody.querySelector('[data-report-status="'+CSS.escape(id)+'"]').value;
+          try{await adminApi('/admin/reports?id='+encodeURIComponent(id),{method:'PATCH',body:JSON.stringify({status})});showToast('신고 상태가 변경되었습니다.');await loadReports();}catch(e){alert(e.message);}
+        });
+        tbody.querySelectorAll('[data-report-delete]').forEach(b=>b.onclick=async()=>{
+          if(!confirm('이 신고 기록을 삭제할까요?'))return;
+          try{await adminApi('/admin/reports?id='+encodeURIComponent(b.dataset.reportDelete),{method:'DELETE'});showToast('신고 기록이 삭제되었습니다.');await loadReports();}catch(e){alert(e.message);}
+        });
+      }catch(e){tbody.innerHTML='<tr><td colspan="6" class="text-center text-rose-400 py-10">'+escapeHtml(e.message)+'</td></tr>';}
+    }
+    document.getElementById('zeta-report-refresh').onclick=loadReports;
+    window.__zetaLoadReports=loadReports;
+    loadReports();
+  }
+
+  function install(){
+    installSearch();
+    installReports();
+  }
+  window.addEventListener('load',()=>setTimeout(install,500));
+  setInterval(install,2000);
+})();
+</script>
+<!-- END ZETA ADMIN ENHANCEMENT -->
+
 </body>
 </html>
