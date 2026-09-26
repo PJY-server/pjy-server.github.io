@@ -2846,7 +2846,64 @@ init();
   setInterval(install,2000);
 })();
 </script>
-<!-- END ZETA ADMIN ENHANCEMENT -->
+<!-- END ZETA ADMIN ENHANCEMENT -->\n<!-- ZETA ADMIN SECURITY PATCH -->
+<script>
+(function(){
+  if(window.__zetaSecurityAdminPatch)return;
+  window.__zetaSecurityAdminPatch=true;
+  const WORKER='https://zeta-ai.pjy-server.workers.dev';
+  const token=localStorage.getItem('zeta_session');
+  const api2=(path,options={})=>fetch(WORKER+path,{...options,headers:{'Content-Type':'application/json',Authorization:'Bearer '+token}}).then(async r=>{const d=await r.json().catch(()=>({}));if(!r.ok)throw new Error(d.error||('요청 실패 '+r.status));return d;});
+
+  function patchUserRows(){
+    document.querySelectorAll('#users-table tr').forEach(tr=>{
+      const cells=tr.querySelectorAll('td'); if(cells.length<4)return;
+      const username=(cells[0].textContent||'').trim().split(/\s+/)[0];
+      const user=(users||[]).find(u=>u.username===username); if(!user)return;
+      const state=user.status||'active';
+      if(!cells[1].querySelector('[data-zeta-status]')){
+        const badge=document.createElement('span');
+        badge.dataset.zetaStatus='1';
+        badge.className='badge '+(state==='suspended'?'bg-red-500/10 text-red-300':'bg-green-500/10 text-green-300');
+        badge.textContent=state==='suspended'?'정지':'정상';
+        cells[1].appendChild(badge);
+      }
+      if(username!=='admin'&&!cells[3].querySelector('[data-zeta-suspend]')){
+        const b=document.createElement('button');
+        b.dataset.zetaSuspend='1'; b.className='btn '+(state==='suspended'?'btn-yellow':'btn-red');
+        b.innerHTML=state==='suspended'?'<i class="fa-solid fa-unlock"></i> 해제':'<i class="fa-solid fa-ban"></i> 정지';
+        b.onclick=async()=>{
+          try{await api2('/admin/users?username='+encodeURIComponent(username),{method:'PATCH',body:JSON.stringify({status:state==='suspended'?'active':'suspended'})});showToast(state==='suspended'?'회원 정지가 해제되었습니다.':'회원이 정지되었습니다.');await loadUsers();}catch(e){alert(e.message);}
+        };
+        cells[3].appendChild(b);
+      }
+    });
+  }
+
+  function patchCharacterRows(){
+    document.querySelectorAll('#characters-table tr').forEach(tr=>{
+      const cells=tr.querySelectorAll('td'); if(cells.length<5)return;
+      const text=tr.textContent||'';
+      const c=(characters||[]).find(x=>text.includes(x.name||'') && text.includes(x.id||'')); if(!c)return;
+      if(!cells[2].querySelector('[data-zeta-visibility]')){
+        const b=document.createElement('span');
+        b.dataset.zetaVisibility='1';
+        b.className='badge '+((c.visibility||'public')==='private'?'bg-yellow-500/10 text-yellow-300':'bg-cyan-500/10 text-cyan-300');
+        b.textContent=(c.visibility||'public')==='private'?'비공개':'공개';
+        cells[2].appendChild(b);
+      }
+    });
+  }
+
+  const install=()=>{
+    patchUserRows();
+    patchCharacterRows();
+  };
+  setTimeout(install,1000);
+  setInterval(install,2000);
+})();
+</script>
+<!-- END ZETA ADMIN SECURITY PATCH -->
 
 </body>
 </html>
