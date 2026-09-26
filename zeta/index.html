@@ -1852,5 +1852,255 @@ async function regenerateResponse(index) {
     initAuth();
 
   </script>
+
+<!-- ===== ZETA 5-FEATURE ENHANCEMENT LAYER ===== -->
+<style id="zeta-enhancement-style">
+  .zeta-enhance-btn{display:inline-flex;align-items:center;gap:8px;padding:9px 12px;border-radius:12px;border:1px solid rgba(139,92,246,.22);background:rgba(139,92,246,.08);color:#c4b5fd;font-size:12px;font-weight:700;transition:.2s}
+  .zeta-enhance-btn:hover{background:rgba(139,92,246,.18);color:#fff}
+  .zeta-report-btn{color:#fda4af!important;border-color:rgba(244,63,94,.25)!important;background:rgba(244,63,94,.08)!important}
+  .zeta-report-btn:hover{background:rgba(244,63,94,.18)!important}
+  .zeta-enhance-modal{position:fixed;inset:0;background:rgba(0,0,0,.78);backdrop-filter:blur(12px);z-index:80;display:flex;align-items:center;justify-content:center;padding:16px}
+  .zeta-enhance-card{width:min(760px,100%);max-height:90vh;overflow:auto;background:#111421;border:1px solid rgba(255,255,255,.09);border-radius:22px;box-shadow:0 30px 100px rgba(0,0,0,.55);padding:20px}
+  .zeta-enhance-input{width:100%;background:#080a11;border:1px solid rgba(255,255,255,.1);border-radius:12px;color:#fff;padding:10px 12px;outline:none}
+  .zeta-enhance-input:focus{border-color:rgba(139,92,246,.7);box-shadow:0 0 0 3px rgba(139,92,246,.1)}
+  .zeta-mychar-row{display:flex;align-items:center;gap:12px;padding:12px;border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.025);border-radius:16px}
+  .zeta-mychar-row img{width:52px;height:52px;border-radius:14px;object-fit:cover}
+  .zeta-enhance-toast{position:fixed;left:50%;bottom:28px;transform:translateX(-50%);z-index:120;background:#171a28;border:1px solid rgba(255,255,255,.1);color:#fff;padding:11px 16px;border-radius:999px;font-size:12px;box-shadow:0 15px 50px rgba(0,0,0,.35)}
+</style>
+<script>
+(function(){
+  const ZETA_API = 'https://zeta-ai.pjy-server.workers.dev';
+
+  function zetaToken(){ return localStorage.getItem('zeta_session') || ''; }
+
+  async function zetaApi(path, options={}){
+    const headers = Object.assign({'Content-Type':'application/json'}, options.headers||{});
+    const token = zetaToken();
+    if(token) headers.Authorization = 'Bearer ' + token;
+    const res = await fetch(ZETA_API + path, Object.assign({}, options, {headers}));
+    const data = await res.json().catch(()=>({}));
+    if(!res.ok) throw new Error(data.error || ('요청 실패: ' + res.status));
+    return data;
+  }
+
+  function toast(msg){
+    const old=document.querySelector('.zeta-enhance-toast');
+    if(old) old.remove();
+    const el=document.createElement('div');
+    el.className='zeta-enhance-toast';
+    el.textContent=msg;
+    document.body.appendChild(el);
+    setTimeout(()=>el.remove(),2200);
+  }
+
+  function addMyCharacterButtons(){
+    if(document.getElementById('zeta-mychars-nav')) return;
+    const nav=document.querySelector('aside nav');
+    if(nav){
+      const b=document.createElement('button');
+      b.id='zeta-mychars-nav';
+      b.className='nav-item w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition text-zeta-textMuted hover:bg-zeta-hover hover:text-white';
+      b.innerHTML='<i class="fa-solid fa-user-pen text-lg w-6 text-cyan-400"></i><span class="font-medium">내 캐릭터</span>';
+      b.onclick=()=>window.openMyCharacters();
+      nav.appendChild(b);
+    }
+    const mobile=document.querySelector('nav.md\\:hidden');
+    if(mobile && !document.getElementById('zeta-mychars-mobile')){
+      const b=document.createElement('button');
+      b.id='zeta-mychars-mobile';
+      b.className='flex flex-col items-center space-y-1 text-zeta-textMuted';
+      b.innerHTML='<i class="fa-solid fa-user-pen text-lg text-cyan-400"></i><span class="text-[10px] font-medium">내 캐릭터</span>';
+      b.onclick=()=>window.openMyCharacters();
+      mobile.insertBefore(b,mobile.lastElementChild);
+    }
+  }
+
+  function makeModals(){
+    if(document.getElementById('zeta-mychar-modal')) return;
+    const wrap=document.createElement('div');
+    wrap.innerHTML=
+      '<div id="zeta-mychar-modal" class="zeta-enhance-modal hidden">'+
+        '<div class="zeta-enhance-card">'+
+          '<div class="flex items-center justify-between mb-4"><div><h3 class="text-xl font-bold text-white">내 캐릭터</h3><p class="text-xs text-slate-400 mt-1">내가 만든 온라인 캐릭터를 수정하거나 삭제합니다.</p></div><button onclick="window.closeEnhanceModal(\'zeta-mychar-modal\')" class="text-slate-400 hover:text-white text-xl">×</button></div>'+
+          '<div id="zeta-mychar-list" class="space-y-2"></div>'+
+        '</div>'+
+      '</div>'+
+      '<div id="zeta-editchar-modal" class="zeta-enhance-modal hidden">'+
+        '<div class="zeta-enhance-card">'+
+          '<div class="flex items-center justify-between mb-4"><h3 class="text-xl font-bold text-white">캐릭터 수정</h3><button onclick="window.closeEnhanceModal(\'zeta-editchar-modal\')" class="text-slate-400 hover:text-white text-xl">×</button></div>'+
+          '<form id="zeta-editchar-form" class="space-y-3">'+
+            '<input id="ze-name" class="zeta-enhance-input" placeholder="캐릭터 이름" maxlength="500" required>'+
+            '<input id="ze-category" class="zeta-enhance-input" placeholder="카테고리" maxlength="500" required>'+
+            '<input id="ze-avatar" class="zeta-enhance-input" placeholder="아바타 URL" maxlength="500">'+
+            '<input id="ze-tags" class="zeta-enhance-input" placeholder="태그 (쉼표로 구분)" maxlength="500">'+
+            '<textarea id="ze-personality" class="zeta-enhance-input" rows="4" placeholder="성격" required></textarea>'+
+            '<textarea id="ze-scenario" class="zeta-enhance-input" rows="3" placeholder="시나리오" required></textarea>'+
+            '<textarea id="ze-first" class="zeta-enhance-input" rows="3" placeholder="첫 메시지" required></textarea>'+
+            '<div class="flex justify-end gap-2 pt-2"><button type="button" onclick="window.closeEnhanceModal(\'zeta-editchar-modal\')" class="px-4 py-2 rounded-xl bg-white/5 text-slate-300">취소</button><button class="px-5 py-2 rounded-xl bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold">저장</button></div>'+
+          '</form>'+
+        '</div>'+
+      '</div>'+
+      '<div id="zeta-report-modal" class="zeta-enhance-modal hidden">'+
+        '<div class="zeta-enhance-card max-w-md">'+
+          '<div class="flex items-center justify-between mb-4"><div><h3 class="text-xl font-bold text-white">캐릭터 신고</h3><p id="zeta-report-name" class="text-xs text-slate-400 mt-1"></p></div><button onclick="window.closeEnhanceModal(\'zeta-report-modal\')" class="text-slate-400 hover:text-white text-xl">×</button></div>'+
+          '<form id="zeta-report-form" class="space-y-3">'+
+            '<select id="zr-reason" class="zeta-enhance-input"><option value="부적절한 콘텐츠">부적절한 콘텐츠</option><option value="스팸/도배">스팸/도배</option><option value="사칭">사칭</option><option value="불쾌하거나 공격적인 내용">불쾌하거나 공격적인 내용</option><option value="기타">기타</option></select>'+
+            '<textarea id="zr-detail" class="zeta-enhance-input" rows="5" maxlength="500" placeholder="신고 내용을 자세히 적어주세요."></textarea>'+
+            '<div class="flex justify-end gap-2"><button type="button" onclick="window.closeEnhanceModal(\'zeta-report-modal\')" class="px-4 py-2 rounded-xl bg-white/5 text-slate-300">취소</button><button class="px-5 py-2 rounded-xl bg-rose-600 text-white font-semibold">신고 제출</button></div>'+
+          '</form>'+
+        '</div>'+
+      '</div>';
+    document.body.appendChild(wrap);
+
+    document.getElementById('zeta-editchar-form').addEventListener('submit', async function(e){
+      e.preventDefault();
+      const id=this.dataset.id;
+      try{
+        const data=await zetaApi('/characters?id='+encodeURIComponent(id),{
+          method:'PUT',
+          body:JSON.stringify({character:{
+            name:document.getElementById('ze-name').value.trim(),
+            category:document.getElementById('ze-category').value.trim(),
+            avatar:document.getElementById('ze-avatar').value.trim(),
+            tags:document.getElementById('ze-tags').value.split(',').map(x=>x.trim()).filter(Boolean),
+            personality:document.getElementById('ze-personality').value.trim(),
+            scenario:document.getElementById('ze-scenario').value.trim(),
+            firstMessage:document.getElementById('ze-first').value.trim()
+          }})
+        });
+        const updated=data.character;
+        const idx=Array.isArray(window.characters)?window.characters.findIndex(c=>c.id===id):-1;
+        if(idx>=0){ window.characters[idx]=updated; if(typeof saveToLocalStorage==='function') saveToLocalStorage(); if(typeof renderCharacters==='function') renderCharacters(); }
+        window.closeEnhanceModal('zeta-editchar-modal');
+        toast('캐릭터가 수정되었습니다.');
+        window.openMyCharacters();
+      }catch(err){ alert(err.message); }
+    });
+
+    document.getElementById('zeta-report-form').addEventListener('submit', async function(e){
+      e.preventDefault();
+      const id=this.dataset.characterId;
+      try{
+        await zetaApi('/reports',{
+          method:'POST',
+          body:JSON.stringify({
+            characterId:id,
+            reason:document.getElementById('zr-reason').value,
+            detail:document.getElementById('zr-detail').value.trim()
+          })
+        });
+        document.getElementById('zr-detail').value='';
+        window.closeEnhanceModal('zeta-report-modal');
+        toast('신고가 접수되었습니다.');
+      }catch(err){ alert(err.message); }
+    });
+  }
+
+  window.closeEnhanceModal=function(id){
+    document.getElementById(id)?.classList.add('hidden');
+  };
+
+  window.openMyCharacters=async function(){
+    if(!zetaToken()){ alert('로그인이 필요합니다.'); return; }
+    makeModals();
+    const box=document.getElementById('zeta-mychar-list');
+    box.innerHTML='<div class="text-sm text-slate-400 py-8 text-center">불러오는 중...</div>';
+    document.getElementById('zeta-mychar-modal').classList.remove('hidden');
+    try{
+      const data=await zetaApi('/characters/mine');
+      const list=Array.isArray(data.characters)?data.characters:[];
+      if(!list.length){ box.innerHTML='<div class="text-sm text-slate-400 py-10 text-center">아직 만든 캐릭터가 없습니다.</div>'; return; }
+      box.innerHTML=list.map(c=>
+        '<div class="zeta-mychar-row">'+
+          '<img src="'+escapeHtml(c.avatar||'')+'" onerror="this.style.visibility=\'hidden\'">'+
+          '<div class="min-w-0 flex-1"><div class="font-semibold text-white truncate">'+escapeHtml(c.name)+'</div><div class="text-[11px] text-slate-400 truncate">'+escapeHtml(c.category||'')+'</div></div>'+
+          '<div class="flex gap-1"><button class="zeta-enhance-btn" onclick="window.editMyCharacter('+JSON.stringify(c.id)+')"><i class="fa-solid fa-pen"></i></button><button class="zeta-enhance-btn" style="color:#fda4af" onclick="window.deleteMyCharacter('+JSON.stringify(c.id)+')"><i class="fa-solid fa-trash"></i></button></div>'+
+        '</div>'
+      ).join('');
+    }catch(err){ box.innerHTML='<div class="text-sm text-rose-400 py-8 text-center">'+escapeHtml(err.message)+'</div>'; }
+  };
+
+  window.editMyCharacter=function(id){
+    const c=(Array.isArray(window.characters)?window.characters:[]).find(x=>x.id===id);
+    if(!c){ alert('캐릭터 정보를 찾을 수 없습니다.'); return; }
+    makeModals();
+    document.getElementById('ze-name').value=c.name||'';
+    document.getElementById('ze-category').value=c.category||'';
+    document.getElementById('ze-avatar').value=c.avatar||'';
+    document.getElementById('ze-tags').value=Array.isArray(c.tags)?c.tags.join(', '):'';
+    document.getElementById('ze-personality').value=c.personality||'';
+    document.getElementById('ze-scenario').value=c.scenario||'';
+    document.getElementById('ze-first').value=c.firstMessage||'';
+    document.getElementById('zeta-editchar-form').dataset.id=id;
+    document.getElementById('zeta-mychar-modal').classList.add('hidden');
+    document.getElementById('zeta-editchar-modal').classList.remove('hidden');
+  };
+
+  window.deleteMyCharacter=async function(id){
+    if(!confirm('이 캐릭터를 삭제할까요? 삭제하면 온라인에서도 사라집니다.')) return;
+    try{
+      await zetaApi('/characters?id='+encodeURIComponent(id),{method:'DELETE'});
+      if(Array.isArray(window.characters)) window.characters=window.characters.filter(c=>c.id!==id);
+      if(typeof saveToLocalStorage==='function') saveToLocalStorage();
+      if(typeof renderCharacters==='function') renderCharacters();
+      toast('캐릭터가 삭제되었습니다.');
+      window.openMyCharacters();
+    }catch(err){ alert(err.message); }
+  };
+
+  window.openReportForCharacter=function(id){
+    if(!zetaToken()){ alert('로그인이 필요합니다.'); return; }
+    const c=(Array.isArray(window.characters)?window.characters:[]).find(x=>x.id===id);
+    if(!c) return;
+    makeModals();
+    document.getElementById('zeta-report-name').textContent=c.name+' 신고';
+    document.getElementById('zeta-report-form').dataset.characterId=id;
+    document.getElementById('zeta-report-modal').classList.remove('hidden');
+  };
+
+  function installReportButton(){
+    if(typeof window.openCharacterDetailModal!=='function' || window.__zetaReportWrapped) return;
+    const original=window.openCharacterDetailModal;
+    window.openCharacterDetailModal=function(id){
+      original.apply(this,arguments);
+      setTimeout(()=>{
+        const modal=document.getElementById('modal-character-detail');
+        const footer=modal?.querySelector('.glass-panel');
+        if(!footer || footer.querySelector('.zeta-report-btn')) return;
+        const btn=document.createElement('button');
+        btn.className='zeta-enhance-btn zeta-report-btn mr-auto';
+        btn.innerHTML='<i class="fa-solid fa-flag"></i><span>신고</span>';
+        btn.onclick=()=>window.openReportForCharacter(id);
+        footer.insertBefore(btn,footer.firstChild);
+      },30);
+    };
+    window.__zetaReportWrapped=true;
+  }
+
+  function addMainPageStatus(){
+    const hero=document.querySelector('.zeta-home-hero .max-w-2xl');
+    if(!hero || document.getElementById('zeta-live-status')) return;
+    const box=document.createElement('div');
+    box.id='zeta-live-status';
+    box.className='mt-4 flex flex-wrap gap-2';
+    box.innerHTML='<span class="px-3 py-1.5 rounded-full text-[10px] bg-emerald-500/10 text-emerald-300 border border-emerald-500/20"><i class="fa-solid fa-circle text-[6px] mr-1"></i> Worker 연결</span><span id="zeta-online-count" class="px-3 py-1.5 rounded-full text-[10px] bg-purple-500/10 text-purple-300 border border-purple-500/20">온라인 캐릭터 확인 중</span>';
+    hero.appendChild(box);
+    const update=()=>{ const count=(Array.isArray(window.characters)?window.characters:[]).filter(c=>String(c.id||'').startsWith('online_')).length; const el=document.getElementById('zeta-online-count'); if(el) el.textContent='온라인 캐릭터 '+count+'명'; };
+    setInterval(update,1200); update();
+  }
+
+  function install(){
+    addMyCharacterButtons();
+    makeModals();
+    installReportButton();
+    addMainPageStatus();
+  }
+
+  window.addEventListener('load',()=>setTimeout(install,250));
+  setInterval(install,1500);
+})();
+</script>
+<!-- ===== END ZETA 5-FEATURE ENHANCEMENT LAYER ===== -->
+
 </body>
 </html>
