@@ -3,365 +3,2725 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>ZETA 관리자</title>
+
 <script src="https://cdn.tailwindcss.com"></script>
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<link
+  href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap"
+  rel="stylesheet"
+>
+
+<link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"
+>
+
 <style>
-*{box-sizing:border-box}
-body{font-family:Inter,"Noto Sans KR",sans-serif;background:#080b12;color:#f8fafc}
-.card{background:rgba(17,24,39,.72);border:1px solid rgba(148,163,184,.14);backdrop-filter:blur(14px)}
-.stat{background:linear-gradient(135deg,rgba(30,41,59,.9),rgba(15,23,42,.8))}
-button{transition:.18s}
-button:active{transform:scale(.97)}
-.modal-bg{background:rgba(0,0,0,.72);backdrop-filter:blur(8px)}
-.modal-card{background:#111827;border:1px solid rgba(148,163,184,.18);box-shadow:0 24px 80px rgba(0,0,0,.45)}
-.input{width:100%;background:#0b1220;border:1px solid rgba(148,163,184,.2);border-radius:12px;padding:10px 12px;color:#f8fafc;outline:none}
-.input:focus{border-color:rgba(34,211,238,.65);box-shadow:0 0 0 3px rgba(34,211,238,.08)}
-.label{display:block;font-size:12px;color:#94a3b8;margin-bottom:6px;font-weight:600}
-</style>
-</head>
-<body>
-<div id="loading" class="fixed inset-0 flex items-center justify-center bg-[#080b12] z-50">
-  <div class="text-center">
-    <div class="text-3xl mb-3">⚡</div>
-    <div class="font-bold">관리자 확인 중...</div>
-  </div>
-</div>
 
-<div id="app" class="hidden min-h-screen">
-<header class="border-b border-white/10 sticky top-0 z-30 bg-[#080b12]/90 backdrop-blur-xl">
-  <div class="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between gap-3">
-    <div>
-      <div class="text-xs text-cyan-400 font-bold tracking-widest">ZETA ADMIN</div>
-      <h1 class="text-xl sm:text-2xl font-extrabold">관리자 페이지</h1>
-      <p id="admin-info" class="text-xs text-slate-400 mt-1"></p>
-    </div>
-    <div class="flex gap-2">
-      <a href="./" class="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-xs font-semibold">ZETA로</a>
-      <button onclick="logout()" class="px-3 py-2 rounded-xl bg-red-500/15 text-red-300 hover:bg-red-500/25 text-xs font-semibold">로그아웃</button>
-    </div>
-  </div>
-</header>
-
-<main class="max-w-7xl mx-auto p-4 sm:p-6 space-y-6">
-  <section class="grid grid-cols-2 lg:grid-cols-4 gap-3">
-    <div class="stat card rounded-2xl p-4"><div class="text-xs text-slate-400">회원</div><div id="user-count" class="text-2xl font-extrabold mt-1">-</div></div>
-    <div class="stat card rounded-2xl p-4"><div class="text-xs text-slate-400">캐릭터</div><div id="character-count" class="text-2xl font-extrabold mt-1">-</div></div>
-    <div class="stat card rounded-2xl p-4"><div class="text-xs text-slate-400">내 계정</div><div class="text-lg font-extrabold mt-1">admin</div></div>
-    <div class="stat card rounded-2xl p-4"><div class="text-xs text-slate-400">상태</div><div class="text-lg font-extrabold text-emerald-400 mt-1">관리자</div></div>
-  </section>
-
-  <section class="card rounded-2xl overflow-hidden">
-    <div class="px-4 py-4 border-b border-white/10 flex items-center justify-between">
-      <div><h2 class="font-bold">회원 관리</h2><p class="text-xs text-slate-500 mt-1">가입된 계정을 확인하고 삭제할 수 있습니다.</p></div>
-      <button onclick="loadAll()" class="px-3 py-2 rounded-xl bg-cyan-500/15 text-cyan-300 text-xs font-semibold hover:bg-cyan-500/25">새로고침</button>
-    </div>
-    <div class="overflow-x-auto">
-      <table class="w-full text-sm">
-        <thead class="bg-white/[.03] text-xs text-slate-400">
-          <tr><th class="text-left px-4 py-3">아이디</th><th class="text-left px-4 py-3">닉네임</th><th class="text-left px-4 py-3">가입일</th><th class="text-right px-4 py-3">관리</th></tr>
-        </thead>
-        <tbody id="users-body"></tbody>
-      </table>
-    </div>
-  </section>
-
-  <section class="card rounded-2xl overflow-hidden">
-    <div class="px-4 py-4 border-b border-white/10">
-      <h2 class="font-bold">캐릭터 관리</h2>
-      <p class="text-xs text-slate-500 mt-1">온라인에 게시된 캐릭터를 확인하고 삭제할 수 있습니다.</p>
-    </div>
-    <div id="characters-list" class="divide-y divide-white/10"></div>
-  </section>
-</main>
-</div>
-
-<div id="user-modal" class="hidden fixed inset-0 z-50 modal-bg items-center justify-center p-4">
-  <div class="modal-card rounded-2xl w-full max-w-md p-5">
-    <div class="flex items-center justify-between mb-5"><div><div class="text-xs text-cyan-400 font-bold">MEMBER EDIT</div><h3 class="text-lg font-extrabold">회원 정보 수정</h3></div><button onclick="closeUserModal()" class="w-9 h-9 rounded-xl bg-white/5 text-slate-400 hover:bg-white/10">✕</button></div>
-    <input id="edit-user-username" type="hidden">
-    <div class="mb-4"><label class="label">아이디</label><div id="edit-user-id" class="px-3 py-2.5 rounded-xl bg-white/[.03] text-slate-400 text-sm"></div></div>
-    <div class="mb-4"><label class="label">닉네임</label><input id="edit-user-nickname" class="input" maxlength="20"></div>
-    <div class="mb-5"><label class="label">새 비밀번호 <span class="text-slate-600">(비워두면 변경 안 함)</span></label><input id="edit-user-password" class="input" type="password" minlength="6" maxlength="100" placeholder="6자 이상"></div>
-    <div class="flex gap-2"><button onclick="closeUserModal()" class="flex-1 px-4 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-sm font-semibold">취소</button><button onclick="saveUserEdit()" class="flex-1 px-4 py-3 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-sm font-extrabold">저장</button></div>
-  </div>
-</div>
-
-<div id="character-modal" class="hidden fixed inset-0 z-50 modal-bg items-center justify-center p-4">
-  <div class="modal-card rounded-2xl w-full max-w-2xl max-h-[92vh] overflow-y-auto p-5">
-    <div class="flex items-center justify-between mb-5"><div><div class="text-xs text-cyan-400 font-bold">CHARACTER EDIT</div><h3 class="text-lg font-extrabold">캐릭터 수정</h3></div><button onclick="closeCharacterModal()" class="w-9 h-9 rounded-xl bg-white/5 text-slate-400 hover:bg-white/10">✕</button></div>
-    <input id="edit-character-id" type="hidden">
-    <div class="grid sm:grid-cols-2 gap-4">
-      <div><label class="label">캐릭터 이름</label><input id="edit-char-name" class="input" maxlength="500"></div>
-      <div><label class="label">카테고리</label><input id="edit-char-category" class="input" maxlength="500"></div>
-      <div class="sm:col-span-2"><label class="label">아바타 이미지 URL</label><input id="edit-char-avatar" class="input" maxlength="500"></div>
-      <div class="sm:col-span-2"><label class="label">태그 <span class="text-slate-600">쉼표로 구분</span></label><input id="edit-char-tags" class="input" maxlength="500"></div>
-      <div class="sm:col-span-2"><label class="label">성격</label><textarea id="edit-char-personality" class="input min-h-28 resize-y" maxlength="500"></textarea></div>
-      <div class="sm:col-span-2"><label class="label">시나리오</label><textarea id="edit-char-scenario" class="input min-h-28 resize-y" maxlength="500"></textarea></div>
-      <div class="sm:col-span-2"><label class="label">첫 메시지</label><textarea id="edit-char-first" class="input min-h-24 resize-y" maxlength="500"></textarea></div>
-    </div>
-    <div class="mt-5 flex gap-2"><button onclick="closeCharacterModal()" class="flex-1 px-4 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-sm font-semibold">취소</button><button onclick="saveCharacterEdit()" class="flex-1 px-4 py-3 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-sm font-extrabold">저장</button></div>
-  </div>
-</div>
-
-<script>
-const WORKER = "https://zeta-ai.pjy-server.workers.dev";
-const TOKEN_KEY = "zeta_session";
-let characterCache = {};
-
-function token() {
-  return localStorage.getItem(TOKEN_KEY);
+* {
+  box-sizing: border-box;
 }
 
-async function api(path, options={}) {
+html,
+body {
+  margin: 0;
+  padding: 0;
+  min-height: 100%;
+}
+
+body {
+  font-family:
+    "Inter",
+    "Noto Sans KR",
+    sans-serif;
+
+  background:
+    radial-gradient(
+      circle at top left,
+      rgba(124, 58, 237, 0.18),
+      transparent 35%
+    ),
+    radial-gradient(
+      circle at top right,
+      rgba(236, 72, 153, 0.12),
+      transparent 30%
+    ),
+    #07070b;
+
+  color: #fff;
+}
+
+button,
+input,
+textarea,
+select {
+  font-family: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+.glass {
+  background:
+    rgba(17, 17, 25, 0.78);
+
+  border:
+    1px solid rgba(255, 255, 255, 0.08);
+
+  backdrop-filter:
+    blur(18px);
+
+  -webkit-backdrop-filter:
+    blur(18px);
+}
+
+.card {
+  background:
+    rgba(18, 18, 27, 0.78);
+
+  border:
+    1px solid rgba(255, 255, 255, 0.08);
+
+  border-radius: 18px;
+}
+
+.input {
+  width: 100%;
+
+  background:
+    rgba(0, 0, 0, 0.25);
+
+  border:
+    1px solid rgba(255, 255, 255, 0.1);
+
+  color: white;
+
+  border-radius: 10px;
+
+  padding:
+    11px 13px;
+
+  outline: none;
+
+  transition:
+    border-color 0.2s,
+    background 0.2s;
+}
+
+.input:focus {
+  border-color:
+    rgba(168, 85, 247, 0.75);
+
+  background:
+    rgba(0, 0, 0, 0.35);
+}
+
+.input::placeholder {
+  color:
+    rgba(255,255,255,0.35);
+}
+
+textarea.input {
+  min-height: 110px;
+  resize: vertical;
+}
+
+select.input {
+  appearance: auto;
+}
+
+.btn {
+  border: 0;
+  border-radius: 10px;
+
+  padding:
+    9px 13px;
+
+  font-size: 13px;
+  font-weight: 700;
+
+  transition:
+    transform 0.15s,
+    opacity 0.15s;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-purple {
+  background:
+    linear-gradient(
+      135deg,
+      #7c3aed,
+      #a855f7
+    );
+
+  color: white;
+}
+
+.btn-blue {
+  background:
+    rgba(59, 130, 246, 0.18);
+
+  color:
+    #93c5fd;
+
+  border:
+    1px solid rgba(59, 130, 246, 0.25);
+}
+
+.btn-yellow {
+  background:
+    rgba(234, 179, 8, 0.14);
+
+  color:
+    #fde047;
+
+  border:
+    1px solid rgba(234, 179, 8, 0.25);
+}
+
+.btn-red {
+  background:
+    rgba(239, 68, 68, 0.13);
+
+  color:
+    #fca5a5;
+
+  border:
+    1px solid rgba(239, 68, 68, 0.25);
+}
+
+.btn-gray {
+  background:
+    rgba(255,255,255,0.07);
+
+  color:
+    rgba(255,255,255,0.8);
+
+  border:
+    1px solid rgba(255,255,255,0.08);
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+
+  padding:
+    4px 8px;
+
+  border-radius: 999px;
+
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.modal-bg {
+  position: fixed;
+  inset: 0;
+
+  z-index: 100;
+
+  background:
+    rgba(0,0,0,0.72);
+
+  backdrop-filter:
+    blur(8px);
+
+  -webkit-backdrop-filter:
+    blur(8px);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 18px;
+}
+
+.modal {
+  width: 100%;
+  max-width: 700px;
+  max-height: 92vh;
+
+  overflow-y: auto;
+
+  background:
+    #111119;
+
+  border:
+    1px solid rgba(255,255,255,0.1);
+
+  border-radius: 20px;
+
+  box-shadow:
+    0 30px 100px rgba(0,0,0,0.55);
+}
+
+::-webkit-scrollbar {
+  width: 7px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background:
+    rgba(255,255,255,0.12);
+
+  border-radius: 999px;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  color:
+    rgba(255,255,255,0.45);
+
+  font-size: 11px;
+
+  font-weight: 700;
+
+  text-align: left;
+
+  padding:
+    12px 14px;
+
+  border-bottom:
+    1px solid rgba(255,255,255,0.07);
+
+  white-space: nowrap;
+}
+
+td {
+  padding:
+    13px 14px;
+
+  border-bottom:
+    1px solid rgba(255,255,255,0.055);
+
+  font-size: 13px;
+
+  vertical-align: middle;
+}
+
+tr:last-child td {
+  border-bottom: 0;
+}
+
+.avatar {
+  width: 44px;
+  height: 44px;
+
+  border-radius: 12px;
+
+  object-fit: cover;
+
+  background:
+    #222;
+}
+
+#toast {
+  position: fixed;
+
+  left: 50%;
+  bottom: 25px;
+
+  transform:
+    translateX(-50%)
+    translateY(20px);
+
+  opacity: 0;
+
+  pointer-events: none;
+
+  z-index: 999;
+
+  padding:
+    11px 16px;
+
+  border-radius: 12px;
+
+  background:
+    rgba(20,20,30,0.95);
+
+  border:
+    1px solid rgba(255,255,255,0.12);
+
+  box-shadow:
+    0 15px 50px rgba(0,0,0,0.4);
+
+  font-size: 13px;
+
+  transition:
+    opacity 0.2s,
+    transform 0.2s;
+}
+
+#toast.show {
+  opacity: 1;
+
+  transform:
+    translateX(-50%)
+    translateY(0);
+}
+
+.loading {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.spinner {
+  width: 15px;
+  height: 15px;
+
+  border:
+    2px solid rgba(255,255,255,0.2);
+
+  border-top-color:
+    white;
+
+  border-radius: 50%;
+
+  animation:
+    spin 0.7s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.section-title i {
+  color: #a855f7;
+}
+
+.stat-number {
+  font-size: 27px;
+  font-weight: 800;
+}
+
+.mobile-scroll {
+  overflow-x: auto;
+}
+
+@media (max-width: 700px) {
+
+  .modal-bg {
+    padding: 10px;
+  }
+
+  .modal {
+    max-height: 95vh;
+  }
+
+  .stat-number {
+    font-size: 22px;
+  }
+
+  td,
+  th {
+    padding:
+      10px 9px;
+  }
+
+}
+
+</style>
+</head>
+
+<body>
+
+<!-- ========================================================= -->
+<!-- HEADER -->
+<!-- ========================================================= -->
+
+<header
+  class="glass sticky top-0 z-50 border-b border-white/5"
+>
+
+  <div
+    class="max-w-7xl mx-auto px-4 md:px-6 py-4
+           flex items-center justify-between gap-3"
+  >
+
+    <div class="flex items-center gap-3">
+
+      <div
+        class="w-10 h-10 rounded-xl
+               bg-gradient-to-tr from-purple-600 to-pink-500
+               flex items-center justify-center
+               font-extrabold text-xl"
+      >
+        Z
+      </div>
+
+      <div>
+
+        <div
+          class="font-extrabold tracking-wide"
+        >
+          ZETA 관리자
+        </div>
+
+        <div
+          class="text-xs text-white/40"
+        >
+          관리자 대시보드
+        </div>
+
+      </div>
+
+    </div>
+
+    <div
+      class="flex items-center gap-2"
+    >
+
+      <button
+        id="refresh-btn"
+        class="btn btn-gray"
+      >
+        <i class="fa-solid fa-rotate"></i>
+        <span class="hidden sm:inline">
+          새로고침
+        </span>
+      </button>
+
+      <button
+        id="home-btn"
+        class="btn btn-gray"
+      >
+        <i class="fa-solid fa-house"></i>
+        <span class="hidden sm:inline">
+          ZETA
+        </span>
+      </button>
+
+      <button
+        id="logout-btn"
+        class="btn btn-red"
+      >
+        <i class="fa-solid fa-right-from-bracket"></i>
+        <span class="hidden sm:inline">
+          로그아웃
+        </span>
+      </button>
+
+    </div>
+
+  </div>
+
+</header>
+
+
+<!-- ========================================================= -->
+<!-- MAIN -->
+<!-- ========================================================= -->
+
+<main
+  class="max-w-7xl mx-auto px-4 md:px-6 py-6"
+>
+
+  <!-- 로딩 -->
+
+  <div
+    id="page-loading"
+    class="card p-8 text-center"
+  >
+
+    <div class="loading">
+
+      <div class="spinner"></div>
+
+      <span>
+        관리자 정보를 확인하는 중...
+      </span>
+
+    </div>
+
+  </div>
+
+
+  <!-- 실제 페이지 -->
+
+  <div
+    id="admin-page"
+    class="hidden"
+  >
+
+    <!-- ===================================================== -->
+    <!-- 관리자 정보 -->
+    <!-- ===================================================== -->
+
+    <div
+      class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6"
+    >
+
+      <div class="card p-4">
+
+        <div
+          class="text-xs text-white/40 mb-2"
+        >
+          전체 회원
+        </div>
+
+        <div
+          id="stat-users"
+          class="stat-number"
+        >
+          -
+        </div>
+
+      </div>
+
+
+      <div class="card p-4">
+
+        <div
+          class="text-xs text-white/40 mb-2"
+        >
+          온라인 캐릭터
+        </div>
+
+        <div
+          id="stat-characters"
+          class="stat-number"
+        >
+          -
+        </div>
+
+      </div>
+
+
+      <div class="card p-4">
+
+        <div
+          class="text-xs text-white/40 mb-2"
+        >
+          관리자
+        </div>
+
+        <div
+          class="font-bold text-purple-300"
+        >
+          admin
+        </div>
+
+      </div>
+
+
+      <div class="card p-4">
+
+        <div
+          class="text-xs text-white/40 mb-2"
+        >
+          상태
+        </div>
+
+        <div
+          class="text-green-400 font-bold"
+        >
+          <i class="fa-solid fa-circle text-[8px]"></i>
+          정상
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- ===================================================== -->
+    <!-- 회원 관리 -->
+    <!-- ===================================================== -->
+
+    <section class="card overflow-hidden mb-6">
+
+      <div
+        class="p-5 border-b border-white/5
+               flex items-center justify-between gap-3"
+      >
+
+        <div>
+
+          <div class="section-title">
+
+            <i class="fa-solid fa-users"></i>
+
+            <span>
+              회원 관리
+            </span>
+
+          </div>
+
+          <p
+            class="text-xs text-white/35 mt-1"
+          >
+            회원 닉네임과 비밀번호를 관리합니다.
+          </p>
+
+        </div>
+
+        <div
+          class="badge bg-purple-500/10 text-purple-300"
+        >
+          MEMBERS
+        </div>
+
+      </div>
+
+
+      <div class="table-wrap">
+
+        <table>
+
+          <thead>
+
+            <tr>
+
+              <th>
+                아이디
+              </th>
+
+              <th>
+                닉네임
+              </th>
+
+              <th>
+                가입일
+              </th>
+
+              <th>
+                관리
+              </th>
+
+            </tr>
+
+          </thead>
+
+          <tbody
+            id="users-table"
+          >
+
+            <tr>
+
+              <td
+                colspan="4"
+                class="text-center text-white/35 py-10"
+              >
+                회원 정보를 불러오는 중...
+              </td>
+
+            </tr>
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    </section>
+
+
+    <!-- ===================================================== -->
+    <!-- 캐릭터 관리 -->
+    <!-- ===================================================== -->
+
+    <section class="card overflow-hidden">
+
+      <div
+        class="p-5 border-b border-white/5
+               flex items-center justify-between gap-3"
+      >
+
+        <div>
+
+          <div class="section-title">
+
+            <i class="fa-solid fa-robot"></i>
+
+            <span>
+              캐릭터 관리
+            </span>
+
+          </div>
+
+          <p
+            class="text-xs text-white/35 mt-1"
+          >
+            온라인 캐릭터의 설정을 수정하거나 삭제합니다.
+          </p>
+
+        </div>
+
+        <div
+          class="badge bg-pink-500/10 text-pink-300"
+        >
+          CHARACTERS
+        </div>
+
+      </div>
+
+
+      <div class="table-wrap">
+
+        <table>
+
+          <thead>
+
+            <tr>
+
+              <th>
+                캐릭터
+              </th>
+
+              <th>
+                카테고리
+              </th>
+
+              <th>
+                생성자
+              </th>
+
+              <th>
+                생성일
+              </th>
+
+              <th>
+                관리
+              </th>
+
+            </tr>
+
+          </thead>
+
+          <tbody
+            id="characters-table"
+          >
+
+            <tr>
+
+              <td
+                colspan="5"
+                class="text-center text-white/35 py-10"
+              >
+                캐릭터 정보를 불러오는 중...
+              </td>
+
+            </tr>
+
+          </tbody>
+
+        </table>
+
+      </div>
+
+    </section>
+
+  </div>
+
+</main>
+
+
+<!-- ========================================================= -->
+<!-- 회원 수정 MODAL -->
+<!-- ========================================================= -->
+
+<div
+  id="user-modal"
+  class="modal-bg hidden"
+>
+
+  <div class="modal">
+
+    <div
+      class="p-5 border-b border-white/5
+             flex items-center justify-between"
+    >
+
+      <div>
+
+        <div
+          class="font-bold text-lg"
+        >
+          회원 수정
+        </div>
+
+        <div
+          id="user-modal-username"
+          class="text-xs text-white/40 mt-1"
+        >
+          -
+        </div>
+
+      </div>
+
+      <button
+        onclick="closeModal('user-modal')"
+        class="text-white/40 hover:text-white text-xl"
+      >
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+    </div>
+
+
+    <div class="p-5 space-y-5">
+
+      <!-- 닉네임 -->
+
+      <div>
+
+        <label
+          class="block text-xs text-white/50 mb-2"
+        >
+          닉네임
+        </label>
+
+        <input
+          id="edit-user-nickname"
+          class="input"
+          maxlength="20"
+          placeholder="닉네임"
+        >
+
+      </div>
+
+
+      <!-- 비밀번호 -->
+
+      <div>
+
+        <label
+          class="block text-xs text-white/50 mb-2"
+        >
+          새 비밀번호
+        </label>
+
+        <input
+          id="edit-user-password"
+          class="input"
+          type="password"
+          maxlength="100"
+          placeholder="비밀번호를 입력하면 초기화됩니다"
+        >
+
+        <p
+          class="text-[11px] text-white/30 mt-2"
+        >
+          비밀번호를 비워두면 비밀번호는 변경하지 않습니다.
+          입력하면 기존 세션이 모두 종료됩니다.
+        </p>
+
+      </div>
+
+
+      <div
+        class="flex justify-end gap-2 pt-2"
+      >
+
+        <button
+          class="btn btn-gray"
+          onclick="closeModal('user-modal')"
+        >
+          취소
+        </button>
+
+        <button
+          id="save-user-btn"
+          class="btn btn-purple"
+        >
+          <i class="fa-solid fa-floppy-disk"></i>
+          저장
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- ========================================================= -->
+<!-- 캐릭터 수정 MODAL -->
+<!-- ========================================================= -->
+
+<div
+  id="character-modal"
+  class="modal-bg hidden"
+>
+
+  <div class="modal">
+
+    <div
+      class="p-5 border-b border-white/5
+             flex items-center justify-between"
+    >
+
+      <div>
+
+        <div
+          class="font-bold text-lg"
+        >
+          캐릭터 수정
+        </div>
+
+        <div
+          id="character-modal-id"
+          class="text-xs text-white/40 mt-1"
+        >
+          -
+        </div>
+
+      </div>
+
+      <button
+        onclick="closeModal('character-modal')"
+        class="text-white/40 hover:text-white text-xl"
+      >
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+
+    </div>
+
+
+    <div class="p-5 space-y-4">
+
+      <!-- 이름 -->
+
+      <div>
+
+        <label
+          class="block text-xs text-white/50 mb-2"
+        >
+          캐릭터 이름
+        </label>
+
+        <input
+          id="edit-char-name"
+          class="input"
+          maxlength="500"
+        >
+
+      </div>
+
+
+      <!-- 카테고리 -->
+
+      <div>
+
+        <label
+          class="block text-xs text-white/50 mb-2"
+        >
+          카테고리
+        </label>
+
+        <input
+          id="edit-char-category"
+          class="input"
+          maxlength="500"
+        >
+
+      </div>
+
+
+      <!-- 아바타 -->
+
+      <div>
+
+        <label
+          class="block text-xs text-white/50 mb-2"
+        >
+          아바타 이미지 URL
+        </label>
+
+        <input
+          id="edit-char-avatar"
+          class="input"
+          maxlength="500"
+          placeholder="https://..."
+        >
+
+      </div>
+
+
+      <!-- 태그 -->
+
+      <div>
+
+        <label
+          class="block text-xs text-white/50 mb-2"
+        >
+          태그
+        </label>
+
+        <input
+          id="edit-char-tags"
+          class="input"
+          maxlength="500"
+          placeholder="예: 판타지, 마법, 모험"
+        >
+
+        <p
+          class="text-[11px] text-white/30 mt-1"
+        >
+          쉼표(,)로 구분해주세요.
+        </p>
+
+      </div>
+
+
+      <!-- 성격 -->
+
+      <div>
+
+        <label
+          class="block text-xs text-white/50 mb-2"
+        >
+          성격
+        </label>
+
+        <textarea
+          id="edit-char-personality"
+          class="input"
+          maxlength="500"
+          placeholder="캐릭터의 성격"
+        ></textarea>
+
+      </div>
+
+
+      <!-- 시나리오 -->
+
+      <div>
+
+        <label
+          class="block text-xs text-white/50 mb-2"
+        >
+          시나리오
+        </label>
+
+        <textarea
+          id="edit-char-scenario"
+          class="input"
+          maxlength="500"
+          placeholder="캐릭터가 처한 상황"
+        ></textarea>
+
+      </div>
+
+
+      <!-- 첫 메시지 -->
+
+      <div>
+
+        <label
+          class="block text-xs text-white/50 mb-2"
+        >
+          첫 메시지
+        </label>
+
+        <textarea
+          id="edit-char-first"
+          class="input"
+          maxlength="500"
+          placeholder="사용자가 처음 채팅을 시작했을 때의 메시지"
+        ></textarea>
+
+      </div>
+
+
+      <!-- 저장 -->
+
+      <div
+        class="flex justify-end gap-2 pt-2"
+      >
+
+        <button
+          class="btn btn-gray"
+          onclick="closeModal('character-modal')"
+        >
+          취소
+        </button>
+
+        <button
+          id="save-character-btn"
+          class="btn btn-purple"
+        >
+          <i class="fa-solid fa-floppy-disk"></i>
+          저장
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+
+<!-- ========================================================= -->
+<!-- TOAST -->
+<!-- ========================================================= -->
+
+<div id="toast"></div>
+
+
+<script>
+
+/* ============================================================
+   설정
+============================================================ */
+
+const WORKER =
+  "https://zeta-ai.pjy-server.workers.dev";
+
+const token =
+  localStorage.getItem(
+    "zeta_session"
+  );
+
+let currentUser = null;
+
+let users = [];
+let characters = [];
+
+let editingUsername = null;
+let editingCharacterId = null;
+
+
+/* ============================================================
+   기본 API
+============================================================ */
+
+async function api(
+  path,
+  options = {}
+) {
+
   const headers = {
-    ...(options.headers || {}),
-    Authorization: "Bearer " + token()
+    ...(options.headers || {})
   };
 
-  const res = await fetch(WORKER + path, {...options, headers});
-  const data = await res.json().catch(()=>({}));
-
-  if (!res.ok) {
-    if (res.status === 401 || res.status === 403) {
-      localStorage.removeItem(TOKEN_KEY);
-      location.href = "./";
-    }
-    throw new Error(data.error || `요청 실패 (${res.status})`);
+  if (
+    !headers["Content-Type"] &&
+    options.body
+  ) {
+    headers["Content-Type"] =
+      "application/json";
   }
+
+  if (token) {
+    headers["Authorization"] =
+      "Bearer " + token;
+  }
+
+  const response =
+    await fetch(
+      WORKER + path,
+      {
+        ...options,
+        headers
+      }
+    );
+
+  let data = {};
+
+  try {
+    data =
+      await response.json();
+  } catch {
+    data = {};
+  }
+
+  if (
+    response.status === 401 ||
+    response.status === 403
+  ) {
+
+    localStorage.removeItem(
+      "zeta_session"
+    );
+
+    location.href = "./";
+
+    throw new Error(
+      "관리자 인증이 만료되었습니다."
+    );
+  }
+
+  if (!response.ok) {
+
+    throw new Error(
+      data.error ||
+      `요청 실패 (${response.status})`
+    );
+  }
+
   return data;
 }
 
-function jsq(value) { return JSON.stringify(String(value ?? "")).replaceAll("\\", "\\\\").replaceAll("'", "\\'"); }
 
-function esc(value) {
-  return String(value ?? "")
-    .replaceAll("&","&amp;")
-    .replaceAll("<","&lt;")
-    .replaceAll(">","&gt;")
-    .replaceAll('"',"&quot;")
-    .replaceAll("'","&#039;");
+/* ============================================================
+   Toast
+============================================================ */
+
+let toastTimer = null;
+
+function showToast(
+  message
+) {
+
+  const toast =
+    document.getElementById(
+      "toast"
+    );
+
+  toast.textContent =
+    message;
+
+  toast.classList.add(
+    "show"
+  );
+
+  clearTimeout(
+    toastTimer
+  );
+
+  toastTimer =
+    setTimeout(
+      () => {
+        toast.classList.remove(
+          "show"
+        );
+      },
+      2500
+    );
 }
 
-function date(v) {
-  if (!v) return "-";
-  const d = new Date(v);
-  return Number.isNaN(d.getTime()) ? "-" : d.toLocaleString("ko-KR");
+
+/* ============================================================
+   날짜
+============================================================ */
+
+function formatDate(
+  timestamp
+) {
+
+  if (!timestamp)
+    return "-";
+
+  const date =
+    new Date(timestamp);
+
+  if (
+    Number.isNaN(
+      date.getTime()
+    )
+  ) {
+    return "-";
+  }
+
+  return date.toLocaleString(
+    "ko-KR",
+    {
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+
+      hour: "2-digit",
+      minute: "2-digit"
+    }
+  );
 }
+
+
+/* ============================================================
+   관리자 인증
+============================================================ */
 
 async function checkAdmin() {
-  const t = token();
-  if (!t) {
+
+  if (!token) {
+
     location.href = "./";
-    return;
+
+    return false;
   }
 
   try {
-    const data = await api("/auth/me");
-    if (data.user.username !== "admin") {
-      alert("관리자 계정만 접근할 수 있습니다.");
+
+    const data =
+      await api(
+        "/auth/me"
+      );
+
+    currentUser =
+      data.user;
+
+    if (
+      !currentUser ||
+      currentUser.username !==
+        "admin"
+    ) {
+
+      localStorage.removeItem(
+        "zeta_session"
+      );
+
       location.href = "./";
-      return;
+
+      return false;
     }
 
-    document.getElementById("admin-info").textContent =
-      `${data.user.nickname} (${data.user.username})`;
-    document.getElementById("loading").classList.add("hidden");
-    document.getElementById("app").classList.remove("hidden");
-    await loadAll();
-  } catch (e) {
-    alert(e.message);
-    location.href = "./";
+    return true;
+
+  } catch (error) {
+
+    console.error(
+      error
+    );
+
+    return false;
   }
 }
 
-async function loadAll() {
-  try {
-    const [usersData, charsData] = await Promise.all([
-      api("/admin/users"),
-      api("/admin/characters")
-    ]);
 
-    renderUsers(usersData.users || []);
-    renderCharacters(charsData.characters || []);
-  } catch (e) {
-    alert(e.message);
-  }
+/* ============================================================
+   회원 불러오기
+============================================================ */
+
+async function loadUsers() {
+
+  const data =
+    await api(
+      "/admin/users"
+    );
+
+  users =
+    Array.isArray(
+      data.users
+    )
+      ? data.users
+      : [];
+
+  renderUsers();
+
+  document.getElementById(
+    "stat-users"
+  ).textContent =
+    users.length;
 }
 
-function renderUsers(users) {
-  document.getElementById("user-count").textContent = users.length;
 
-  const body = document.getElementById("users-body");
+/* ============================================================
+   회원 렌더링
+============================================================ */
+
+function renderUsers() {
+
+  const tbody =
+    document.getElementById(
+      "users-table"
+    );
 
   if (!users.length) {
-    body.innerHTML = `<tr><td colspan="4" class="px-4 py-8 text-center text-slate-500">회원이 없습니다.</td></tr>`;
+
+    tbody.innerHTML = `
+      <tr>
+        <td
+          colspan="4"
+          class="text-center text-white/35 py-10"
+        >
+          등록된 회원이 없습니다.
+        </td>
+      </tr>
+    `;
+
     return;
   }
 
-  body.innerHTML = users.map(user => `
-    <tr class="border-t border-white/5 hover:bg-white/[.025]">
-      <td class="px-4 py-3 font-semibold">${esc(user.username)}</td>
-      <td class="px-4 py-3 text-slate-300">${esc(user.nickname)}</td>
-      <td class="px-4 py-3 text-xs text-slate-500">${date(user.createdAt)}</td>
-      <td class="px-4 py-3 text-right">
-        ${user.username === "admin"
-          ? `<span class="text-xs text-cyan-400 font-semibold mr-2">관리자</span><button onclick='openUserModal(${jsq(user.username)}, ${jsq(user.nickname || "")})' class="px-3 py-1.5 rounded-lg bg-cyan-500/10 text-cyan-300 text-xs hover:bg-cyan-500/20">닉네임</button>`
-          : `<button onclick='openUserModal(${jsq(user.username)}, ${jsq(user.nickname || "")})' class="px-3 py-1.5 rounded-lg bg-cyan-500/10 text-cyan-300 text-xs hover:bg-cyan-500/20 mr-1">수정</button><button onclick='deleteUser(${JSON.stringify(user.username)})' class="px-3 py-1.5 rounded-lg bg-red-500/10 text-red-300 text-xs hover:bg-red-500/20">삭제</button>`
-        }
-      </td>
-    </tr>
-  `).join("");
+  tbody.innerHTML =
+    users.map(
+      user => {
+
+        const isAdmin =
+          user.username ===
+          "admin";
+
+        return `
+          <tr>
+
+            <td>
+
+              <div
+                class="font-bold text-white"
+              >
+                ${escapeHtml(
+                  user.username
+                )}
+              </div>
+
+              ${
+                isAdmin
+                  ? `
+                    <span
+                      class="
+                        badge
+                        bg-purple-500/10
+                        text-purple-300
+                        mt-1
+                      "
+                    >
+                      ADMIN
+                    </span>
+                  `
+                  : ""
+              }
+
+            </td>
+
+
+            <td>
+
+              <span
+                class="text-white/80"
+              >
+                ${escapeHtml(
+                  user.nickname ||
+                  "-"
+                )}
+              </span>
+
+            </td>
+
+
+            <td>
+
+              <span
+                class="text-white/45 text-xs"
+              >
+                ${formatDate(
+                  user.createdAt
+                )}
+              </span>
+
+            </td>
+
+
+            <td>
+
+              <div
+                class="flex flex-wrap gap-2"
+              >
+
+                <button
+                  class="btn btn-blue"
+                  onclick="openUserModal(
+                    '${escapeAttr(
+                      user.username
+                    )}'
+                  )"
+                >
+                  <i
+                    class="fa-solid fa-pen"
+                  ></i>
+                  수정
+                </button>
+
+                ${
+                  !isAdmin
+                    ? `
+                      <button
+                        class="btn btn-red"
+                        onclick="deleteUser(
+                          '${escapeAttr(
+                            user.username
+                          )}'
+                        )"
+                      >
+                        <i
+                          class="fa-solid fa-trash"
+                        ></i>
+                        삭제
+                      </button>
+                    `
+                    : `
+                      <span
+                        class="
+                          badge
+                          bg-white/5
+                          text-white/30
+                        "
+                      >
+                        보호됨
+                      </span>
+                    `
+                }
+
+              </div>
+
+            </td>
+
+          </tr>
+        `;
+      }
+    ).join("");
 }
 
-function renderCharacters(chars) {
-  document.getElementById("character-count").textContent = chars.length;
-  const box = document.getElementById("characters-list");
 
-  if (!chars.length) {
-    box.innerHTML = `<div class="p-8 text-center text-slate-500">게시된 캐릭터가 없습니다.</div>`;
+/* ============================================================
+   회원 수정 모달
+============================================================ */
+
+function openUserModal(
+  username
+) {
+
+  const user =
+    users.find(
+      u =>
+        u.username ===
+        username
+    );
+
+  if (!user)
+    return;
+
+  editingUsername =
+    username;
+
+  document.getElementById(
+    "user-modal-username"
+  ).textContent =
+    "@" + username;
+
+  document.getElementById(
+    "edit-user-nickname"
+  ).value =
+    user.nickname || "";
+
+  document.getElementById(
+    "edit-user-password"
+  ).value =
+    "";
+
+  document.getElementById(
+    "user-modal"
+  ).classList.remove(
+    "hidden"
+  );
+}
+
+
+/* ============================================================
+   회원 저장
+============================================================ */
+
+async function saveUser() {
+
+  if (!editingUsername)
+    return;
+
+  const nickname =
+    document.getElementById(
+      "edit-user-nickname"
+    ).value.trim();
+
+  const password =
+    document.getElementById(
+      "edit-user-password"
+    ).value;
+
+  if (!nickname) {
+
+    alert(
+      "닉네임을 입력해주세요."
+    );
+
     return;
   }
 
-  characterCache = Object.fromEntries(chars.map(c => [c.id, c]));
-  box.innerHTML = chars.map(c => `
-    <div class="p-4 flex gap-3 items-center">
-      <img src="${esc(c.avatar)}" class="w-14 h-14 rounded-xl object-cover bg-slate-800" onerror="this.style.visibility='hidden'">
-      <div class="min-w-0 flex-1">
-        <div class="font-bold truncate">${esc(c.name)}</div>
-        <div class="text-xs text-slate-400 mt-1">
-          ${esc(c.category || "기타")} · 생성자: <span class="text-cyan-300">${esc(c.creator || "ZETA Community")}</span>
-        </div>
-        <div class="text-[11px] text-slate-600 mt-1">${date(c.createdAt)}</div>
-      </div>
-      <button onclick='openCharacterModalById(${jsq(c.id)})' class="shrink-0 px-3 py-2 rounded-xl bg-cyan-500/10 text-cyan-300 text-xs hover:bg-cyan-500/20 mr-1">수정</button><button onclick='deleteCharacter(${JSON.stringify(c.id)})' class="shrink-0 px-3 py-2 rounded-xl bg-red-500/10 text-red-300 text-xs hover:bg-red-500/20">삭제</button>
-    </div>
-  `).join("");
-}
+  if (
+    nickname.length > 20
+  ) {
 
-async function deleteUser(username) {
-  const name = username;
-  if (!confirm(`'${name}' 계정을 삭제할까요?\\n이 작업은 되돌릴 수 없습니다.`)) return;
+    alert(
+      "닉네임은 20자 이하로 입력해주세요."
+    );
 
-  try {
-    await api(`/admin/users?username=${encodeURIComponent(username)}`, {method:"DELETE"});
-    await loadAll();
-  } catch(e) {
-    alert(e.message);
+    return;
   }
-}
 
-async function deleteCharacter(id) {
-  const value = id;
-  if (!confirm(`이 캐릭터를 삭제할까요?\\n이 작업은 되돌릴 수 없습니다.`)) return;
+  if (
+    password &&
+    password.length < 6
+  ) {
 
-  try {
-    await api(`/admin/characters?id=${encodeURIComponent(id)}`, {method:"DELETE"});
-    await loadAll();
-  } catch(e) {
-    alert(e.message);
+    alert(
+      "비밀번호는 6자 이상이어야 합니다."
+    );
+
+    return;
   }
-}
 
+  const button =
+    document.getElementById(
+      "save-user-btn"
+    );
 
-function openUserModal(username, nickname) {
-  document.getElementById("edit-user-username").value = username;
-  document.getElementById("edit-user-id").textContent = username;
-  document.getElementById("edit-user-nickname").value = nickname || "";
-  document.getElementById("edit-user-password").value = "";
-  const modal = document.getElementById("user-modal");
-  modal.classList.remove("hidden");
-  modal.classList.add("flex");
-}
+  const original =
+    button.innerHTML;
 
-function closeUserModal() {
-  const modal = document.getElementById("user-modal");
-  modal.classList.add("hidden");
-  modal.classList.remove("flex");
-}
+  button.disabled = true;
 
-async function saveUserEdit() {
-  const username = document.getElementById("edit-user-username").value;
-  const nickname = document.getElementById("edit-user-nickname").value.trim();
-  const password = document.getElementById("edit-user-password").value;
-  if (!nickname) return alert("닉네임을 입력해주세요.");
-  if (nickname.length > 20) return alert("닉네임은 20자 이하로 입력해주세요.");
-  if (password && password.length < 6) return alert("새 비밀번호는 6자 이상이어야 합니다.");
+  button.innerHTML = `
+    <span class="loading">
+      <span class="spinner"></span>
+      저장 중...
+    </span>
+  `;
 
   try {
-    await api(`/admin/users?username=${encodeURIComponent(username)}`, {
-      method:"PATCH", headers:{"Content-Type":"application/json"}, body:JSON.stringify({nickname})
-    });
+
+    /* --------------------------
+       닉네임 변경
+    -------------------------- */
+
+    await api(
+      `/admin/users?username=${encodeURIComponent(
+        editingUsername
+      )}`,
+      {
+        method: "PATCH",
+
+        body:
+          JSON.stringify({
+            nickname
+          })
+      }
+    );
+
+
+    /* --------------------------
+       비밀번호 초기화
+    -------------------------- */
+
     if (password) {
-      await api(`/admin/users/reset-password?username=${encodeURIComponent(username)}`, {
-        method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({password})
-      });
-      alert("닉네임 변경 + 비밀번호 초기화 완료! 기존 로그인 세션도 종료되었습니다.");
-    } else {
-      alert("닉네임이 변경되었습니다.");
+
+      await api(
+        `/admin/users/reset-password?username=${encodeURIComponent(
+          editingUsername
+        )}`,
+        {
+          method: "POST",
+
+          body:
+            JSON.stringify({
+              password
+            })
+        }
+      );
+
     }
-    closeUserModal();
-    await loadAll();
-  } catch(e) { alert(e.message); }
-}
 
-function openCharacterModalById(id) {
-  const c = characterCache[id];
-  if (!c) return alert("캐릭터 정보를 찾을 수 없습니다.");
-  document.getElementById("edit-character-id").value = c.id || "";
-  document.getElementById("edit-char-name").value = c.name || "";
-  document.getElementById("edit-char-category").value = c.category || "";
-  document.getElementById("edit-char-avatar").value = c.avatar || "";
-  document.getElementById("edit-char-tags").value = Array.isArray(c.tags) ? c.tags.join(", ") : "";
-  document.getElementById("edit-char-personality").value = c.personality || "";
-  document.getElementById("edit-char-scenario").value = c.scenario || "";
-  document.getElementById("edit-char-first").value = c.firstMessage || "";
-  const modal = document.getElementById("character-modal");
-  modal.classList.remove("hidden");
-  modal.classList.add("flex");
-}
 
-function closeCharacterModal() {
-  const modal = document.getElementById("character-modal");
-  modal.classList.add("hidden");
-  modal.classList.remove("flex");
-}
+    closeModal(
+      "user-modal"
+    );
 
-async function saveCharacterEdit() {
-  const id = document.getElementById("edit-character-id").value;
-  const character = {
-    name: document.getElementById("edit-char-name").value.trim(),
-    category: document.getElementById("edit-char-category").value.trim(),
-    avatar: document.getElementById("edit-char-avatar").value.trim(),
-    tags: document.getElementById("edit-char-tags").value.split(",").map(v=>v.trim()).filter(Boolean),
-    personality: document.getElementById("edit-char-personality").value.trim(),
-    scenario: document.getElementById("edit-char-scenario").value.trim(),
-    firstMessage: document.getElementById("edit-char-first").value.trim()
-  };
-  if (!character.name || !character.personality || !character.scenario || !character.firstMessage) {
-    return alert("이름, 성격, 시나리오, 첫 메시지는 필수입니다.");
+    await loadUsers();
+
+    showToast(
+      password
+        ? "닉네임과 비밀번호가 변경되었습니다."
+        : "닉네임이 변경되었습니다."
+    );
+
+  } catch (error) {
+
+    alert(
+      error.message
+    );
+
+  } finally {
+
+    button.disabled =
+      false;
+
+    button.innerHTML =
+      original;
   }
-  try {
-    await api(`/admin/characters?id=${encodeURIComponent(id)}`, {
-      method:"PUT", headers:{"Content-Type":"application/json"}, body:JSON.stringify({character})
-    });
-    closeCharacterModal();
-    alert("캐릭터가 수정되었습니다.");
-    await loadAll();
-  } catch(e) { alert(e.message); }
 }
 
-async function logout() {
+
+/* ============================================================
+   회원 삭제
+============================================================ */
+
+async function deleteUser(
+  username
+) {
+
+  if (
+    username ===
+    "admin"
+  ) {
+
+    alert(
+      "관리자 계정은 삭제할 수 없습니다."
+    );
+
+    return;
+  }
+
+  const user =
+    users.find(
+      u =>
+        u.username ===
+        username
+    );
+
+  const nickname =
+    user?.nickname ||
+    username;
+
+  const confirmed =
+    confirm(
+      `정말 회원 "${nickname}" (@${username})을 삭제할까요?\n\n이 작업은 되돌릴 수 없습니다.`
+    );
+
+  if (!confirmed)
+    return;
+
   try {
-    await api("/auth/logout", {method:"POST"});
-  } catch {}
-  localStorage.removeItem(TOKEN_KEY);
-  location.href = "./";
+
+    await api(
+      `/admin/users?username=${encodeURIComponent(
+        username
+      )}`,
+      {
+        method: "DELETE"
+      }
+    );
+
+    await loadUsers();
+
+    showToast(
+      "회원이 삭제되었습니다."
+    );
+
+  } catch (error) {
+
+    alert(
+      error.message
+    );
+  }
 }
 
-checkAdmin();
+
+/* ============================================================
+   캐릭터 불러오기
+============================================================ */
+
+async function loadCharacters() {
+
+  const data =
+    await api(
+      "/admin/characters"
+    );
+
+  characters =
+    Array.isArray(
+      data.characters
+    )
+      ? data.characters
+      : [];
+
+  renderCharacters();
+
+  document.getElementById(
+    "stat-characters"
+  ).textContent =
+    characters.length;
+}
+
+
+/* ============================================================
+   캐릭터 렌더링
+============================================================ */
+
+function renderCharacters() {
+
+  const tbody =
+    document.getElementById(
+      "characters-table"
+    );
+
+  if (!characters.length) {
+
+    tbody.innerHTML = `
+      <tr>
+        <td
+          colspan="5"
+          class="text-center text-white/35 py-10"
+        >
+          등록된 온라인 캐릭터가 없습니다.
+        </td>
+      </tr>
+    `;
+
+    return;
+  }
+
+  tbody.innerHTML =
+    characters.map(
+      character => {
+
+        const avatar =
+          character.avatar ||
+          "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80";
+
+        return `
+          <tr>
+
+            <td>
+
+              <div
+                class="flex items-center gap-3"
+              >
+
+                <img
+                  src="${escapeAttr(
+                    avatar
+                  )}"
+                  class="avatar"
+                  onerror="
+                    this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80'
+                  "
+                >
+
+                <div>
+
+                  <div
+                    class="font-bold"
+                  >
+                    ${escapeHtml(
+                      character.name ||
+                      "이름 없음"
+                    )}
+                  </div>
+
+                  <div
+                    class="
+                      text-[10px]
+                      text-white/30
+                      mt-1
+                    "
+                  >
+                    ${escapeHtml(
+                      character.id ||
+                      "-"
+                    )}
+                  </div>
+
+                </div>
+
+              </div>
+
+            </td>
+
+
+            <td>
+
+              <span
+                class="
+                  badge
+                  bg-purple-500/10
+                  text-purple-300
+                "
+              >
+                ${escapeHtml(
+                  character.category ||
+                  "-"
+                )}
+              </span>
+
+            </td>
+
+
+            <td>
+
+              <span
+                class="text-white/70"
+              >
+                ${escapeHtml(
+                  character.creator ||
+                  "-"
+                )}
+              </span>
+
+            </td>
+
+
+            <td>
+
+              <span
+                class="
+                  text-white/45
+                  text-xs
+                "
+              >
+                ${formatDate(
+                  character.createdAt
+                )}
+              </span>
+
+            </td>
+
+
+            <td>
+
+              <div
+                class="flex flex-wrap gap-2"
+              >
+
+                <button
+                  class="btn btn-blue"
+                  onclick="openCharacterModal(
+                    '${escapeAttr(
+                      character.id
+                    )}'
+                  )"
+                >
+                  <i
+                    class="fa-solid fa-pen"
+                  ></i>
+                  수정
+                </button>
+
+
+                <button
+                  class="btn btn-red"
+                  onclick="deleteCharacter(
+                    '${escapeAttr(
+                      character.id
+                    )}'
+                  )"
+                >
+                  <i
+                    class="fa-solid fa-trash"
+                  ></i>
+                  삭제
+                </button>
+
+              </div>
+
+            </td>
+
+          </tr>
+        `;
+      }
+    ).join("");
+}
+
+
+/* ============================================================
+   캐릭터 수정 모달
+============================================================ */
+
+function openCharacterModal(
+  id
+) {
+
+  const character =
+    characters.find(
+      c =>
+        c.id === id
+    );
+
+  if (!character)
+    return;
+
+  editingCharacterId =
+    id;
+
+  document.getElementById(
+    "character-modal-id"
+  ).textContent =
+    id;
+
+
+  document.getElementById(
+    "edit-char-name"
+  ).value =
+    character.name || "";
+
+
+  document.getElementById(
+    "edit-char-category"
+  ).value =
+    character.category || "";
+
+
+  document.getElementById(
+    "edit-char-avatar"
+  ).value =
+    character.avatar || "";
+
+
+  document.getElementById(
+    "edit-char-tags"
+  ).value =
+    Array.isArray(
+      character.tags
+    )
+      ? character.tags.join(", ")
+      : "";
+
+
+  document.getElementById(
+    "edit-char-personality"
+  ).value =
+    character.personality || "";
+
+
+  document.getElementById(
+    "edit-char-scenario"
+  ).value =
+    character.scenario || "";
+
+
+  document.getElementById(
+    "edit-char-first"
+  ).value =
+    character.firstMessage || "";
+
+
+  document.getElementById(
+    "character-modal"
+  ).classList.remove(
+    "hidden"
+  );
+}
+
+
+/* ============================================================
+   캐릭터 저장
+============================================================ */
+
+async function saveCharacter() {
+
+  if (!editingCharacterId)
+    return;
+
+  const name =
+    document.getElementById(
+      "edit-char-name"
+    ).value.trim();
+
+  const category =
+    document.getElementById(
+      "edit-char-category"
+    ).value.trim();
+
+  const avatar =
+    document.getElementById(
+      "edit-char-avatar"
+    ).value.trim();
+
+  const tagsText =
+    document.getElementById(
+      "edit-char-tags"
+    ).value;
+
+  const personality =
+    document.getElementById(
+      "edit-char-personality"
+    ).value.trim();
+
+  const scenario =
+    document.getElementById(
+      "edit-char-scenario"
+    ).value.trim();
+
+  const firstMessage =
+    document.getElementById(
+      "edit-char-first"
+    ).value.trim();
+
+
+  if (
+    !name ||
+    !personality ||
+    !scenario ||
+    !firstMessage
+  ) {
+
+    alert(
+      "캐릭터 이름, 성격, 시나리오, 첫 메시지는 필수입니다."
+    );
+
+    return;
+  }
+
+
+  const tags =
+    tagsText
+      .split(",")
+      .map(
+        tag =>
+          tag.trim()
+      )
+      .filter(Boolean)
+      .slice(0, 10);
+
+
+  const button =
+    document.getElementById(
+      "save-character-btn"
+    );
+
+  const original =
+    button.innerHTML;
+
+  button.disabled =
+    true;
+
+  button.innerHTML = `
+    <span class="loading">
+      <span class="spinner"></span>
+      저장 중...
+    </span>
+  `;
+
+
+  try {
+
+    await api(
+      `/admin/characters?id=${encodeURIComponent(
+        editingCharacterId
+      )}`,
+      {
+        method: "PUT",
+
+        body:
+          JSON.stringify({
+
+            character: {
+
+              name,
+
+              category,
+
+              avatar,
+
+              tags,
+
+              personality,
+
+              scenario,
+
+              firstMessage
+
+            }
+
+          })
+      }
+    );
+
+
+    closeModal(
+      "character-modal"
+    );
+
+    await loadCharacters();
+
+    showToast(
+      "캐릭터가 수정되었습니다."
+    );
+
+  } catch (error) {
+
+    alert(
+      error.message
+    );
+
+  } finally {
+
+    button.disabled =
+      false;
+
+    button.innerHTML =
+      original;
+  }
+}
+
+
+/* ============================================================
+   캐릭터 삭제
+============================================================ */
+
+async function deleteCharacter(
+  id
+) {
+
+  const character =
+    characters.find(
+      c =>
+        c.id === id
+    );
+
+  if (!character)
+    return;
+
+  const confirmed =
+    confirm(
+      `정말 "${character.name || "이 캐릭터"}"을 삭제할까요?\n\n이 작업은 되돌릴 수 없습니다.`
+    );
+
+  if (!confirmed)
+    return;
+
+
+  try {
+
+    await api(
+      `/admin/characters?id=${encodeURIComponent(
+        id
+      )}`,
+      {
+        method: "DELETE"
+      }
+    );
+
+
+    await loadCharacters();
+
+    showToast(
+      "캐릭터가 삭제되었습니다."
+    );
+
+  } catch (error) {
+
+    alert(
+      error.message
+    );
+  }
+}
+
+
+/* ============================================================
+   모달 닫기
+============================================================ */
+
+function closeModal(
+  id
+) {
+
+  const element =
+    document.getElementById(
+      id
+    );
+
+  if (element) {
+
+    element.classList.add(
+      "hidden"
+    );
+  }
+}
+
+
+/* ============================================================
+   HTML 보안
+============================================================ */
+
+function escapeHtml(
+  value
+) {
+
+  return String(
+    value ?? ""
+  )
+    .replaceAll(
+      "&",
+      "&amp;"
+    )
+    .replaceAll(
+      "<",
+      "&lt;"
+    )
+    .replaceAll(
+      ">",
+      "&gt;"
+    )
+    .replaceAll(
+      '"',
+      "&quot;"
+    )
+    .replaceAll(
+      "'",
+      "&#039;"
+    );
+}
+
+
+function escapeAttr(
+  value
+) {
+
+  return String(
+    value ?? ""
+  )
+    .replaceAll(
+      "\\",
+      "\\\\"
+    )
+    .replaceAll(
+      "'",
+      "\\'"
+    )
+    .replaceAll(
+      '"',
+      "&quot;"
+    )
+    .replaceAll(
+      "\n",
+      ""
+    )
+    .replaceAll(
+      "\r",
+      ""
+    );
+}
+
+
+/* ============================================================
+   전체 새로고침
+============================================================ */
+
+async function refreshAll() {
+
+  const refreshButton =
+    document.getElementById(
+      "refresh-btn"
+    );
+
+  const original =
+    refreshButton.innerHTML;
+
+  refreshButton.disabled =
+    true;
+
+  refreshButton.innerHTML = `
+    <span class="loading">
+      <span class="spinner"></span>
+      <span class="hidden sm:inline">
+        불러오는 중
+      </span>
+    </span>
+  `;
+
+
+  try {
+
+    await Promise.all([
+      loadUsers(),
+      loadCharacters()
+    ]);
+
+    showToast(
+      "관리자 데이터가 새로고침되었습니다."
+    );
+
+  } catch (error) {
+
+    console.error(
+      error
+    );
+
+    alert(
+      error.message
+    );
+
+  } finally {
+
+    refreshButton.disabled =
+      false;
+
+    refreshButton.innerHTML =
+      original;
+  }
+}
+
+
+/* ============================================================
+   초기화
+============================================================ */
+
+async function init() {
+
+  const isAdmin =
+    await checkAdmin();
+
+  if (!isAdmin)
+    return;
+
+
+  try {
+
+    await Promise.all([
+      loadUsers(),
+      loadCharacters()
+    ]);
+
+
+    document.getElementById(
+      "page-loading"
+    ).classList.add(
+      "hidden"
+    );
+
+    document.getElementById(
+      "admin-page"
+    ).classList.remove(
+      "hidden"
+    );
+
+
+  } catch (error) {
+
+    console.error(
+      error
+    );
+
+    document.getElementById(
+      "page-loading"
+    ).innerHTML = `
+      <div
+        class="text-red-400"
+      >
+        <i
+          class="fa-solid fa-triangle-exclamation"
+        ></i>
+
+        <div class="mt-2">
+          관리자 데이터를 불러오지 못했습니다.
+        </div>
+
+        <div
+          class="
+            text-xs
+            text-white/35
+            mt-2
+          "
+        >
+          ${escapeHtml(
+            error.message
+          )}
+        </div>
+
+        <button
+          onclick="location.reload()"
+          class="btn btn-purple mt-4"
+        >
+          다시 시도
+        </button>
+      </div>
+    `;
+  }
+}
+
+
+/* ============================================================
+   이벤트
+============================================================ */
+
+document
+  .getElementById(
+    "save-user-btn"
+  )
+  .addEventListener(
+    "click",
+    saveUser
+  );
+
+
+document
+  .getElementById(
+    "save-character-btn"
+  )
+  .addEventListener(
+    "click",
+    saveCharacter
+  );
+
+
+document
+  .getElementById(
+    "refresh-btn"
+  )
+  .addEventListener(
+    "click",
+    refreshAll
+  );
+
+
+document
+  .getElementById(
+    "home-btn"
+  )
+  .addEventListener(
+    "click",
+    () => {
+      location.href = "./";
+    }
+  );
+
+
+document
+  .getElementById(
+    "logout-btn"
+  )
+  .addEventListener(
+    "click",
+    async () => {
+
+      try {
+
+        await api(
+          "/auth/logout",
+          {
+            method: "POST"
+          }
+        );
+
+      } catch {
+        // 로그아웃 요청 실패해도 로컬 토큰 제거
+      }
+
+      localStorage.removeItem(
+        "zeta_session"
+      );
+
+      location.href = "./";
+    }
+  );
+
+
+/* ============================================================
+   모달 바깥 클릭
+============================================================ */
+
+document
+  .getElementById(
+    "user-modal"
+  )
+  .addEventListener(
+    "click",
+    event => {
+
+      if (
+        event.target.id ===
+        "user-modal"
+      ) {
+
+        closeModal(
+          "user-modal"
+        );
+      }
+    }
+  );
+
+
+document
+  .getElementById(
+    "character-modal"
+  )
+  .addEventListener(
+    "click",
+    event => {
+
+      if (
+        event.target.id ===
+        "character-modal"
+      ) {
+
+        closeModal(
+          "character-modal"
+        );
+      }
+    }
+  );
+
+
+/* ============================================================
+   ESC로 모달 닫기
+============================================================ */
+
+document.addEventListener(
+  "keydown",
+  event => {
+
+    if (
+      event.key ===
+      "Escape"
+    ) {
+
+      closeModal(
+        "user-modal"
+      );
+
+      closeModal(
+        "character-modal"
+      );
+    }
+  }
+);
+
+
+/* ============================================================
+   시작
+============================================================ */
+
+init();
+
 </script>
+
 </body>
 </html>
