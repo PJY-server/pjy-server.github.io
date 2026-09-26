@@ -15,6 +15,11 @@ body{font-family:Inter,"Noto Sans KR",sans-serif;background:#080b12;color:#f8faf
 .stat{background:linear-gradient(135deg,rgba(30,41,59,.9),rgba(15,23,42,.8))}
 button{transition:.18s}
 button:active{transform:scale(.97)}
+.modal-bg{background:rgba(0,0,0,.72);backdrop-filter:blur(8px)}
+.modal-card{background:#111827;border:1px solid rgba(148,163,184,.18);box-shadow:0 24px 80px rgba(0,0,0,.45)}
+.input{width:100%;background:#0b1220;border:1px solid rgba(148,163,184,.2);border-radius:12px;padding:10px 12px;color:#f8fafc;outline:none}
+.input:focus{border-color:rgba(34,211,238,.65);box-shadow:0 0 0 3px rgba(34,211,238,.08)}
+.label{display:block;font-size:12px;color:#94a3b8;margin-bottom:6px;font-weight:600}
 </style>
 </head>
 <body>
@@ -73,9 +78,38 @@ button:active{transform:scale(.97)}
 </main>
 </div>
 
+<div id="user-modal" class="hidden fixed inset-0 z-50 modal-bg items-center justify-center p-4">
+  <div class="modal-card rounded-2xl w-full max-w-md p-5">
+    <div class="flex items-center justify-between mb-5"><div><div class="text-xs text-cyan-400 font-bold">MEMBER EDIT</div><h3 class="text-lg font-extrabold">회원 정보 수정</h3></div><button onclick="closeUserModal()" class="w-9 h-9 rounded-xl bg-white/5 text-slate-400 hover:bg-white/10">✕</button></div>
+    <input id="edit-user-username" type="hidden">
+    <div class="mb-4"><label class="label">아이디</label><div id="edit-user-id" class="px-3 py-2.5 rounded-xl bg-white/[.03] text-slate-400 text-sm"></div></div>
+    <div class="mb-4"><label class="label">닉네임</label><input id="edit-user-nickname" class="input" maxlength="20"></div>
+    <div class="mb-5"><label class="label">새 비밀번호 <span class="text-slate-600">(비워두면 변경 안 함)</span></label><input id="edit-user-password" class="input" type="password" minlength="6" maxlength="100" placeholder="6자 이상"></div>
+    <div class="flex gap-2"><button onclick="closeUserModal()" class="flex-1 px-4 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-sm font-semibold">취소</button><button onclick="saveUserEdit()" class="flex-1 px-4 py-3 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-sm font-extrabold">저장</button></div>
+  </div>
+</div>
+
+<div id="character-modal" class="hidden fixed inset-0 z-50 modal-bg items-center justify-center p-4">
+  <div class="modal-card rounded-2xl w-full max-w-2xl max-h-[92vh] overflow-y-auto p-5">
+    <div class="flex items-center justify-between mb-5"><div><div class="text-xs text-cyan-400 font-bold">CHARACTER EDIT</div><h3 class="text-lg font-extrabold">캐릭터 수정</h3></div><button onclick="closeCharacterModal()" class="w-9 h-9 rounded-xl bg-white/5 text-slate-400 hover:bg-white/10">✕</button></div>
+    <input id="edit-character-id" type="hidden">
+    <div class="grid sm:grid-cols-2 gap-4">
+      <div><label class="label">캐릭터 이름</label><input id="edit-char-name" class="input" maxlength="500"></div>
+      <div><label class="label">카테고리</label><input id="edit-char-category" class="input" maxlength="500"></div>
+      <div class="sm:col-span-2"><label class="label">아바타 이미지 URL</label><input id="edit-char-avatar" class="input" maxlength="500"></div>
+      <div class="sm:col-span-2"><label class="label">태그 <span class="text-slate-600">쉼표로 구분</span></label><input id="edit-char-tags" class="input" maxlength="500"></div>
+      <div class="sm:col-span-2"><label class="label">성격</label><textarea id="edit-char-personality" class="input min-h-28 resize-y" maxlength="500"></textarea></div>
+      <div class="sm:col-span-2"><label class="label">시나리오</label><textarea id="edit-char-scenario" class="input min-h-28 resize-y" maxlength="500"></textarea></div>
+      <div class="sm:col-span-2"><label class="label">첫 메시지</label><textarea id="edit-char-first" class="input min-h-24 resize-y" maxlength="500"></textarea></div>
+    </div>
+    <div class="mt-5 flex gap-2"><button onclick="closeCharacterModal()" class="flex-1 px-4 py-3 rounded-xl bg-slate-800 hover:bg-slate-700 text-sm font-semibold">취소</button><button onclick="saveCharacterEdit()" class="flex-1 px-4 py-3 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 text-sm font-extrabold">저장</button></div>
+  </div>
+</div>
+
 <script>
 const WORKER = "https://zeta-ai.pjy-server.workers.dev";
 const TOKEN_KEY = "zeta_session";
+let characterCache = {};
 
 function token() {
   return localStorage.getItem(TOKEN_KEY);
@@ -99,6 +133,8 @@ async function api(path, options={}) {
   }
   return data;
 }
+
+function jsq(value) { return JSON.stringify(String(value ?? "")).replaceAll("\\", "\\\\").replaceAll("'", "\\'"); }
 
 function esc(value) {
   return String(value ?? "")
@@ -172,8 +208,8 @@ function renderUsers(users) {
       <td class="px-4 py-3 text-xs text-slate-500">${date(user.createdAt)}</td>
       <td class="px-4 py-3 text-right">
         ${user.username === "admin"
-          ? `<span class="text-xs text-cyan-400 font-semibold">관리자</span>`
-          : `<button onclick="deleteUser('${encodeURIComponent(user.username)}')" class="px-3 py-1.5 rounded-lg bg-red-500/10 text-red-300 text-xs hover:bg-red-500/20">삭제</button>`
+          ? `<span class="text-xs text-cyan-400 font-semibold mr-2">관리자</span><button onclick='openUserModal(${jsq(user.username)}, ${jsq(user.nickname || "")})' class="px-3 py-1.5 rounded-lg bg-cyan-500/10 text-cyan-300 text-xs hover:bg-cyan-500/20">닉네임</button>`
+          : `<button onclick='openUserModal(${jsq(user.username)}, ${jsq(user.nickname || "")})' class="px-3 py-1.5 rounded-lg bg-cyan-500/10 text-cyan-300 text-xs hover:bg-cyan-500/20 mr-1">수정</button><button onclick='deleteUser(${JSON.stringify(user.username)})' class="px-3 py-1.5 rounded-lg bg-red-500/10 text-red-300 text-xs hover:bg-red-500/20">삭제</button>`
         }
       </td>
     </tr>
@@ -189,6 +225,7 @@ function renderCharacters(chars) {
     return;
   }
 
+  characterCache = Object.fromEntries(chars.map(c => [c.id, c]));
   box.innerHTML = chars.map(c => `
     <div class="p-4 flex gap-3 items-center">
       <img src="${esc(c.avatar)}" class="w-14 h-14 rounded-xl object-cover bg-slate-800" onerror="this.style.visibility='hidden'">
@@ -199,17 +236,17 @@ function renderCharacters(chars) {
         </div>
         <div class="text-[11px] text-slate-600 mt-1">${date(c.createdAt)}</div>
       </div>
-      <button onclick="deleteCharacter('${encodeURIComponent(c.id)}')" class="shrink-0 px-3 py-2 rounded-xl bg-red-500/10 text-red-300 text-xs hover:bg-red-500/20">삭제</button>
+      <button onclick='openCharacterModalById(${jsq(c.id)})' class="shrink-0 px-3 py-2 rounded-xl bg-cyan-500/10 text-cyan-300 text-xs hover:bg-cyan-500/20 mr-1">수정</button><button onclick='deleteCharacter(${JSON.stringify(c.id)})' class="shrink-0 px-3 py-2 rounded-xl bg-red-500/10 text-red-300 text-xs hover:bg-red-500/20">삭제</button>
     </div>
   `).join("");
 }
 
 async function deleteUser(username) {
-  const name = decodeURIComponent(username);
+  const name = username;
   if (!confirm(`'${name}' 계정을 삭제할까요?\\n이 작업은 되돌릴 수 없습니다.`)) return;
 
   try {
-    await api(`/admin/users?username=${username}`, {method:"DELETE"});
+    await api(`/admin/users?username=${encodeURIComponent(username)}`, {method:"DELETE"});
     await loadAll();
   } catch(e) {
     alert(e.message);
@@ -217,15 +254,103 @@ async function deleteUser(username) {
 }
 
 async function deleteCharacter(id) {
-  const value = decodeURIComponent(id);
+  const value = id;
   if (!confirm(`이 캐릭터를 삭제할까요?\\n이 작업은 되돌릴 수 없습니다.`)) return;
 
   try {
-    await api(`/admin/characters?id=${id}`, {method:"DELETE"});
+    await api(`/admin/characters?id=${encodeURIComponent(id)}`, {method:"DELETE"});
     await loadAll();
   } catch(e) {
     alert(e.message);
   }
+}
+
+
+function openUserModal(username, nickname) {
+  document.getElementById("edit-user-username").value = username;
+  document.getElementById("edit-user-id").textContent = username;
+  document.getElementById("edit-user-nickname").value = nickname || "";
+  document.getElementById("edit-user-password").value = "";
+  const modal = document.getElementById("user-modal");
+  modal.classList.remove("hidden");
+  modal.classList.add("flex");
+}
+
+function closeUserModal() {
+  const modal = document.getElementById("user-modal");
+  modal.classList.add("hidden");
+  modal.classList.remove("flex");
+}
+
+async function saveUserEdit() {
+  const username = document.getElementById("edit-user-username").value;
+  const nickname = document.getElementById("edit-user-nickname").value.trim();
+  const password = document.getElementById("edit-user-password").value;
+  if (!nickname) return alert("닉네임을 입력해주세요.");
+  if (nickname.length > 20) return alert("닉네임은 20자 이하로 입력해주세요.");
+  if (password && password.length < 6) return alert("새 비밀번호는 6자 이상이어야 합니다.");
+
+  try {
+    await api(`/admin/users?username=${encodeURIComponent(username)}`, {
+      method:"PATCH", headers:{"Content-Type":"application/json"}, body:JSON.stringify({nickname})
+    });
+    if (password) {
+      await api(`/admin/users/reset-password?username=${encodeURIComponent(username)}`, {
+        method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({password})
+      });
+      alert("닉네임 변경 + 비밀번호 초기화 완료! 기존 로그인 세션도 종료되었습니다.");
+    } else {
+      alert("닉네임이 변경되었습니다.");
+    }
+    closeUserModal();
+    await loadAll();
+  } catch(e) { alert(e.message); }
+}
+
+function openCharacterModalById(id) {
+  const c = characterCache[id];
+  if (!c) return alert("캐릭터 정보를 찾을 수 없습니다.");
+  document.getElementById("edit-character-id").value = c.id || "";
+  document.getElementById("edit-char-name").value = c.name || "";
+  document.getElementById("edit-char-category").value = c.category || "";
+  document.getElementById("edit-char-avatar").value = c.avatar || "";
+  document.getElementById("edit-char-tags").value = Array.isArray(c.tags) ? c.tags.join(", ") : "";
+  document.getElementById("edit-char-personality").value = c.personality || "";
+  document.getElementById("edit-char-scenario").value = c.scenario || "";
+  document.getElementById("edit-char-first").value = c.firstMessage || "";
+  const modal = document.getElementById("character-modal");
+  modal.classList.remove("hidden");
+  modal.classList.add("flex");
+}
+
+function closeCharacterModal() {
+  const modal = document.getElementById("character-modal");
+  modal.classList.add("hidden");
+  modal.classList.remove("flex");
+}
+
+async function saveCharacterEdit() {
+  const id = document.getElementById("edit-character-id").value;
+  const character = {
+    name: document.getElementById("edit-char-name").value.trim(),
+    category: document.getElementById("edit-char-category").value.trim(),
+    avatar: document.getElementById("edit-char-avatar").value.trim(),
+    tags: document.getElementById("edit-char-tags").value.split(",").map(v=>v.trim()).filter(Boolean),
+    personality: document.getElementById("edit-char-personality").value.trim(),
+    scenario: document.getElementById("edit-char-scenario").value.trim(),
+    firstMessage: document.getElementById("edit-char-first").value.trim()
+  };
+  if (!character.name || !character.personality || !character.scenario || !character.firstMessage) {
+    return alert("이름, 성격, 시나리오, 첫 메시지는 필수입니다.");
+  }
+  try {
+    await api(`/admin/characters?id=${encodeURIComponent(id)}`, {
+      method:"PUT", headers:{"Content-Type":"application/json"}, body:JSON.stringify({character})
+    });
+    closeCharacterModal();
+    alert("캐릭터가 수정되었습니다.");
+    await loadAll();
+  } catch(e) { alert(e.message); }
 }
 
 async function logout() {
