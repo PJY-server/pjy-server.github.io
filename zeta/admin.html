@@ -2751,14 +2751,14 @@ init();
     sections[0].querySelector('.table-wrap')?.before(u);
 
     const c=document.createElement('div');
-    c.className='px-5 pt-4 grid grid-cols-1 md:grid-cols-2 gap-2';
-    c.innerHTML='<input id="zeta-char-search" class="input" placeholder="캐릭터 검색: 이름 또는 생성자"><select id="zeta-char-category" class="input"><option value="">모든 카테고리</option></select>';
+    c.className='px-5 pt-4 grid grid-cols-1 md:grid-cols-3 gap-2';
+    c.innerHTML='<input id="zeta-char-search" class="input" placeholder="캐릭터 검색: 이름 또는 생성자"><select id="zeta-char-category" class="input"><option value="">모든 카테고리</option></select><select id="zeta-char-creator" class="input"><option value="">모든 생성자</option></select>';
     sections[1].querySelector('.table-wrap')?.before(c);
 
-    const cat=document.getElementById('zeta-char-category');
+    const cat=document.getElementById('zeta-char-category'); const creator=document.getElementById('zeta-char-creator');
     const fillCats=()=>{
       const set=new Set((characters||[]).map(x=>x.category).filter(Boolean));
-      cat.innerHTML='<option value="">모든 카테고리</option>'+[...set].sort().map(x=>'<option>'+escapeHtml(x)+'</option>').join('');
+      cat.innerHTML='<option value="">모든 카테고리</option>'+[...set].sort().map(x=>'<option>'+escapeHtml(x)+'</option>').join(''); const creators=new Set((characters||[]).map(x=>x.creator).filter(Boolean)); creator.innerHTML='<option value="">모든 생성자</option>'+[...creators].sort().map(x=>'<option>'+escapeHtml(x)+'</option>').join('');
     };
 
     const filterUsers=()=>{
@@ -2777,7 +2777,7 @@ init();
     };
     document.getElementById('zeta-user-search').oninput=filterUsers;
     document.getElementById('zeta-char-search').oninput=filterChars;
-    cat.onchange=filterChars;
+    cat.onchange=filterChars; creator.onchange=filterChars;
 
     const oldU=window.renderUsers;
     if(typeof oldU==='function' && !window.__zetaRenderWrapped){
