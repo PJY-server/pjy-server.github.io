@@ -2905,5 +2905,31 @@ init();
 </script>
 <!-- END ZETA ADMIN SECURITY PATCH -->
 
-</body>
+
+<!-- ZETA ADMIN FINAL FIX -->
+<script>
+(function(){
+  if(window.__zetaAdminFinalFix)return;
+  window.__zetaAdminFinalFix=true;
+  function fixCharacterFilter(){
+    const q=(document.getElementById('zeta-char-search')?.value||'').toLowerCase();
+    const cat=(document.getElementById('zeta-char-category')?.value||'').toLowerCase();
+    const creator=(document.getElementById('zeta-char-creator')?.value||'').toLowerCase();
+    document.querySelectorAll('#characters-table tr').forEach(tr=>{
+      const t=(tr.textContent||'').toLowerCase();
+      tr.style.display=(!q||t.includes(q))&&(!cat||t.includes(cat))&&(!creator||t.includes(creator))?'':'none';
+    });
+  }
+  function install(){
+    document.getElementById('zeta-char-search')?.addEventListener('input',fixCharacterFilter);
+    document.getElementById('zeta-char-category')?.addEventListener('change',fixCharacterFilter);
+    document.getElementById('zeta-char-creator')?.addEventListener('change',fixCharacterFilter);
+    fixCharacterFilter();
+  }
+  window.addEventListener('load',()=>setTimeout(install,1200));
+  setInterval(install,3000);
+})();
+</script>
+<!-- END ZETA ADMIN FINAL FIX -->
+\n</body>
 </html>
