@@ -2162,5 +2162,32 @@ async function regenerateResponse(index) {
 })();
 </script>
 <!-- END ZETA FINAL SYNC PATCH -->
+\n
+<!-- ZETA VISIBILITY UI FIX -->
+<script>
+(function(){
+  if(window.__zetaVisibilityFix)return;
+  window.__zetaVisibilityFix=true;
+  function install(){
+    if(typeof window.makeModals!=='function'||window.__zetaMakeModalsWrapped)return;
+    const original=window.makeModals;
+    window.makeModals=function(){
+      original.apply(this,arguments);
+      const form=document.getElementById('zeta-editchar-form');
+      if(form&&!document.getElementById('ze-visibility')){
+        const row=document.createElement('div');
+        row.innerHTML='<label class="text-xs text-slate-400">공개 설정</label><select id="ze-visibility" class="zeta-enhance-input mt-1"><option value="public">공개</option><option value="private">비공개</option></select>';
+        const first=form.querySelector('input');
+        if(first&&first.parentElement)first.parentElement.before(row);else form.prepend(row);
+      }
+    };
+    window.__zetaMakeModalsWrapped=true;
+    window.makeModals();
+  }
+  window.addEventListener('load',()=>setTimeout(install,1200));
+  setInterval(install,2500);
+})();
+</script>
+<!-- END ZETA VISIBILITY UI FIX -->
 \n</body>
 </html>
