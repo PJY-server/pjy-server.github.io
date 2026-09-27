@@ -2231,7 +2231,7 @@ function flushDialogue(){if(!dialogue.length)return;parts.push('<div class="zeta
 for(const line of lines){const t=line.trim();if(!t){flushDialogue();continue}if(/^\*[^*]+\*$/.test(t)){flushDialogue();parts.push('<div class="zeta-rp-action"><span class="zeta-rp-action-icon"><i class="fa-solid fa-align-left"></i></span><div>'+formatInline(t)+'</div></div>')}else{dialogue.push(t)}}
 flushDialogue();return parts.join('')
 }
-window.renderChatMessages=function(){if(!window.currentChatCharacter)return;const container=document.getElementById('chat-messages-container');if(!container)return;const history=window.chatHistories?.[window.currentChatCharacter.id]||[];container.innerHTML=history.map(msg=>{if(msg.sender==='user')return '<div class="zeta-rp-message zeta-rp-user"><div class="zeta-rp-bubble">'+formatInline(msg.text)+'</div></div>';return '<div class="zeta-rp-message">'+renderRoleplay(msg.text)+'</div>'}).join('');container.scrollTop=container.scrollHeight};
+window.renderChatMessages=function(){if(!currentChatCharacter)return;const container=document.getElementById('chat-messages-container');if(!container)return;const history=chatHistories?.[currentChatCharacter.id]||[];container.innerHTML=history.map(msg=>{if(msg.sender==='user')return '<div class="zeta-rp-message zeta-rp-user"><div class="zeta-rp-bubble">'+formatInline(msg.text)+'</div></div>';return '<div class="zeta-rp-message">'+renderRoleplay(msg.text)+'</div>'}).join('');container.scrollTop=container.scrollHeight};
 window.addEventListener('load',function(){setTimeout(function(){if(typeof window.renderChatMessages==='function')window.renderChatMessages()},700)});
 })();
 </script>
