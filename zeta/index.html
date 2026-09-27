@@ -2103,5 +2103,74 @@ async function regenerateResponse(index) {
 </script>
 <!-- ===== END ZETA 5-FEATURE ENHANCEMENT LAYER ===== -->
 
-</body>
+
+<!-- ZETA FINAL SYNC PATCH -->
+<script>
+(function(){
+  if(window.__zetaFinalSyncPatch)return;
+  window.__zetaFinalSyncPatch=true;
+  const API='https://zeta-ai.pjy-server.workers.dev';
+  const token=()=>localStorage.getItem('zeta_session')||'';
+  async function api(path,options={}){
+    const headers=Object.assign({'Content-Type':'application/json'},options.headers||{});
+    if(token()) headers.Authorization='Bearer '+token();
+    const r=await fetch(API+path,Object.assign({},options,{headers}));
+    const d=await r.json().catch(()=>({}));
+    if(!r.ok) throw new Error(d.error||('요청 실패: '+r.status));
+    return d;
+  }
+
+  function scheduleSync(){
+    if(!token()||!window.currentChatCharacter)return;
+    const id=window.currentChatCharacter.id;
+    const all=window.chatHistories||{};
+    const messages=all[id]||[];
+    api('/chats?characterId='+encodeURIComponent(id),{method:'POST',body:JSON.stringify({messages})}).catch(()=>{});
+  }
+
+  function install(){
+    if(typeof window.startChatWithCharacter==='function'&&!window.__zetaStartChatWrapped){
+      const originalStart=window.startChatWithCharacter;
+      window.startChatWithCharacter=async function(id){
+        originalStart.apply(this,arguments);
+        if(!token())return;
+        try{
+          const data=await api('/chats?characterId='+encodeURIComponent(id));
+          if(Array.isArray(data.messages)&&data.messages.length){
+            if(!window.chatHistories)window.chatHistories={};
+            window.chatHistories[id]=data.messages;
+            if(typeof window.saveToLocalStorage==='function')window.saveToLocalStorage();
+            if(typeof window.renderChatMessages==='function')window.renderChatMessages();
+          }
+        }catch(e){console.warn('서버 대화 기록 불러오기 실패:',e);}
+      };
+      window.__zetaStartChatWrapped=true;
+    }
+    if(typeof window.saveToLocalStorage==='function'&&!window.__zetaSaveWrapped){
+      const originalSave=window.saveToLocalStorage;
+      window.saveToLocalStorage=function(){
+        originalSave.apply(this,arguments);
+        clearTimeout(window.__zetaSaveTimer);
+        window.__zetaSaveTimer=setTimeout(scheduleSync,350);
+      };
+      window.__zetaSaveWrapped=true;
+    }
+    if(typeof window.clearAllChats==='function'&&!window.__zetaClearWrapped){
+      const originalClear=window.clearAllChats;
+      window.clearAllChats=function(){
+        originalClear.apply(this,arguments);
+        // 현재 화면의 캐릭터 기록은 로컬 초기화와 함께 서버에서도 제거
+        if(token()&&window.currentChatCharacter){
+          api('/chats?characterId='+encodeURIComponent(window.currentChatCharacter.id),{method:'DELETE'}).catch(()=>{});
+        }
+      };
+      window.__zetaClearWrapped=true;
+    }
+  }
+  window.addEventListener('load',()=>setTimeout(install,1800));
+  setInterval(install,2500);
+})();
+</script>
+<!-- END ZETA FINAL SYNC PATCH -->
+\n</body>
 </html>
