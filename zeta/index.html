@@ -2382,5 +2382,41 @@ window.addEventListener('load',function(){setTimeout(function(){if(typeof window
 </script>
 <!-- END ZETA MATURE PROFILE GATE -->
 
+<!-- ZETA MATURE ACCESS GUARD -->
+<script>
+(function(){
+  function blocked(id){
+    const c=(Array.isArray(window.characters)?window.characters:[]).find(x=>x.id===id);
+    return c?.mature && !(typeof window.isZetaMatureUnlocked==='function' && window.isZetaMatureUnlocked());
+  }
+  function install(){
+    if(window.__zetaMatureAccessGuard)return;
+    if(typeof window.openCharacterDetailModal==='function'){
+      const originalDetail=window.openCharacterDetailModal;
+      window.openCharacterDetailModal=function(id){
+        if(blocked(id)){
+          if(typeof window.openZetaProfileSettings==='function')window.openZetaProfileSettings();
+          return;
+        }
+        return originalDetail.apply(this,arguments);
+      };
+    }
+    if(typeof window.startChatWithCharacter==='function'){
+      const originalChat=window.startChatWithCharacter;
+      window.startChatWithCharacter=function(id){
+        if(blocked(id)){
+          if(typeof window.openZetaProfileSettings==='function')window.openZetaProfileSettings();
+          return;
+        }
+        return originalChat.apply(this,arguments);
+      };
+    }
+    window.__zetaMatureAccessGuard=true;
+  }
+  window.addEventListener('load',()=>setTimeout(install,1200));
+  setInterval(install,2500);
+})();
+</script>
+<!-- END ZETA MATURE ACCESS GUARD -->
 </body>
 </html>
