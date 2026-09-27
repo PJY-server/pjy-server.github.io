@@ -1228,8 +1228,7 @@
         const matchesSearch = c.name.toLowerCase().includes(searchVal) ||
                               c.tags.some(t => t.toLowerCase().includes(searchVal)) ||
                               c.personality.toLowerCase().includes(searchVal);
-        const matureVisible = !c.mature || (typeof window.isZetaMatureUnlocked === 'function' && window.isZetaMatureUnlocked());
-        return matchesCategory && matchesSearch && matureVisible;
+        return matchesCategory && matchesSearch;
       });
 
       // Update count badge
@@ -1245,7 +1244,6 @@
 
       if (showTrending) {
         const trendingList = [...uniqueCharacters]
-          .filter(c => !c.mature || (typeof window.isZetaMatureUnlocked === 'function' && window.isZetaMatureUnlocked()))
           .sort((a,b) => parseFloat(b.chatCount) - parseFloat(a.chatCount))
           .slice(0, 6);
 
@@ -1886,10 +1884,7 @@ async function regenerateResponse(index) {
       box.innerHTML = `
         <div class="text-xs font-semibold text-white truncate">${escapeHtml(currentUser.nickname || currentUser.username)}</div>
         <div class="text-[10px] text-zeta-textMuted truncate">@${escapeHtml(currentUser.username)}</div>
-        <div class="mt-2 flex items-center gap-3">
-          <button onclick="openZetaProfileSettings()" class="text-[10px] text-purple-300 hover:text-white">프로필 설정</button>
-          <button onclick="logoutZeta()" class="text-[10px] text-red-400 hover:text-red-300">로그아웃</button>
-        </div>
+        <button onclick="logoutZeta()" class="mt-2 text-[10px] text-red-400 hover:text-red-300">로그아웃</button>
       `;
       footer.prepend(box);
     }
@@ -2344,81 +2339,8 @@ window.addEventListener('load',function(){setTimeout(function(){if(typeof window
 <!-- END ZETA ROLEPLAY CHAT DISPLAY -->
 
 
-<!-- ZETA MATURE PROFILE GATE -->
-<style id="zeta-mature-gate-style">
-.zeta-mature-modal{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,.82);backdrop-filter:blur(14px);display:flex;align-items:center;justify-content:center;padding:18px}
-.zeta-mature-modal.hidden{display:none!important}
-.zeta-mature-card{width:min(430px,100%);background:#111421;border:1px solid rgba(168,85,247,.28);border-radius:22px;padding:22px;box-shadow:0 30px 100px rgba(0,0,0,.65)}
-.zeta-mature-input{width:100%;background:#080a11;border:1px solid rgba(255,255,255,.12);border-radius:12px;color:#fff;padding:12px;outline:none}
-.zeta-mature-input:focus{border-color:rgba(168,85,247,.75)}
-</style>
-<script id="zeta-mature-gate-script">
-(function(){
-  const MATURE_PASSWORD_HASH='fe5f019ca5f0063fd380220b1a372921dbbe6711accc3824daaa8bcdc627259d';
-  function key(){return 'zeta_mature_unlocked_'+(window.currentUser?.username||'guest')}
-  async function sha256(v){const data=new TextEncoder().encode(v);const hash=await crypto.subtle.digest('SHA-256',data);return Array.from(new Uint8Array(hash)).map(b=>b.toString(16).padStart(2,'0')).join('')}
-  window.isZetaMatureUnlocked=function(){return localStorage.getItem(key())==='1'};
-  window.openZetaProfileSettings=function(){
-    let modal=document.getElementById('zeta-profile-settings-modal');
-    if(!modal){
-      modal=document.createElement('div'); modal.id='zeta-profile-settings-modal'; modal.className='zeta-mature-modal';
-      modal.innerHTML='<div class="zeta-mature-card"><div class="flex items-center gap-3 mb-4"><div class="w-10 h-10 rounded-xl bg-purple-600/20 border border-purple-500/30 flex items-center justify-center text-purple-300"><i class="fa-solid fa-user-gear"></i></div><div><h3 class="text-lg font-bold text-white">프로필 설정</h3><p class="text-xs text-zeta-textMuted">ZETA 개인 설정</p></div></div><div class="rounded-xl bg-purple-950/20 border border-purple-500/20 p-3 mb-4 text-xs text-gray-300 leading-relaxed"><b class="text-purple-300">성인용 로맨스 캐릭터</b><br>비노골적인 성인 로맨스 캐릭터를 표시하려면 잠금을 해제하세요.</div><label class="block text-xs text-gray-300 mb-2">19+ Unlock 비밀번호</label><input id="zeta-mature-password" class="zeta-mature-input" type="password" autocomplete="off" placeholder="비밀번호 입력"><p id="zeta-mature-message" class="text-xs min-h-[18px] mt-2 text-red-400"></p><div class="flex items-center justify-between mt-4"><button onclick="closeZetaProfileSettings()" class="px-4 py-2 rounded-xl text-xs text-gray-400 hover:text-white">닫기</button><button onclick="unlockZetaMature()" class="px-5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold">잠금 해제</button></div></div>';
-      document.body.appendChild(modal);
-    }
-    document.getElementById('zeta-mature-password').value='';
-    const msg=document.getElementById('zeta-mature-message');
-    msg.textContent=window.isZetaMatureUnlocked()?'잠금 해제 상태입니다.':'';
-    msg.className='text-xs min-h-[18px] mt-2 '+(window.isZetaMatureUnlocked()?'text-emerald-400':'text-red-400');
-    modal.classList.remove('hidden');
-  };
-  window.closeZetaProfileSettings=function(){document.getElementById('zeta-profile-settings-modal')?.classList.add('hidden')};
-  window.unlockZetaMature=async function(){
-    const input=document.getElementById('zeta-mature-password'),msg=document.getElementById('zeta-mature-message');
-    if((await sha256(input.value))!==MATURE_PASSWORD_HASH){msg.textContent='비밀번호가 올바르지 않습니다.';return}
-    localStorage.setItem(key(),'1'); msg.textContent='잠금이 해제되었습니다.'; msg.className='text-xs min-h-[18px] mt-2 text-emerald-400';
-    setTimeout(()=>{closeZetaProfileSettings();if(typeof renderCharacters==='function')renderCharacters()},350);
-  };
-  window.lockZetaMature=function(){localStorage.removeItem(key());if(typeof renderCharacters==='function')renderCharacters()};
-  window.addEventListener('load',()=>setTimeout(()=>{if(typeof renderCharacters==='function')renderCharacters()},900));
-})();
-</script>
-<!-- END ZETA MATURE PROFILE GATE -->
 
-<!-- ZETA MATURE ACCESS GUARD -->
-<script>
-(function(){
-  function blocked(id){
-    const c=(Array.isArray(window.characters)?window.characters:[]).find(x=>x.id===id);
-    return c?.mature && !(typeof window.isZetaMatureUnlocked==='function' && window.isZetaMatureUnlocked());
-  }
-  function install(){
-    if(window.__zetaMatureAccessGuard)return;
-    if(typeof window.openCharacterDetailModal==='function'){
-      const originalDetail=window.openCharacterDetailModal;
-      window.openCharacterDetailModal=function(id){
-        if(blocked(id)){
-          if(typeof window.openZetaProfileSettings==='function')window.openZetaProfileSettings();
-          return;
-        }
-        return originalDetail.apply(this,arguments);
-      };
-    }
-    if(typeof window.startChatWithCharacter==='function'){
-      const originalChat=window.startChatWithCharacter;
-      window.startChatWithCharacter=function(id){
-        if(blocked(id)){
-          if(typeof window.openZetaProfileSettings==='function')window.openZetaProfileSettings();
-          return;
-        }
-        return originalChat.apply(this,arguments);
-      };
-    }
-    window.__zetaMatureAccessGuard=true;
-  }
-  window.addEventListener('load',()=>setTimeout(install,1200));
-  setInterval(install,2500);
-})();
-</script>
-<!-- END ZETA MATURE ACCESS GUARD -->
+
+
 </body>
 </html>
