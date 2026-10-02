@@ -46,7 +46,7 @@ export default {
   if(request.method==="OPTIONS")return new Response(null,{status:204,headers});
   if(origin&&!ALLOWED_ORIGINS.has(origin))return withCors(fail("허용되지 않은 출처입니다.",403),headers);
   try {
-   const url=new URL(request.url),path=url.pathname.replace(/\\/+$/,"")||"/",method=request.method;
+   const url=new URL(request.url),path=url.pathname.replace(/\/+$/,"")||"/",method=request.method;
    if(path==="/health"&&method==="GET")return withCors(json({ok:true,service:"FriendsChat Cloudflare API"}),headers);
 
    if(path==="/auth/signup"&&method==="POST") {
@@ -121,7 +121,7 @@ export default {
     await env.DB.batch(found.results.map(u=>env.DB.prepare("INSERT INTO chat_members(room_id,user_id,joined_at) VALUES(?,?,?)").bind(id,u.id,now)));
     return withCors(json({room:{id,name:roomName,is_group:group,created_by:current.id,created_at:now}},201),headers);
    }
-   const mm=path.match(/^\\/rooms\\/([^/]+)\\/messages$/);
+   const mm=path.match(/^\/rooms\/([^/]+)\/messages$/);
    if(mm&&method==="GET") {
     const room=mm[1];if(!(await isMember(env,room,current.id)))return withCors(fail("이 대화방에 접근할 수 없습니다.",403),headers);
     const limit=Math.min(100,Math.max(1,Number(url.searchParams.get("limit")||50)));
@@ -136,24 +136,24 @@ export default {
     const id=crypto.randomUUID(),now=new Date().toISOString();await env.DB.prepare("INSERT INTO messages(id,room_id,sender_id,content,message_type,created_at) VALUES(?,?,?,?,?,?)").bind(id,room,current.id,content,"text",now).run();
     return withCors(json({message:{id,room_id:room,sender_id:current.id,sender_username:current.username,sender_name:current.display_name,content,message_type:"text",created_at:now,files:[]}},201),headers);
    }
-   const read=path.match(/^\\/rooms\\/([^/]+)\\/read$/);
+   const read=path.match(/^\/rooms\/([^/]+)\/read$/);
    if(read&&method==="POST") {
     const room=read[1];if(!(await isMember(env,room,current.id)))return withCors(fail("이 대화방에 접근할 수 없습니다.",403),headers);
     await env.DB.prepare("INSERT OR IGNORE INTO message_reads(message_id,user_id,read_at) SELECT id,?,? FROM messages WHERE room_id=? AND sender_id<>? AND deleted_at IS NULL").bind(current.id,new Date().toISOString(),room,current.id).run();
     return withCors(json({ok:true}),headers);
    }
-   const up=path.match(/^\\/rooms\\/([^/]+)\\/files$/);
+   const up=path.match(/^\/rooms\/([^/]+)\/files$/);
    if(up&&method==="POST") {
     const room=up[1];if(!(await isMember(env,room,current.id)))return withCors(fail("이 대화방에 접근할 수 없습니다.",403),headers);if(!env.FILES)return withCors(fail("R2 파일 저장소가 설정되지 않았습니다.",503),headers);
     const form=await request.formData(),file=form.get("file"),messageId=String(form.get("message_id")||"");
     if(!(file instanceof File))return withCors(fail("파일을 선택하세요."),headers);if(file.size>MAX_UPLOAD_BYTES)return withCors(fail("파일은 20MB 이하만 업로드할 수 있습니다."),headers);
     if(messageId&&!await env.DB.prepare("SELECT id FROM messages WHERE id=? AND room_id=? AND sender_id=?").bind(messageId,room,current.id).first())return withCors(fail("첨부할 메시지를 찾을 수 없습니다."),headers);
-    const id=crypto.randomUUID(),name=file.name.replace(/[\\\\/\\r\\n"]/g,"_").slice(0,180)||"file",key=room+"/"+id,mime=file.type||"application/octet-stream";
+    const id=crypto.randomUUID(),name=file.name.replace(/[\r\n"]/g,"_").slice(0,180)||"file",key=room+"/"+id,mime=file.type||"application/octet-stream";
     await env.FILES.put(key,file.stream(),{httpMetadata:{contentType:mime},customMetadata:{originalName:name}});
     await env.DB.prepare("INSERT INTO file_attachments(id,room_id,message_id,uploader_id,object_key,file_name,mime_type,size_bytes,created_at) VALUES(?,?,?,?,?,?,?,?,?)").bind(id,room,messageId||null,current.id,key,name,mime,file.size,new Date().toISOString()).run();
     return withCors(json({file:{id,room_id:room,message_id:messageId||null,file_name:name,mime_type:mime,size_bytes:file.size}},201),headers);
    }
-   const fm=path.match(/^\\/files\\/([^/]+)$/);
+   const fm=path.match(/^\/files\/([^/]+)$/);
    if(fm&&method==="GET") {
     const f=await env.DB.prepare("SELECT * FROM file_attachments WHERE id=?").bind(fm[1]).first();if(!f||!(await isMember(env,f.room_id,current.id)))return withCors(fail("파일을 찾을 수 없습니다.",404),headers);
     const obj=await env.FILES.get(f.object_key);if(!obj)return withCors(fail("파일이 존재하지 않습니다.",404),headers);
@@ -163,7 +163,7 @@ export default {
     const a=await requireAdmin(request,env);if(a.error)return withCors(a.error,headers);
     const rows=await env.DB.prepare("SELECT id,username,display_name,status,last_seen,is_admin,created_at FROM users ORDER BY created_at DESC LIMIT 500").all();return withCors(json({users:(rows.results||[]).map(cleanUser)}),headers);
    }
-   const adm=path.match(/^\\/admin\\/users\\/([^/]+)\\/admin$/);
+   const adm=path.match(/^\/admin\/users\/([^/]+)\/admin$/);
    if(adm&&method==="PATCH") {
     const a=await requireAdmin(request,env);if(a.error)return withCors(a.error,headers);const b=await readJson(request),target=await env.DB.prepare("SELECT id FROM users WHERE id=?").bind(adm[1]).first();
     if(!target)return withCors(fail("회원을 찾을 수 없습니다.",404),headers);if(target.id===a.user.id)return withCors(fail("자기 자신의 관리자 권한은 여기서 변경할 수 없습니다."),headers);
