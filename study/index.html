@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#2563eb">
+<title>Study 수학 연구소</title>
+<style>
+:root{--blue:#2563eb;--blue2:#dbeafe;--ink:#172033;--muted:#64748b;--line:#e2e8f0;--bg:#f5f7fb;--card:#fff;--green:#16a34a}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}button,input,select{font:inherit}button{cursor:pointer;border:0;border-radius:12px;padding:11px 15px;font-weight:750;transition:.15s}button:active{transform:scale(.98)}.primary{background:var(--blue);color:#fff}.secondary{background:#eef2ff;color:#1d4ed8}.quiet{background:#f1f5f9;color:#334155}.danger{background:#fee2e2;color:#b91c1c}
+header{background:linear-gradient(120deg,#1d4ed8,#3b82f6);color:#fff;padding:25px 20px 32px}header .top{max-width:1120px;margin:auto;display:flex;justify-content:space-between;align-items:center;gap:12px}header .brand{font-size:13px;font-weight:850;letter-spacing:.12em;opacity:.85}header h1{font-size:clamp(27px,4vw,40px);margin:10px 0 7px;letter-spacing:-.04em}header p{margin:0;color:#dbeafe}.pill{font-size:12px;padding:7px 10px;border:1px solid #ffffff60;border-radius:99px;white-space:nowrap}
+main{max-width:1120px;margin:-14px auto 60px;padding:0 18px}.tabs{display:flex;gap:8px;flex-wrap:wrap;background:var(--card);padding:10px;border-radius:16px;box-shadow:0 8px 24px #0f172a0d;margin-bottom:18px}.tab{background:transparent;color:var(--muted)}.tab.active{background:var(--blue2);color:#1d4ed8}
+.layout{display:grid;grid-template-columns:300px minmax(0,1fr);gap:18px}.panel,.workarea{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px;box-shadow:0 3px 10px #0f172a05}.panel h2,.workarea h2{margin:0 0 16px;font-size:19px;letter-spacing:-.02em}.field{margin-bottom:16px}.field label{display:block;font-weight:750;font-size:13px;margin-bottom:7px}.field select,.field input[type=number],.field input[type=search]{width:100%;border:1px solid #cbd5e1;border-radius:10px;padding:11px;background:#fff;color:var(--ink)}.hint{font-size:12px;line-height:1.6;color:var(--muted)}.row{display:flex;gap:9px;flex-wrap:wrap}.row>*{flex:1}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:18px}.stat{background:#f8fafc;border:1px solid var(--line);border-radius:13px;padding:13px}.stat b{display:block;font-size:23px}.stat span{font-size:12px;color:var(--muted)}.empty{border:1px dashed #cbd5e1;border-radius:15px;padding:36px 20px;text-align:center;color:var(--muted)}.empty .emoji{font-size:36px;margin-bottom:10px}.question{border:1px solid var(--line);border-radius:14px;padding:16px;margin:12px 0;background:#fff}.qtop{display:flex;justify-content:space-between;gap:10px;color:var(--muted);font-size:12px;margin-bottom:12px}.qtext{font-size:19px;font-weight:750;line-height:1.65;white-space:pre-wrap;overflow-wrap:anywhere}.answer{display:none;margin-top:12px;padding:11px 12px;background:#f0fdf4;border-radius:10px;color:#166534;font-weight:700}.answer.show{display:block}.qactions{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}.qactions button{padding:8px 11px;font-size:12px}.section{display:none}.section.active{display:block}.notice{padding:13px 14px;background:#eff6ff;border:1px solid #bfdbfe;border-radius:12px;font-size:13px;line-height:1.65;color:#1e40af;margin-bottom:16px}.warning{background:#fff7ed;border-color:#fed7aa;color:#9a3412}.source-tag{display:inline-block;font-size:11px;background:#f1f5f9;color:#475569;padding:4px 7px;border-radius:6px}.filebox{border:1px dashed #94a3b8;border-radius:13px;padding:20px;text-align:center;background:#f8fafc}.searchrow{display:flex;gap:8px;margin-bottom:12px}.searchrow input{flex:1;min-width:0;border:1px solid #cbd5e1;border-radius:10px;padding:11px}.footer{text-align:center;color:#94a3b8;font-size:12px;margin:22px 0}.hidden{display:none!important}
+@media(max-width:780px){.layout{grid-template-columns:1fr}.panel{order:1}.workarea{order:2}.stats{gap:7px}.stat{padding:10px}.stat b{font-size:19px}header .top{align-items:flex-start}header .pill{font-size:10px}.panel,.workarea{padding:16px}}
+@media print{body{background:#fff}header,.tabs,.panel,.no-print,.footer,.stats{display:none!important}main{margin:0;padding:0;max-width:none}.layout{display:block}.workarea{border:0;box-shadow:none;padding:0}.section{display:none!important}#worksheet.section.active{display:block!important}.question{break-inside:avoid;border:0;border-bottom:1px solid #ddd;border-radius:0;padding:14px 0}.answer{display:none!important}.qactions{display:none!important}.qtext{font-size:16px}.print-title{display:block!important}}
+.print-title{display:none}
+</style>
+</head>
+<body>
+<header><div class="top"><div><div class="brand">PJY STUDY LAB</div><h1>수학 연구소 <span style="font-weight:400">✦</span></h1><p>문제를 만들고, 풀고, 나만의 시험지로 정리해 봐.</p></div><div class="pill">STUDY · BETA</div></div></header>
+<main>
+<nav class="tabs no-print" aria-label="기능 선택">
+<button class="tab active" data-tab="practice">🧠 문제 풀기</button>
+<button class="tab" data-tab="worksheet">📝 시험지 만들기</button>
+<button class="tab" data-tab="bank">📚 문제 자료실</button>
+</nav>
+<div class="layout">
+<aside class="panel no-print">
+<h2>문제 설정</h2>
+<div class="field"><label for="topic">수학 영역</label><select id="topic"><option value="mixed">종합 연습</option><option value="arithmetic">사칙연산</option><option value="fraction">분수</option><option value="decimal">소수</option><option value="equation">규칙과 방정식</option><option value="geometry">도형·측정</option></select></div>
+<div class="field"><label for="level">난이도</label><select id="level"><option value="1">기초</option><option value="2" selected>보통</option><option value="3">도전</option></select></div>
+<div class="field"><label for="count">문제 수</label><select id="count"><option>5</option><option selected>10</option><option>15</option><option>20</option><option>30</option></select></div>
+<div class="field"><label for="seed">이름 (시험지에 표시)</label><input id="seed" type="text" placeholder="이름을 입력해도 돼"></div>
+<button class="primary" id="generate" style="width:100%">✨ 새 문제 만들기</button>
+<div style="height:10px"></div><button class="quiet" id="reset" style="width:100%">초기화</button>
+<hr style="border:0;border-top:1px solid var(--line);margin:20px 0">
+<div class="hint"><b>문제 출처 안내</b><br>직접 생성한 연습 문제와 업로드한 자료를 구분해 표시해. AI-Hub 키를 웹페이지에 직접 넣지는 않아.</div>
+</aside>
+<div class="workarea">
+<section class="section active" id="practice">
+<div class="stats"><div class="stat"><b id="statCount">0</b><span>현재 문제</span></div><div class="stat"><b id="statDone">0</b><span>확인한 정답</span></div><div class="stat"><b id="statScore">—</b><span>정답률</span></div></div>
+<div class="row no-print" style="margin-bottom:12px"><button class="secondary" id="showAll">정답 모두 보기</button><button class="quiet" id="hideAll">정답 숨기기</button></div>
+<div id="practiceList"><div class="empty"><div class="emoji">✏️</div><b>아직 문제가 없어!</b><p>왼쪽에서 조건을 정하고<br>‘새 문제 만들기’를 눌러 봐.</p></div></div>
+</section>
+<section class="section" id="worksheet">
+<div class="print-title"><h1>수학 시험지</h1><p id="printMeta"></p><hr></div>
+<div class="row no-print" style="margin-bottom:16px"><button class="primary" id="printBtn">🖨️ 인쇄 / PDF 저장</button><button class="secondary" id="copyBtn">문제 텍스트 복사</button><button class="quiet" id="answersBtn">정답지 보기</button></div>
+<div id="worksheetList"><div class="empty"><div class="emoji">📝</div><b>시험지를 만들 준비가 됐어.</b><p>왼쪽에서 문제를 생성하면 이곳에 시험지가 나타나.</p></div></div>
+<div id="answerKey" class="hidden"></div>
+</section>
+<section class="section" id="bank">
+<div class="notice warning"><b>AI-Hub 연동 관련 안내</b><br>공식 AI-Hub 오픈 API 키는 주로 데이터셋 조회·다운로드 도구(aihubShell/MCP)에 사용돼. 웹페이지에서 바로 수학 문제를 검색하는 일반적인 실시간 문제 API와는 달라. 데이터셋 이용 승인 및 실제 파일 형식 확인이 필요해.</div>
+<div class="notice">AI-Hub에서 내려받은 문제 데이터(JSON 또는 CSV)가 있다면 아래에서 불러와 검색할 수 있어. 파일은 이 브라우저 안에서만 처리되며 서버로 업로드되지 않아.</div>
+<div class="filebox"><div style="font-size:30px">📂</div><b>수학 문제 파일 불러오기</b><p class="hint">JSON 또는 CSV · 파일은 브라우저에서만 읽어</p><input id="fileInput" type="file" accept=".json,.csv,.txt" style="max-width:100%"></div>
+<div style="height:18px"></div><div class="searchrow"><input id="bankSearch" type="search" placeholder="불러온 문제에서 검색"><button class="primary" id="searchBank">검색</button></div>
+<div class="row" style="margin-bottom:14px"><button class="quiet" id="showImported">불러온 문제 전체 보기</button><button class="quiet" id="downloadSample">샘플 JSON 형식</button></div>
+<div class="hint" id="bankStatus" style="margin-bottom:12px">불러온 자료가 없어. 파일을 선택하면 문제 목록이 여기에 표시돼.</div>
+<div id="bankList"></div>
+</section>
+</div>
+</div>
+<div class="footer">PJY STUDY LAB · 학습용 문제 생성 도구</div>
+</main>
+<script>
+const $=s=>document.querySelector(s);
+let questions=[], imported=[], importedView=[];
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const rnd=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const gcd=(a,b)=>b?gcd(b,a%b):a;
+const frac=(n,d)=>{const g=gcd(n,d);return (n/g)+'/'+(d/g)};
+function makeQ(topic,level){
+ if(topic==='mixed') topic=['arithmetic','fraction','decimal','equation','geometry'][rnd(0,4)];
+ let a,b,ans,text,unit='';
+ if(topic==='arithmetic'){
+  const max=level===1?20:level===2?100:999;
+  a=rnd(2,max);b=rnd(2,max);
+  const op=['+','−','×',...(level>1?['÷']:[])][rnd(0,level===1?1:level===2?2:3)];
+  if(op==='+'){ans=a+b;text=`${a} + ${b} = □`;}
+  else if(op==='−'){if(a<b)[a,b]=[b,a];ans=a-b;text=`${a} − ${b} = □`;}
+  else if(op==='×'){a=rnd(2,level===1?9:level===2?12:30);b=rnd(2,level===1?9:level===2?12:30);ans=a*b;text=`${a} × ${b} = □`;}
+  else{b=rnd(2,level===2?12:25);ans=rnd(2,level===2?12:25);a=b*ans;text=`${a} ÷ ${b} = □`;}
+ }else if(topic==='fraction'){
+  const d1=rnd(2,level===1?8:12),d2=rnd(2,level===1?8:12),n1=rnd(1,d1-1),n2=rnd(1,d2-1),op=rnd(0,1)?'+':'−';
+  let n,d;if(op==='+'){n=n1*d2+n2*d1;d=d1*d2}else{n=n1*d2-n2*d1;d=d1*d2;if(n<0){n=-n;}}
+  ans=frac(n,d);text=`${n1}/${d1} ${op} ${n2}/${d2} = □ (기약분수)`;
+ }else if(topic==='decimal'){
+  const x=rnd(1,level===1?99:999)/10,y=rnd(1,level===1?99:999)/10,op=rnd(0,1)?'+':'−';
+  const xx=Math.round(x*10),yy=Math.round(y*10);let n=op==='+'?xx+yy:Math.abs(xx-yy);
+  ans=(n/10).toFixed(1);text=op==='+'?`${x.toFixed(1)} + ${y.toFixed(1)} = □`:`${Math.max(x,y).toFixed(1)} − ${Math.min(x,y).toFixed(1)} = □`;
+ }else if(topic==='equation'){
+  a=rnd(2,level===1?20:100);b=rnd(2,level===1?15:50);const x=rnd(2,level===1?20:100);const mode=rnd(0,2);
+  if(mode===0){ans=x;text=`□ + ${a} = ${x+a} 일 때, □ 안에 알맞은 수는?`;}
+  else if(mode===1){ans=x;text=`${x+a} − □ = ${a} 일 때, □ 안에 알맞은 수는?`;}
+  else{ans=x;text=`어떤 수에 ${a}를 곱했더니 ${a*x}가 됐어. 어떤 수일까?`;}
+ }else{
+  const shape=['정사각형','직사각형'][rnd(0,1)];
+  if(shape==='정사각형'){a=rnd(2,level===1?10:30);ans=`넓이 ${a*a}㎠, 둘레 ${a*4}㎝`;text=`한 변이 ${a}㎝인 정사각형의 넓이와 둘레를 구해 봐.`;}
+  else{a=rnd(2,level===1?10:30);b=rnd(2,level===1?10:30);ans=`넓이 ${a*b}㎠, 둘레 ${2*(a+b)}㎝`;text=`가로 ${a}㎝, 세로 ${b}㎝인 직사각형의 넓이와 둘레를 구해 봐.`;}
+ }
+ return {text,answer:String(ans),topic:topicLabel(topic),source:'직접 생성',id:crypto.randomUUID?.()||String(Math.random())};
+}
+function topicLabel(t){return ({arithmetic:'사칙연산',fraction:'분수',decimal:'소수',equation:'규칙과 방정식',geometry:'도형·측정',mixed:'종합'})[t]||t}
+function makeQuestions(){const n=Number($('#count').value),t=$('#topic').value,l=Number($('#level').value);questions=Array.from({length:n},()=>makeQ(t,l));renderQuestions();renderWorksheet();$('#answerKey').classList.add('hidden');$('#statDone').textContent='0';$('#statScore').textContent='—';}
+function questionHTML(q,i,withActions=true){return `<article class="question"><div class="qtop"><span>문제 ${i+1} · ${esc(q.topic||'수학')}</span><span class="source-tag">${esc(q.source||'문제 자료')}</span></div><div class="qtext">${esc(q.text||q.question||q.content||'문제 내용 없음')}</div><div class="answer" id="ans-${i}">정답: ${esc(q.answer??q.answers??'자료에 정답이 포함되어 있지 않아')}</div>${withActions?`<div class="qactions no-print"><button class="secondary" onclick="toggleAnswer(${i})">정답 확인</button><button class="quiet" onclick="copyQuestion(${i})">문제 복사</button></div>`:''}</article>`;}
+function renderQuestions(){ $('#statCount').textContent=questions.length;$('#practiceList').innerHTML=questions.length?questions.map((q,i)=>questionHTML(q,i)).join(''):'<div class="empty">문제를 만들어 봐!</div>'; }
+function renderWorksheet(){const name=$('#seed').value.trim()||'이름: __________________';$('#printMeta').textContent=name+'　 날짜: __________　 점수: ______ / '+questions.length;$('#worksheetList').innerHTML=questions.length?questions.map((q,i)=>questionHTML(q,i,false).replace('class="answer"','class="answer"')).join(''):'<div class="empty">문제를 만들어 봐!</div>';$('#answerKey').innerHTML='<h3>정답지</h3>'+questions.map((q,i)=>'<p>'+(i+1)+'. '+esc(q.answer??'정답 자료 없음')+'</p>').join('');}
+window.toggleAnswer=i=>{const el=$('#ans-'+i);if(el)el.classList.toggle('show');};
+window.copyQuestion=async i=>{try{await navigator.clipboard.writeText((i+1)+'. '+questions[i].text+'\n정답: '+questions[i].answer);alert('문제를 복사했어!')}catch(e){alert('복사 권한이 없어.')}};
+document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>{document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x===b));document.querySelectorAll('.section').forEach(x=>x.classList.toggle('active',x.id===b.dataset.tab));if(b.dataset.tab==='worksheet')renderWorksheet()}));
+$('#generate').addEventListener('click',makeQuestions);
+$('#reset').addEventListener('click',()=>{questions=[];renderQuestions();renderWorksheet();$('#statDone').textContent='0';$('#statScore').textContent='—';$('#answerKey').classList.add('hidden')});
+$('#showAll').addEventListener('click',()=>questions.forEach((_,i)=>{const el=$('#ans-'+i);if(el)el.classList.add('show')}));
+$('#hideAll').addEventListener('click',()=>questions.forEach((_,i)=>{const el=$('#ans-'+i);if(el)el.classList.remove('show')}));
+$('#printBtn').addEventListener('click',()=>window.print());
+$('#answersBtn').addEventListener('click',()=>$('#answerKey').classList.toggle('hidden'));
+$('#copyBtn').addEventListener('click',async()=>{const s=questions.map((q,i)=>(i+1)+'. '+q.text).join('\n\n');try{await navigator.clipboard.writeText(s);alert('시험지 문제를 복사했어!')}catch(e){alert('클립보드에 접근할 수 없어.')}});
+function normalizeRows(data){if(!Array.isArray(data))data=data?.data||data?.items||data?.questions||data?.rows||[data];return data.map((r,i)=>{if(typeof r==='string')return {text:r,answer:'',topic:'가져온 자료',source:'파일 자료',id:i};const text=r.text||r.question||r.problem||r.문제||r.question_text||r.content||r.prompt;const answer=r.answer||r.answers||r.정답||r.solution||r.label||'';return {...r,text:String(text||JSON.stringify(r)),answer:String(answer),topic:r.topic||r.subject||r.과목||'가져온 자료',source:'파일 자료',id:i};});}
+$('#fileInput').addEventListener('change',async e=>{const f=e.target.files[0];if(!f)return;try{const raw=await f.text();let data;if(f.name.toLowerCase().endsWith('.csv')){const lines=raw.split(/\r?\n/).filter(x=>x.trim());const parse=line=>{const a=[];let cur='',q=false;for(let i=0;i<line.length;i++){const c=line[i];if(c==='"'&&line[i+1]==='"'){cur+='"';i++}else if(c==='"')q=!q;else if(c===','&&!q){a.push(cur);cur=''}else cur+=c}a.push(cur);return a};const heads=parse(lines.shift()).map(x=>x.trim());data=lines.map(line=>Object.fromEntries(parse(line).map((v,i)=>[heads[i]||('field'+i),v])));}else data=JSON.parse(raw);imported=normalizeRows(data);importedView=imported.slice();$('#bankStatus').textContent=f.name+'에서 '+imported.length+'개 항목을 읽었어.';renderBank(importedView);}catch(err){$('#bankStatus').textContent='파일을 읽지 못했어. JSON/CSV 형식을 확인해 줘.';}}); 
+function renderBank(list){$('#bankList').innerHTML=list.length?list.slice(0,200).map((q,i)=>'<article class="question"><div class="qtop"><span>자료 '+(i+1)+'</span><span class="source-tag">'+esc(q.topic)+'</span></div><div class="qtext">'+esc(q.text)+'</div>'+(q.answer?'<div class="answer show">정답/해설: '+esc(q.answer)+'</div>':'<div class="hint">정답 필드가 없거나 형식을 확인해야 해.</div>')+'<div class="qactions"><button class="secondary" onclick="addImported('+i+')">시험지에 추가</button></div></article>').join(''):'<div class="empty">검색 결과가 없어.</div>';if(list.length>200)$('#bankStatus').textContent='총 '+list.length+'개 중 200개까지만 표시 중이야.';}
+window.addImported=i=>{const q=importedView[i];if(!q)return;questions.push({...q,source:'파일 자료'});renderQuestions();renderWorksheet();alert('시험지에 추가했어!')};
+function doSearch(){const term=$('#bankSearch').value.trim().toLowerCase();importedView=imported.filter(q=>(q.text+' '+q.answer+' '+q.topic).toLowerCase().includes(term));$('#bankStatus').textContent='검색 결과 '+importedView.length+'개';renderBank(importedView);}
+$('#searchBank').addEventListener('click',doSearch);$('#bankSearch').addEventListener('keydown',e=>{if(e.key==='Enter')doSearch()});$('#showImported').addEventListener('click',()=>{importedView=imported.slice();$('#bankSearch').value='';$('#bankStatus').textContent='불러온 자료 '+imported.length+'개';renderBank(importedView)});
+$('#downloadSample').addEventListener('click',()=>{const sample=[{question:'분모가 같은 분수 1/5 + 2/5를 계산하세요.',answer:'3/5',topic:'분수'},{question:'가로 6cm, 세로 4cm인 직사각형의 넓이는?',answer:'24㎠',topic:'도형'}];const blob=new Blob([JSON.stringify(sample,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='study-sample.json';a.click();URL.revokeObjectURL(a.href)});
+makeQuestions();
+</script>
+</body>
+</html>
