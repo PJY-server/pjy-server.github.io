@@ -65,7 +65,7 @@ $('#taskDate').value=today;$('#mealDate').value=today;$('#ddayDate').value=plusD
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const saveData=()=>localStorage.setItem(STORE,JSON.stringify(data));
 function schoolReady(){if(!selected){alert('먼저 학교 설정에서 학교와 학년·반을 선택해 줘.');return false}return true}
-const NEIS_WORKER_URL='https://YOUR-WORKER-NAME.YOUR-SUBDOMAIN.workers.dev';
+const NEIS_WORKER_URL='https://surviveinschool-api.pjy-server.workers.dev';
 async function api(service,params={}){if(NEIS_WORKER_URL.includes('YOUR-WORKER-NAME'))throw Error('Cloudflare Worker 배포 후 NEIS_WORKER_URL을 실제 Worker 주소로 설정해야 해.');const u=new URL('/hub/'+encodeURIComponent(service),NEIS_WORKER_URL);u.searchParams.set('Type','json');u.searchParams.set('pIndex','1');u.searchParams.set('pSize','100');for(const [k,v] of Object.entries(params))if(v!==undefined&&v!==null&&v!=='')u.searchParams.set(k,v);const res=await fetch(u);if(!res.ok)throw Error('NEIS 프록시 오류 ('+res.status+'): '+(await res.text()).slice(0,160));const j=await res.json();if(j.RESULT&&j.RESULT.CODE&&j.RESULT.CODE!=='INFO-000'){if(j.RESULT.CODE==='INFO-200')return [];throw Error(j.RESULT.MESSAGE||j.RESULT.CODE)}const block=Object.values(j).find(v=>Array.isArray(v)&&v.length&&v[0]&&v[0].row);if(block)return block[1]?.row||[];for(const v of Object.values(j)){if(Array.isArray(v)){const rows=v.find(x=>x&&Array.isArray(x.row));if(rows)return rows.row}}return []}
 function kindName(){return selected?.SCHUL_KND_SC_NM||$('#schoolKind').value}
 function timetableService(){return kindName().includes('초등')?'elsTimetable':kindName().includes('중학교')?'misTimetable':'hisTimetable'}
