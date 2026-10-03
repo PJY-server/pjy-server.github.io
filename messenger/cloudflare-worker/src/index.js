@@ -18,7 +18,7 @@ async function sha256(value) { const b=await crypto.subtle.digest("SHA-256",new 
 async function passwordHash(password,saltHex) {
   const salt=saltHex?Uint8Array.from(saltHex.match(/.{2}/g),x=>parseInt(x,16)):crypto.getRandomValues(new Uint8Array(16));
   const key=await crypto.subtle.importKey("raw",new TextEncoder().encode(password),"PBKDF2",false,["deriveBits"]);
-  const bits=await crypto.subtle.deriveBits({name:"PBKDF2",salt,iterations:150000,hash:"SHA-256"},key,256);
+  const bits=await crypto.subtle.deriveBits({name:"PBKDF2",salt,iterations:100000,hash:"SHA-256"},key,256);
   const hex=v=>Array.from(new Uint8Array(v),b=>b.toString(16).padStart(2,"0")).join("");
   return {salt:hex(salt),hash:hex(bits)};
 }
