@@ -18,9 +18,7 @@
 </div>
 <section class="panel tab" id="tab-school">
 <h2 class="section-title">1. NEIS API 설정</h2>
-<p class="muted">공식 나이스 교육정보 개방 포털의 인증키가 필요해. 인증키는 이 브라우저에만 저장되며 GitHub 소스 코드에는 들어가지 않아. 공용 서비스로 운영할 때는 Cloudflare Worker의 Secret으로 옮기는 게 안전해.</p>
-<div class="field"><label for="apiKey">NEIS 인증키</label><input class="input" id="apiKey" type="password" autocomplete="off" placeholder="발급받은 인증키 입력"></div>
-<div class="row"><button class="btn" id="saveKey">인증키 저장</button><button class="btn secondary" id="clearKey">인증키 삭제</button><a href="https://open.neis.go.kr/portal/guide/apiGuidePage.do" target="_blank" rel="noopener" class="btn secondary" style="text-decoration:none">공식 포털에서 발급</a></div>
+<p class="muted">NEIS 인증키는 Cloudflare Worker의 <code>NEIS_API_KEY</code> Secret에 보관해. 웹페이지에서는 키를 입력하거나 저장하지 않아.</p>
 <div class="field"><label for="schoolName">서울 학교 검색</label><input class="input" id="schoolName" maxlength="60" placeholder="예: 서울○○초등학교"></div>
 <div class="grid"><div class="field"><label for="schoolKind">학교급</label><select id="schoolKind"><option value="초등학교">초등학교</option><option value="중학교">중학교</option><option value="고등학교">고등학교</option></select></div><div class="field"><label for="schoolSearchBtn">검색</label><button class="btn" id="schoolSearchBtn">학교 검색</button></div></div>
 <div id="schoolStatus" class="status" role="status"></div><div id="schoolResults" class="stack" style="margin-top:10px"></div>
@@ -53,7 +51,7 @@
 <script>
 (()=> {
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-const STORE='pjy_school_v1', KEY='pjy_neis_key_v1', SCHOOL='pjy_neis_school_v1';
+const STORE='pjy_school_v1', SCHOOL='pjy_neis_school_v1';
 // User-provided NEIS key. Note: this static GitHub Pages file is public, so the key is visible in source.
 const localDate=d=>{const x=d?new Date(d):new Date();return x.getFullYear()+'-'+String(x.getMonth()+1).padStart(2,'0')+'-'+String(x.getDate()).padStart(2,'0')};
 const ymd=s=>(s||'').replaceAll('-','');
@@ -62,18 +60,19 @@ const today=localDate();
 let data;try{data=JSON.parse(localStorage.getItem(STORE)||'{}')}catch{data={}}
 data.tasks=Array.isArray(data.tasks)?data.tasks:[];data.meals=Array.isArray(data.meals)?data.meals:[];data.ddays=Array.isArray(data.ddays)?data.ddays:[];data.table=typeof data.table==='string'?data.table:'';
 let selected=null;try{selected=JSON.parse(localStorage.getItem(SCHOOL)||'null')}catch{}
-$('#apiKey').value=localStorage.getItem(KEY)||'';
+
 $('#taskDate').value=today;$('#mealDate').value=today;$('#ddayDate').value=plusDays(today,7);$('#tableFrom').value=today;$('#tableTo').value=plusDays(today,4);$('#scheduleFrom').value=today;$('#scheduleTo').value=plusDays(today,30);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const saveData=()=>localStorage.setItem(STORE,JSON.stringify(data));
-function schoolReady(){if(!selected){alert('먼저 학교 설정에서 학교와 학년·반을 선택해 줘.');return false}if(!localStorage.getItem(KEY)){alert('학교 설정에서 NEIS 인증키를 저장해 줘.');return false}return true}
-async function api(service,params={}){const key=localStorage.getItem(KEY);if(!key)throw Error('NEIS 인증키를 먼저 저장해 줘.');const u=new URL('https://open.neis.go.kr/hub/'+service);u.searchParams.set('KEY',key);u.searchParams.set('Type','json');u.searchParams.set('pIndex','1');u.searchParams.set('pSize','100');for(const [k,v] of Object.entries(params))if(v!==undefined&&v!==null&&v!=='')u.searchParams.set(k,v);const res=await fetch(u);if(!res.ok)throw Error('NEIS 서버 응답 오류 ('+res.status+')');const j=await res.json();if(j.RESULT&&j.RESULT.CODE&&j.RESULT.CODE!=='INFO-000'){if(j.RESULT.CODE==='INFO-200')return [];throw Error(j.RESULT.MESSAGE||j.RESULT.CODE)}const block=Object.values(j).find(v=>Array.isArray(v)&&v.length&&v[0]&&v[0].row);if(block)return block[1]?.row||[];for(const v of Object.values(j)){if(Array.isArray(v)){const rows=v.find(x=>x&&Array.isArray(x.row));if(rows)return rows.row}}return []}
+function schoolReady(){if(!selected){alert('먼저 학교 설정에서 학교와 학년·반을 선택해 줘.');return false}return true}
+const NEIS_WORKER_URL='https://YOUR-WORKER-NAME.YOUR-SUBDOMAIN.workers.dev';
+async function api(service,params={}){if(NEIS_WORKER_URL.includes('YOUR-WORKER-NAME'))throw Error('Cloudflare Worker 배포 후 NEIS_WORKER_URL을 실제 Worker 주소로 설정해야 해.');const u=new URL('/hub/'+encodeURIComponent(service),NEIS_WORKER_URL);u.searchParams.set('Type','json');u.searchParams.set('pIndex','1');u.searchParams.set('pSize','100');for(const [k,v] of Object.entries(params))if(v!==undefined&&v!==null&&v!=='')u.searchParams.set(k,v);const res=await fetch(u);if(!res.ok)throw Error('NEIS 프록시 오류 ('+res.status+'): '+(await res.text()).slice(0,160));const j=await res.json();if(j.RESULT&&j.RESULT.CODE&&j.RESULT.CODE!=='INFO-000'){if(j.RESULT.CODE==='INFO-200')return [];throw Error(j.RESULT.MESSAGE||j.RESULT.CODE)}const block=Object.values(j).find(v=>Array.isArray(v)&&v.length&&v[0]&&v[0].row);if(block)return block[1]?.row||[];for(const v of Object.values(j)){if(Array.isArray(v)){const rows=v.find(x=>x&&Array.isArray(x.row));if(rows)return rows.row}}return []}
 function kindName(){return selected?.SCHUL_KND_SC_NM||$('#schoolKind').value}
 function timetableService(){return kindName().includes('초등')?'elsTimetable':kindName().includes('중학교')?'misTimetable':'hisTimetable'}
 function common(){return {ATPT_OFCDC_SC_CODE:selected.ATPT_OFCDC_SC_CODE,SD_SCHUL_CODE:selected.SD_SCHUL_CODE}}
 function setStatus(t){$('#schoolStatus').textContent=t}
 function renderSelected(){if(!selected){$('#selectedSchoolBox').classList.add('hidden');return}$('#selectedSchoolBox').classList.remove('hidden');$('#selectedSchoolName').textContent=selected.SCHUL_NM;$('#selectedSchoolMeta').textContent=(selected.ORG_RDNMA||selected.ORG_RDNDA||'주소 정보 없음')+' · '+selected.SCHUL_KND_SC_NM;$('#schoolKind').value=selected.SCHUL_KND_SC_NM||'초등학교';$('#grade').value=String(selected.grade||1);$('#classNo').value=String(selected.classNo||1)}
-async function searchSchools(){const q=$('#schoolName').value.trim();if(!q){setStatus('학교 이름을 입력해 줘.');return}if(!localStorage.getItem(KEY)){setStatus('먼저 NEIS 인증키를 저장해 줘.');return}setStatus('서울 학교 검색 중…');$('#schoolResults').innerHTML='';try{const rows=await api('schoolInfo',{ATPT_OFCDC_SC_CODE:'B10',SCHUL_NM:q,SCHUL_KND_SC_NM:$('#schoolKind').value});if(!rows.length){setStatus('검색 결과가 없어. 학교 이름을 짧게 입력해 다시 검색해 봐.');return}setStatus('검색 결과 '+rows.length+'개');$('#schoolResults').innerHTML=rows.map((s,i)=>'<button class="card" style="text-align:left;width:100%;color:inherit" data-school="'+i+'"><b>'+esc(s.SCHUL_NM)+'</b><div class="muted">'+esc(s.SCHUL_KND_SC_NM)+' · '+esc(s.ORG_RDNMA||s.ORG_RDNDA||'주소 없음')+'</div></button>').join('');$$('[data-school]').forEach(b=>b.onclick=()=>{const s=rows[Number(b.dataset.school)];selected={...s,grade:Number($('#grade').value||1),classNo:Number($('#classNo').value||1)};renderSelected();setStatus('학교를 선택했어. 학년·반을 확인하고 저장해 줘.')})}catch(e){setStatus('학교 검색 실패: '+e.message+' · 인증키가 유효한지 확인해 줘.')}}
+async function searchSchools(){const q=$('#schoolName').value.trim();if(!q){setStatus('학교 이름을 입력해 줘.');return}setStatus('서울 학교 검색 중…');$('#schoolResults').innerHTML='';try{const rows=await api('schoolInfo',{ATPT_OFCDC_SC_CODE:'B10',SCHUL_NM:q,SCHUL_KND_SC_NM:$('#schoolKind').value});if(!rows.length){setStatus('검색 결과가 없어. 학교 이름을 짧게 입력해 다시 검색해 봐.');return}setStatus('검색 결과 '+rows.length+'개');$('#schoolResults').innerHTML=rows.map((s,i)=>'<button class="card" style="text-align:left;width:100%;color:inherit" data-school="'+i+'"><b>'+esc(s.SCHUL_NM)+'</b><div class="muted">'+esc(s.SCHUL_KND_SC_NM)+' · '+esc(s.ORG_RDNMA||s.ORG_RDNDA||'주소 없음')+'</div></button>').join('');$$('[data-school]').forEach(b=>b.onclick=()=>{const s=rows[Number(b.dataset.school)];selected={...s,grade:Number($('#grade').value||1),classNo:Number($('#classNo').value||1)};renderSelected();setStatus('학교를 선택했어. 학년·반을 확인하고 저장해 줘.')})}catch(e){setStatus('학교 검색 실패: '+e.message+' · 인증키가 유효한지 확인해 줘.')}}
 function formatDate(s){if(!s)return '';return s.length===8?s.slice(0,4)+'-'+s.slice(4,6)+'-'+s.slice(6,8):s}
 function dday(date){const a=new Date(today+'T00:00:00'),b=new Date(date+'T00:00:00');return Math.round((b-a)/86400000)}
 function ddayText(date){const n=dday(date);return n===0?'D-Day':n>0?'D-'+n:'D+'+Math.abs(n)}
@@ -88,8 +87,7 @@ function renderDdays(){const list=$('#ddayList');list.innerHTML=data.ddays.lengt
 function renderUpcoming(){const taskItems=data.tasks.filter(t=>!t.done&&t.date).map(t=>({date:t.date,title:t.text,type:t.kind}));const dItems=data.ddays.map(d=>({date:d.date,title:d.name,type:'D-day'}));const arr=[...taskItems,...dItems].filter(x=>x.date>=today).sort((a,b)=>a.date.localeCompare(b.date)).slice(0,6);$('#upcoming').innerHTML=arr.length?arr.map(x=>'<div class="result row" style="justify-content:space-between"><div><span class="pill">'+esc(x.type)+'</span> <b>'+esc(x.title)+'</b><div class="small">'+esc(x.date)+'</div></div><b>'+ddayText(x.date)+'</b></div>').join(''):'<div class="empty">다가오는 일정이 없어.</div>'}
 function activateTab(name){$$('.tab').forEach(x=>x.classList.toggle('hidden',x.id!=='tab-'+name));$$('[data-tab]').forEach(b=>b.className='btn '+(b.dataset.tab===name?'':'secondary'));if(name==='today'&&selected){loadMeals();loadTodayTable()}if(name==='tasks')renderTasks();if(name==='calendar'){renderDdays();renderUpcoming()}}
 $$('[data-tab]').forEach(b=>b.onclick=()=>activateTab(b.dataset.tab));
-$('#saveKey').onclick=()=>{const k=$('#apiKey').value.trim();if(!k)return alert('인증키를 입력해 줘.');localStorage.setItem(KEY,k);setStatus('인증키를 이 브라우저에 저장했어.');};
-$('#clearKey').onclick=()=>{localStorage.removeItem(KEY);$('#apiKey').value='';setStatus('인증키를 삭제했어.')};
+
 $('#schoolSearchBtn').onclick=searchSchools;$('#schoolName').addEventListener('keydown',e=>{if(e.key==='Enter')searchSchools()});
 $('#saveSchool').onclick=()=>{if(!selected)return;selected.grade=Number($('#grade').value);selected.classNo=Number($('#classNo').value);localStorage.setItem(SCHOOL,JSON.stringify(selected));renderSelected();setStatus('학교 설정 저장 완료!');activateTab('today')};
 $('#loadMeals').onclick=loadMeals;$('#loadTodayTable').onclick=loadTodayTable;$('#loadWeekTable').onclick=loadWeekTable;$('#loadSchedule').onclick=loadSchedule;
