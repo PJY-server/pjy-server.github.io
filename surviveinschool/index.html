@@ -62,8 +62,6 @@ const today=localDate();
 let data;try{data=JSON.parse(localStorage.getItem(STORE)||'{}')}catch{data={}}
 data.tasks=Array.isArray(data.tasks)?data.tasks:[];data.meals=Array.isArray(data.meals)?data.meals:[];data.ddays=Array.isArray(data.ddays)?data.ddays:[];data.table=typeof data.table==='string'?data.table:'';
 let selected=null;try{selected=JSON.parse(localStorage.getItem(SCHOOL)||'null')}catch{}
-const DEFAULT_NEIS_KEY='da49ab7b01f74aa6863f0ebc66d26d79';
-if(!localStorage.getItem(KEY)){localStorage.setItem(KEY,DEFAULT_NEIS_KEY)}
 $('#apiKey').value=localStorage.getItem(KEY)||'';
 $('#taskDate').value=today;$('#mealDate').value=today;$('#ddayDate').value=plusDays(today,7);$('#tableFrom').value=today;$('#tableTo').value=plusDays(today,4);$('#scheduleFrom').value=today;$('#scheduleTo').value=plusDays(today,30);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
