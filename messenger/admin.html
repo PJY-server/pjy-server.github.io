@@ -32,7 +32,7 @@ main{max-width:1120px;margin:28px auto;padding:0 18px 40px}.intro{display:flex;j
 <div id="error"></div>
 <div class="stats"><div class="stat"><span>전체 회원</span><strong id="total">—</strong></div><div class="stat"><span>관리자</span><strong id="admins">—</strong></div><div class="stat"><span>일반 회원</span><strong id="members">—</strong></div></div>
 <section class="panel"><h2>회원 관리</h2><div class="toolbar"><input id="search" placeholder="닉네임 또는 아이디 검색"><button class="secondary" id="clear">검색 지우기</button></div><div class="tablewrap"><table><thead><tr><th>닉네임</th><th>아이디</th><th>권한</th><th>관리</th></tr></thead><tbody id="rows"></tbody></table><div id="loading" class="loading">회원 정보를 불러오는 중...</div></div></section>
-<p class="small" style="margin:14px 3px">보안상 회원 삭제나 비밀번호 열람은 제공하지 않아. 관리자 권한 변경은 서버에서 권한을 확인해 처리해.</p>
+<p class="small" style="margin:14px 3px">회원 삭제는 되돌릴 수 없어. 삭제 전 대상 아이디를 꼭 확인해.</p>
 </main></div>
 <script>
 const API_BASE="https://friendschat-api.pjy-server.workers.dev";
@@ -43,7 +43,26 @@ async function api(path,opt={}){const h=new Headers(opt.headers||{});if(token)h.
 function error(msg){$("error").textContent=msg;$("error").style.display="block"}
 async function init(){if(!token){$("login").hidden=false;return}try{const d=await api("/auth/me");me=d.user;if(!me.is_admin){$("login").hidden=false;$("login").querySelector("h1").textContent="관리자 권한이 필요해";$("login").querySelector("p").textContent="관리자 계정으로 로그인한 뒤 이용해 줘.";return}$("admin").hidden=false;$("who").textContent=(me.display_name||me.username)+" 관리자";await loadUsers()}catch(e){$("login").hidden=false;$("login").querySelector("p").textContent="로그인 정보가 만료됐어. 메신저에서 다시 로그인해 줘.";error(e.message)}}
 async function loadUsers(){ $("loading").hidden=false;$("loading").textContent="회원 정보를 불러오는 중...";try{const d=await api("/admin/users");users=d.users||[];$("total").textContent=users.length;$("admins").textContent=users.filter(u=>u.is_admin).length;$("members").textContent=users.filter(u=>!u.is_admin).length;render()}catch(e){error(e.message)}finally{$("loading").hidden=true}}
-function render(){const q=$("search").value.trim().toLowerCase();const list=users.filter(u=>(u.username||"").toLowerCase().includes(q)||(u.display_name||"").toLowerCase().includes(q));$("rows").innerHTML=list.map(u=>'<tr><td><b>'+esc(u.display_name||u.username)+'</b>'+(u.id===me.id?' <span class="small">(나)</span>':'')+'</td><td>@'+esc(u.username)+'</td><td><span class="badge '+(u.is_admin?'admin':'member')+'">'+(u.is_admin?'관리자':'일반 회원')+'</span></td><td>'+(u.id===me.id?'<span class="small">내 계정</span>':'<button class="'+(u.is_admin?'secondary':'')+'" data-id="'+esc(u.id)+'" data-next="'+(!u.is_admin)+'">'+(u.is_admin?'관리자 해제':'관리자 지정')+'</button>')+'</td></tr>').join("");if(!list.length)$("rows").innerHTML='<tr><td colspan="4" class="empty">검색 결과가 없어.</td></tr>';$("rows").querySelectorAll("button[data-id]").forEach(b=>b.onclick=()=>toggleAdmin(b.dataset.id,b.dataset.next==="true",users.find(u=>String(u.id)===b.dataset.id)))}
+function render(){
+  const q=$("search").value.trim().toLowerCase();
+  const list=users.filter(u=>(u.username||"").toLowerCase().includes(q)||(u.display_name||"").toLowerCase().includes(q));
+  $("rows").innerHTML=list.map(u=>'<tr><td><b>'+esc(u.display_name||u.username)+'</b>'+(u.id===me.id?' <span class="small">(나)</span>':'')+'</td><td>@'+esc(u.username)+'</td><td><span class="badge '+(u.is_admin?'admin':'member')+'">'+(u.is_admin?'관리자':'일반 회원')+'</span></td><td>'+(u.id===me.id?'<span class="small">내 계정</span>':'<div style="display:flex;gap:6px;flex-wrap:wrap"><button class="'+(u.is_admin?'secondary':'')+'" data-id="'+esc(u.id)+'" data-next="'+(!u.is_admin)+'">'+(u.is_admin?'관리자 해제':'관리자 지정')+'</button><button class="danger" data-delete-id="'+esc(u.id)+'">회원 삭제</button></div>')+'</td></tr>').join("");
+  if(!list.length)$("rows").innerHTML='<tr><td colspan="4" class="empty">검색 결과가 없어.</td></tr>';
+  $("rows").querySelectorAll("button[data-id]").forEach(b=>b.onclick=()=>toggleAdmin(b.dataset.id,b.dataset.next==="true",users.find(u=>String(u.id)===b.dataset.id)));
+  $("rows").querySelectorAll("button[data-delete-id]").forEach(b=>b.onclick=()=>deleteUser(b.dataset.deleteId,users.find(u=>String(u.id)===b.dataset.deleteId)));
+}
+async function deleteUser(id,u){
+  if(!u)return;
+  const check=prompt('회원 삭제는 되돌릴 수 없어.\n삭제할 회원 아이디를 정확히 입력해: '+u.username);
+  if(check!==u.username){if(check!==null)alert('아이디가 일치하지 않아. 삭제하지 않았어.');return;}
+  if(!confirm(u.display_name+' (@'+u.username+') 회원을 정말 삭제할까?'))return;
+  try{
+    await api("/admin/users/delete",{method:"POST",body:JSON.stringify({user_id:id})});
+    $("error").style.display="none";
+    await loadUsers();
+    alert("회원 계정을 삭제했어.");
+  }catch(e){error("회원 삭제 실패: "+e.message+"\nCloudflare Worker에 삭제 API를 추가하고 Deploy했는지 확인해 줘.")}
+}
 async function toggleAdmin(id,next,u){const action=next?"관리자 지정":"관리자 해제";if(!confirm(u.display_name+" ("+u.username+") 회원을 "+action+"할까?"))return;try{await api("/admin/users/"+encodeURIComponent(id)+"/admin",{method:"PATCH",body:JSON.stringify({is_admin:next})});$("error").style.display="none";await loadUsers()}catch(e){error("권한 변경 실패: "+e.message)}}
 $("search").addEventListener("input",render);$("clear").onclick=()=>{$("search").value="";render()};$("reload").onclick=loadUsers;$("logout").onclick=()=>{localStorage.removeItem("fc_cloudflare_token");location.href="./"};init();
 </script>
