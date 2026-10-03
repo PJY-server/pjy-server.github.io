@@ -11,7 +11,7 @@
 <main id="chat" class="chat"><header class="chathead"><div><b id="chatTitle">FriendsChat</b><div id="chatSub" class="small">대화방을 선택하세요</div></div><button id="backBtn" class="secondary hidden">← 목록</button></header><div id="messages" class="messages"><div class="empty">친구나 대화방을 선택해 줘!</div></div><form id="composer" class="composer"><textarea id="messageInput" rows="1" placeholder="메시지 입력... (Enter 전송, Shift+Enter 줄바꿈)" disabled></textarea><button id="sendBtn" disabled>전송</button></form></main></section>
 <div id="modal" class="modal hidden"><div class="modalbox"><div class="modalhead"><h3 id="modalTitle">FriendsChat</h3><button id="closeModal" class="secondary">닫기</button></div><div id="modalBody"></div></div></div>
 <script>
-const API_BASE="https://friendschat-api.YOUR-SUBDOMAIN.workers.dev";
+const API_BASE="https://friendschat-api.pjy-server.workers.dev";
 const $=id=>document.getElementById(id);let token=localStorage.getItem("fc_cloudflare_token")||"",me=null,rooms=[],users=[],friends=[],activeRoom=null,activeTab="rooms",pollTimer=null;
 async function api(path,opt={}){const h=new Headers(opt.headers||{});if(token)h.set("Authorization","Bearer "+token);if(opt.body&&!(opt.body instanceof FormData))h.set("Content-Type","application/json");const r=await fetch(API_BASE+path,{...opt,headers:h});const ct=r.headers.get("content-type")||"";if(!ct.includes("application/json")){if(!r.ok)throw Error("API 오류 ("+r.status+")");return r}const d=await r.json();if(!r.ok)throw Error(d.error||"요청에 실패했습니다.");return d}
 function esc(s){return String(s??"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#39;")}
