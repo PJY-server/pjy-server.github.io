@@ -5,6 +5,11 @@
   "compatibility_date": "2026-10-02",
   "workers_dev": true,
   "vars": { "APP_ORIGIN": "https://pjy-server.github.io" },
-  "d1_databases": [{ "binding": "DB", "database_name": "friendschat-db", "database_id": "PASTE_D1_DATABASE_ID_HERE" }],
-  "r2_buckets": [{ "binding": "FILES", "bucket_name": "friendschat-files" }]
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "friendschat-db",
+      "database_id": "94c3949d-1d17-4cca-a53c-d9ce1447173f"
+    }
+  ]
 }
