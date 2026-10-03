@@ -116,7 +116,23 @@ export default {
     const unique=[...new Set([current.username,...names])];if(unique.length<2)return withCors(fail("대화 상대를 한 명 이상 선택하세요."),headers);if(unique.length>50)return withCors(fail("대화방 참가자는 최대 50명입니다."),headers);
     const marks=unique.map(()=>"?").join(","),found=await env.DB.prepare("SELECT id,username FROM users WHERE username COLLATE NOCASE IN ("+marks+")").bind(...unique).all();
     if((found.results||[]).length!==unique.length)return withCors(fail("존재하지 않는 회원이 포함되어 있습니다."),headers);
-    const group=unique.length>2||!!b?.is_group,id=crypto.randomUUID(),roomName=group?(name||"단체 채팅"):(name||""),now=new Date().toISOString();
+    // 1:1 대화는 같은 두 회원의 기존 개인방을 재사용한다.
+    // 참가자가 본인+1명뿐이면 is_group 값과 관계없이 개인 채팅으로 처리한다.
+    const group=unique.length>2;
+    if(!group) {
+      const otherId=found.results.find(u=>u.id!==current.id)?.id;
+      if(otherId) {
+        const existing=await env.DB.prepare(
+          "SELECT r.id,r.name,r.is_group,r.created_by,r.created_at FROM chat_rooms r " +
+          "JOIN chat_members a ON a.room_id=r.id AND a.user_id=? " +
+          "JOIN chat_members b ON b.room_id=r.id AND b.user_id=? " +
+          "WHERE r.is_group=0 AND (SELECT COUNT(*) FROM chat_members cm WHERE cm.room_id=r.id)=2 " +
+          "ORDER BY r.created_at ASC LIMIT 1"
+        ).bind(current.id,otherId).first();
+        if(existing) return withCors(json({room:{...existing,is_group:false,reused:true}},200),headers);
+      }
+    }
+    const id=crypto.randomUUID(),roomName=group?(name||"단체 채팅"):"",now=new Date().toISOString();
     await env.DB.prepare("INSERT INTO chat_rooms(id,name,is_group,created_by,created_at) VALUES(?,?,?,?,?)").bind(id,roomName,group?1:0,current.id,now).run();
     await env.DB.batch(found.results.map(u=>env.DB.prepare("INSERT INTO chat_members(room_id,user_id,joined_at) VALUES(?,?,?)").bind(id,u.id,now)));
     return withCors(json({room:{id,name:roomName,is_group:group,created_by:current.id,created_at:now}},201),headers);
