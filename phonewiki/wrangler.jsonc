@@ -1,0 +1,10 @@
+{
+  "name": "phonewiki",
+  "main": "worker.js",
+  "compatibility_date": "2026-10-02",
+  "workers_dev": true,
+  "vars": { "APP_ORIGIN": "https://pjy-server.github.io" },
+  "kv_namespaces": [
+    { "binding": "PHONES", "id": "356fc7754eca455ea828e60fb44a2aea" }
+  ]
+}
