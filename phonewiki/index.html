@@ -25,7 +25,7 @@ td b{color:#28530d}
 <script>
 // 어드민 Worker 주소. friendschat-api 와 같은 workers.dev 서브도메인으로 바꿔 줘.
 // 아직 연결 전이거나 목록이 비어 있으면 seed.json 을 대신 보여줘.
-const API='https://phonewiki.서브도메인.workers.dev/api/phones';
+const API='https://phonewiki.pjy-server.workers.dev/api/phones';
 const BN={S:'갤럭시',A:'아이폰·애플'},CN={p:'폰',t:'태블릿',o:'워치·기타'},AL={S:' 삼성 갤럭시 galaxy samsung',A:' 애플 아이폰 iphone apple 아이패드 ipad'};
 const $=s=>document.querySelector(s),esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const key=x=>x.id||x.name;
