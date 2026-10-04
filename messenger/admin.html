@@ -57,7 +57,7 @@ async function deleteUser(id,u){
   if(check!==u.username){if(check!==null)alert('아이디가 일치하지 않아. 삭제하지 않았어.');return;}
   if(!confirm(u.display_name+' (@'+u.username+') 회원을 정말 삭제할까?'))return;
   try{
-    await api("/admin/users/delete",{method:"POST",body:JSON.stringify({user_id:id})});
+  await api("/admin/users/"+encodeURIComponent(id),{method:"DELETE"});
     $("error").style.display="none";
     await loadUsers();
     alert("회원 계정을 삭제했어.");
