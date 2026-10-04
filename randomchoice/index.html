@@ -1,10 +1,117 @@
 <!doctype html>
-<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#f6f7f9"><title>RandomChoice · PJY Server</title><link rel="stylesheet" href="/assets/pjy-app.css"></head><body><main class="app"><div class="top"><div class="brand">PJY</div><div><a class="back" href="/">← PJY Server</a><div class="eyebrow">RANDOM TOOLS</div></div></div><h1 class="title">RandomChoice 🎲</h1><p class="subtitle">뭘 할지 고민될 때, 공정하게 랜덤으로 정해 보자.</p><div class="row" id="tabs"><button class="btn" data-mode="roulette">🎡 룰렛</button><button class="btn secondary" data-mode="ladder">🪜 사다리</button><button class="btn secondary" data-mode="draw">🎟️ 제비뽑기</button><button class="btn secondary" data-mode="teams">👥 팀 나누기</button><button class="btn secondary" data-mode="penalty">😆 벌칙 정하기</button></div><section class="panel" style="margin-top:16px"><h2 class="section-title" id="modeTitle">🎡 룰렛</h2><div class="field"><label for="items">항목 (쉼표 또는 줄바꿈으로 구분)</label><textarea id="items" rows="4" placeholder="예: 피자, 햄버거, 떡볶이">피자, 햄버거, 떡볶이, 김밥</textarea></div><div class="field" id="countWrap" hidden><label for="count">팀 수</label><input class="input" id="count" type="number" min="2" max="20" value="2"></div><div class="row"><button class="btn accent" id="go">랜덤 시작!</button><button class="btn secondary" id="reset">초기화</button></div><div id="visual" style="margin-top:20px"></div><div id="result" style="margin-top:14px" aria-live="polite"></div><p class="muted" style="margin-top:16px">결과는 이 기기에서 계산돼. 이름이나 민감한 정보는 입력하지 마.</p></section><div class="footer">PJY Server · RandomChoice</div></main><script>
-const $=s=>document.querySelector(s);let mode='roulette';const titles={roulette:'🎡 룰렛',ladder:'🪜 사다리 타기',draw:'🎟️ 제비뽑기',teams:'👥 팀 나누기',penalty:'😆 벌칙 정하기'};const samples={penalty:'웃긴 표정 5초, 칭찬 한마디 하기, 동물 소리 내기, 다음 게임 진행자, 춤 5초, 노래 한 소절'};
-document.querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',()=>{mode=b.dataset.mode;document.querySelectorAll('[data-mode]').forEach(x=>x.className='btn '+(x===b?'':'secondary'));$('#modeTitle').textContent=titles[mode];$('#countWrap').hidden=mode!=='teams';$('#items').value=mode==='penalty'?samples.penalty:(mode==='teams'?'민준, 서연, 지우, 하준, 유나, 도윤':'항목 1, 항목 2, 항목 3, 항목 4');$('#result').innerHTML='';$('#visual').innerHTML=''}));
-function parse(){return $('#items').value.split(/[，,\n]/).map(x=>x.trim()).filter(Boolean)}
-function pick(a){return a[Math.floor(Math.random()*a.length)]}
-function escapeHtml(s){return s.replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-$('#go').addEventListener('click',()=>{let a=parse();if(a.length<2){$('#result').innerHTML='<div class="empty">항목을 2개 이상 입력해 줘!</div>';return}$('#go').disabled=true;$('#result').innerHTML='<div class="result" style="text-align:center;font-size:20px;font-weight:800">🎲 두구두구…</div>';setTimeout(()=>{let html='';if(mode==='teams'){let n=Math.max(2,Math.min(20,Number($('#count').value)||2));let shuffled=[...a].sort(()=>Math.random()-.5),teams=Array.from({length:n},()=>[]);shuffled.forEach((x,i)=>teams[i%n].push(x));html='<div class="grid">'+teams.map((t,i)=>'<div class="result"><b>'+ (i+1)+'팀</b><p>'+t.map(escapeHtml).join(', ')+'</p></div>').join('')+'</div>'}else{let chosen=pick(a);html='<div class="result" style="text-align:center;padding:28px"><div style="font-size:13px;color:#777">선택 결과</div><div style="font-size:clamp(28px,7vw,42px);font-weight:900;margin:10px 0">'+escapeHtml(chosen)+'</div><div class="muted">다시 뽑기를 눌러 새 결과를 만들 수 있어.</div></div>';if(mode==='ladder')html+='<p class="muted">간단 랜덤 결과 방식이야. 실제 선 연결형 사다리 애니메이션은 다음 업데이트에서 추가할 수 있어.</p>'}$('#result').innerHTML=html;$('#go').disabled=false},650)});
-$('#reset').addEventListener('click',()=>{$('#result').innerHTML='';$('#visual').innerHTML='';$('#go').disabled=false});
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#f6f7f9"><title>RandomChoice · PJY Server</title><link rel="stylesheet" href="/assets/pjy-app.css"><style>[hidden]{display:none!important}</style></head><body><main class="app"><div class="top"><div class="brand">PJY</div><div><a class="back" href="/">← PJY Server</a><div class="eyebrow">RANDOM TOOLS</div></div></div><h1 class="title">RandomChoice 🎲</h1><p class="subtitle">뭘 할지 고민될 때, 공정하게 랜덤으로 정해 보자.</p><div class="row" id="tabs"><button class="btn" data-mode="roulette">🎡 룰렛</button><button class="btn secondary" data-mode="ladder">🪜 사다리</button><button class="btn secondary" data-mode="draw">🎟️ 제비뽑기</button><button class="btn secondary" data-mode="teams">👥 팀 나누기</button><button class="btn secondary" data-mode="penalty">😆 벌칙 정하기</button></div><section class="panel" style="margin-top:16px"><h2 class="section-title" id="modeTitle">🎡 룰렛</h2><div class="field"><label for="items">항목 (쉼표 또는 줄바꿈으로 구분)</label><textarea id="items" rows="4" placeholder="예: 피자, 햄버거, 떡볶이">피자, 햄버거, 떡볶이, 김밥</textarea></div><div class="field" id="countWrap" hidden><label for="count">팀 수</label><input class="input" id="count" type="number" min="2" max="20" value="2"></div><div class="field" id="resWrap" hidden><label for="results">결과 칸 (이름 수와 같게 · 비우면 1명만 당첨)</label><textarea id="results" rows="2">당첨 🎉, 꽝, 꽝, 꽝</textarea></div><div class="row"><button class="btn accent" id="go">랜덤 시작!</button><button class="btn secondary" id="reset">초기화</button></div><div id="visual" style="margin-top:20px"></div><div id="result" style="margin-top:14px" aria-live="polite"></div><p class="muted" style="margin-top:16px">결과는 이 기기에서 계산돼. 이름이나 민감한 정보는 입력하지 마.</p></section><div class="footer">PJY Server · RandomChoice</div></main><script>
+const $=s=>document.querySelector(s);
+const RM=matchMedia('(prefers-reduced-motion: reduce)').matches;
+let mode='roulette',busy=false,rot=0;
+const titles={roulette:'🎡 룰렛',ladder:'🪜 사다리 타기',draw:'🎟️ 제비뽑기',teams:'👥 팀 나누기',penalty:'😆 벌칙 정하기'};
+const samples={roulette:'피자, 햄버거, 떡볶이, 김밥',ladder:'민준, 서연, 지우, 하준',draw:'항목 1, 항목 2, 항목 3, 항목 4',teams:'민준, 서연, 지우, 하준, 유나, 도윤',penalty:'웃긴 표정 5초, 칭찬 한마디 하기, 동물 소리 내기, 다음 게임 진행자, 춤 5초, 노래 한 소절'};
+const COLORS=['#ff8a8a','#ffbf80','#ffe680','#8fe0a0','#7fd3ea','#8fa8ff','#bf9cff','#ff9fd0'];
+const PC=['#e5484d','#f08c00','#2f9e44','#1c7ed6','#7048e8','#d6336c','#0ca678','#868e96'];
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const rnd=n=>{const u=new Uint32Array(1);crypto.getRandomValues(u);return u[0]%n};
+const shuffle=a=>{a=[...a];for(let i=a.length-1;i>0;i--){const j=rnd(i+1);[a[i],a[j]]=[a[j],a[i]]}return a};
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+const parse=id=>$(id).value.split(/[，,\n]/).map(x=>x.trim()).filter(Boolean);
+const msg=t=>{$('#result').innerHTML='<div class="empty">'+t+'</div>'};
+const card=t=>'<div class="result" style="text-align:center;padding:28px"><div style="font-size:13px;color:#777">선택 결과</div><div style="font-size:clamp(28px,7vw,42px);font-weight:900;margin:10px 0">'+esc(t)+'</div><div class="muted">다시 시작을 눌러 새 결과를 만들 수 있어.</div></div>';
+function canvas(hf,maxW){const box=$('#visual'),w=Math.min(box.clientWidth||320,maxW),h=hf(w),d=window.devicePixelRatio||1,c=document.createElement('canvas');c.width=w*d;c.height=h*d;c.style.cssText='display:block;margin:0 auto;width:'+w+'px;height:'+h+'px';const x=c.getContext('2d');x.scale(d,d);box.innerHTML='';box.appendChild(c);return{x,w,h}}
+
+/* 룰렛 */
+function drawWheel(a,ang,W){
+  const {x,w}=W,c=w/2,r=c-14,n=a.length,arc=2*Math.PI/n;
+  x.clearRect(0,0,w,w);
+  for(let i=0;i<n;i++){
+    const st=ang+i*arc;let col=COLORS[i%8];if(i===n-1&&n>1&&col===COLORS[0])col=COLORS[4];
+    x.beginPath();x.moveTo(c,c);x.arc(c,c,r,st,st+arc);x.closePath();x.fillStyle=col;x.fill();x.strokeStyle='#fff';x.lineWidth=2;x.stroke();
+    x.save();x.translate(c,c);x.rotate(st+arc/2);x.fillStyle='#17181a';x.font='700 '+(n>10?11:n>6?13:15)+'px sans-serif';x.textAlign='right';x.textBaseline='middle';x.fillText(a[i],r-12,0,r*.62);x.restore();
+  }
+  x.beginPath();x.arc(c,c,16,0,7);x.fillStyle='#17181a';x.fill();
+  x.beginPath();x.moveTo(c-11,2);x.lineTo(c+11,2);x.lineTo(c,28);x.closePath();x.fillStyle='#17181a';x.fill();
+}
+function preview(){
+  if(mode!=='roulette'){return}
+  const a=parse('#items');
+  if(a.length<2||a.length>24){$('#visual').innerHTML='';return}
+  drawWheel(a,rot,canvas(w=>w,360));
+}
+async function spinWheel(a){
+  const W=canvas(w=>w,360),n=a.length,arc=2*Math.PI/n,win=rnd(n);
+  const target=1.5*Math.PI-(win+.5)*arc+(Math.random()-.5)*arc*.7;
+  const delta=((target-rot)%(2*Math.PI)+2*Math.PI)%(2*Math.PI);
+  const total=delta+(RM?0:2*Math.PI*(5+rnd(3))),start=rot,dur=RM?1:4600;
+  await new Promise(res=>{const t0=performance.now();(function f(t){const p=Math.min(1,(t-t0)/dur);rot=start+total*(1-Math.pow(1-p,4));drawWheel(a,rot,W);p<1?requestAnimationFrame(f):res()})(t0)});
+  rot%=2*Math.PI;
+  return win;
+}
+
+/* 사다리 */
+async function runLadder(names){
+  const n=names.length;
+  if(n>8){msg('사다리는 2~8명까지 가능해.');return}
+  let res=parse('#results');
+  if(!res.length)res=['당첨 🎉',...Array(n-1).fill('통과')];
+  if(res.length!==n){msg('결과 칸이 '+res.length+'개야. 이름 수('+n+'개)와 같게 맞춰 줘.');return}
+  res=shuffle(res);
+  const R=Math.max(8,n*3),PX=36,{x,w,h}=canvas(()=>380,560),top=50,bot=h-50,sp=(w-2*PX)/(n-1);
+  const cx=i=>PX+i*sp,ry=r=>top+(r+1)*(bot-top)/(R+1);
+  const rungs=Array.from({length:R},()=>{const row=Array(n-1).fill(false);for(let i=0;i<n-1;i++)if(Math.random()<.5&&!row[i-1])row[i]=true;return row});
+  const paths=names.map((_,s)=>{let c=s;const pts=[[cx(c),top]];for(let r=0;r<R;r++){let m=0;if(c<n-1&&rungs[r][c])m=1;else if(c>0&&rungs[r][c-1])m=-1;if(m){pts.push([cx(c),ry(r)]);c+=m;pts.push([cx(c),ry(r)])}}pts.push([cx(c),bot]);return{pts,end:c}});
+  const owner=[];paths.forEach((p,k)=>owner[p.end]=k);
+  const base=rev=>{
+    x.clearRect(0,0,w,h);x.strokeStyle='#cfd3d9';x.lineWidth=3;x.lineCap='round';x.lineJoin='round';
+    for(let i=0;i<n;i++){x.beginPath();x.moveTo(cx(i),top);x.lineTo(cx(i),bot);x.stroke()}
+    rungs.forEach((row,r)=>row.forEach((v,i)=>{if(v){x.beginPath();x.moveTo(cx(i),ry(r));x.lineTo(cx(i+1),ry(r));x.stroke()}}));
+    x.font='700 13px sans-serif';x.textAlign='center';
+    names.forEach((t,i)=>{x.fillStyle=PC[i%8];x.textBaseline='bottom';x.fillText(t,cx(i),top-12,Math.max(40,sp-6))});
+    for(let i=0;i<n;i++){x.fillStyle=rev?PC[owner[i]%8]:'#777b82';x.textBaseline='top';x.fillText(rev?res[i]:'?',cx(i),bot+12,Math.max(40,sp-6))}
+  };
+  const draw=(p,rev)=>{
+    const fy=top+(bot-top)*p;base(rev);
+    paths.forEach((pa,k)=>{x.strokeStyle=PC[k%8];x.lineWidth=5;x.beginPath();x.moveTo(pa.pts[0][0],pa.pts[0][1]);
+      for(let i=1;i<pa.pts.length;i++){const [x0,y0]=pa.pts[i-1],[x1,y1]=pa.pts[i];if(y1<=fy)x.lineTo(x1,y1);else{if(y0<fy)x.lineTo(x0+(x1-x0)*(fy-y0)/(y1-y0),fy);break}}
+      x.stroke()});
+  };
+  base(false);await sleep(RM?0:600);
+  const dur=RM?1:4200;
+  await new Promise(r=>{const t0=performance.now();(function f(t){const p=Math.min(1,(t-t0)/dur);draw(p,false);p<1?requestAnimationFrame(f):r()})(t0)});
+  draw(1,true);
+  $('#result').innerHTML='<div class="stack">'+names.map((nm,s)=>'<div class="result" style="border-left:6px solid '+PC[s%8]+'"><b>'+esc(nm)+'</b> → '+esc(res[paths[s].end])+'</div>').join('')+'</div>';
+}
+
+/* 제비뽑기·벌칙: 슬롯처럼 돌다가 멈춤 */
+async function slot(a){
+  $('#visual').innerHTML='<div class="result" id="slot" style="text-align:center;font-size:clamp(24px,6vw,36px);font-weight:900;padding:34px 12px"></div>';
+  const win=rnd(a.length),steps=RM?1:24;let prev=-1;
+  for(let i=0;i<steps;i++){
+    let k=i===steps-1?win:rnd(a.length);if(i<steps-1&&a.length>1&&k===prev)k=(k+1)%a.length;prev=k;
+    $('#slot').textContent=a[k];$('#slot').style.opacity=i===steps-1?1:.7;
+    await sleep(40+i*i*.6);
+  }
+  return win;
+}
+
+/* 팀 나누기 */
+const teamHtml=(s,n)=>{const t=Array.from({length:n},()=>[]);s.forEach((v,i)=>t[i%n].push(v));return '<div class="grid">'+t.map((m,i)=>'<div class="result"><b>'+(i+1)+'팀</b><p>'+m.map(esc).join(', ')+'</p></div>').join('')+'</div>'};
+
+document.querySelectorAll('[data-mode]').forEach(b=>b.addEventListener('click',()=>{
+  if(busy)return;mode=b.dataset.mode;
+  document.querySelectorAll('[data-mode]').forEach(x=>x.className='btn '+(x===b?'':'secondary'));
+  $('#modeTitle').textContent=titles[mode];$('#countWrap').hidden=mode!=='teams';$('#resWrap').hidden=mode!=='ladder';
+  $('#items').value=samples[mode];$('#result').innerHTML='';$('#visual').innerHTML='';preview();
+}));
+$('#items').addEventListener('input',()=>{if(!busy)preview()});
+$('#go').addEventListener('click',async()=>{
+  if(busy)return;const a=parse('#items');
+  if(a.length<2){msg('항목을 2개 이상 입력해 줘!');return}
+  if(mode==='roulette'&&a.length>24){msg('룰렛은 24개까지 가능해.');return}
+  busy=true;$('#go').disabled=true;$('#result').innerHTML='';
+  try{
+    if(mode==='roulette'){const w=await spinWheel(a);$('#result').innerHTML=card(a[w])}
+    else if(mode==='ladder'){await runLadder(a)}
+    else if(mode==='teams'){const n=Math.max(2,Math.min(20,Number($('#count').value)||2));for(let i=0;i<(RM?0:7);i++){$('#result').innerHTML=teamHtml(shuffle(a),n);await sleep(110)}$('#result').innerHTML=teamHtml(shuffle(a),n)}
+    else{const w=await slot(a);$('#result').innerHTML=card(a[w])}
+  }finally{busy=false;$('#go').disabled=false}
+});
+$('#reset').addEventListener('click',()=>{if(busy)return;$('#result').innerHTML='';$('#visual').innerHTML='';preview()});
+preview();
 </script></body></html>
