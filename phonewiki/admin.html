@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="robots" content="noindex"><meta name="theme-color" content="#f6f7f9"><title>PhoneWiki 어드민 · PJY Server</title><link rel="stylesheet" href="/assets/pjy-app.css">
+<style>
+.item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:12px 0;border-bottom:1px solid #eceef0}
+.item:last-child{border:0}
+.item .btn{padding:8px 12px;font-size:13px}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+#msg{min-height:20px;font-size:14px;color:#28530d;margin:10px 0 0}
+#msg.err{color:#9a2925}
+</style></head><body><main class="app">
+<div class="top"><div class="brand">PJY</div><div><a class="back" href="/phonewiki/">← PhoneWiki</a><div class="eyebrow">ADMIN</div></div></div>
+<h1 class="title">PhoneWiki 어드민</h1>
+<p class="subtitle">기기를 추가하고 수정하거나 삭제해요.</p>
+<section class="panel" id="lg">
+<div class="field"><label for="pw">비밀번호</label><input id="pw" class="input" type="password" autocomplete="current-password"></div>
+<button class="btn" id="in">로그인</button>
+</section>
+<div id="ap" style="display:none">
+<section class="panel">
+<div class="row" style="justify-content:space-between"><h2 class="section-title" id="ft" style="margin:0">기기 추가</h2><button class="btn secondary" id="out">로그아웃</button></div>
+<div class="two">
+<div class="field"><label for="brand">브랜드</label><select id="brand"><option value="S">갤럭시</option><option value="A">아이폰·애플</option></select></div>
+<div class="field"><label for="cat">종류</label><select id="cat"><option value="p">폰</option><option value="t">태블릿</option><option value="o">워치·기타</option></select></div>
+</div>
+<div id="fm"></div>
+<div class="row"><button class="btn" id="sv">저장</button><button class="btn secondary" id="nw">새로 작성</button><button class="btn secondary" id="sd">기본 데이터 불러오기</button></div>
+<p id="msg"></p>
+</section>
+<section class="panel" style="margin-top:18px">
+<h2 class="section-title" id="cnt">등록된 기기</h2>
+<input id="sq" class="input" placeholder="기기 이름 검색">
+<div id="tb"></div>
+</section>
+</div>
+<div class="footer">PJY Server · PhoneWiki Admin</div>
+</main>
+<script>
+const API='https://phonewiki.pjy-server.workers.dev';
+const $=i=>document.getElementById(i);
+const F=[['name','이름','예: Galaxy S25 Ultra'],['date','출시일','YYYY-MM-DD'],['camera','카메라','예: 200MP+50MP+50MP+10MP / 전면 12MP'],['weight','무게 (g)','예: 218'],['size','크기 (mm)','예: 162.8×77.6×8.2'],['display','화면','예: 6.9인치'],['chip','칩','예: Snapdragon 8 Elite']];
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let T=sessionStorage.getItem('t')||'',L=[],E='';
+$('fm').innerHTML=F.map(f=>'<div class="field"><label for="f_'+f[0]+'">'+f[1]+'</label><input class="input" id="f_'+f[0]+'" placeholder="'+f[2]+'"></div>').join('');
+const say=(t,e)=>{$('msg').textContent=t;$('msg').className=e?'err':''};
+function reset(){E='';$('ft').textContent='기기 추가';F.forEach(f=>$('f_'+f[0]).value='')}
+function show(){const ok=!!T;$('lg').style.display=ok?'none':'block';$('ap').style.display=ok?'block':'none';if(ok)load()}
+async function api(p,m,b){
+  let r;
+  try{r=await fetch(API+p,{method:m||'GET',headers:{'content-type':'application/json',authorization:'Bearer '+T},body:b?JSON.stringify(b):undefined})}
+  catch(e){throw new Error('서버에 연결하지 못했어요')}
+  const d=await r.json().catch(()=>({}));
+  if(r.status===401&&p!=='/api/login'){T='';sessionStorage.removeItem('t');show()}
+  if(!r.ok)throw new Error(d.error||'요청에 실패했어요 ('+r.status+')');
+  return d}
+async function load(){try{L=await api('/api/phones');draw()}catch(e){say(e.message,1)}}
+function draw(){
+  const q=$('sq').value.trim().toLowerCase();
+  const r=L.filter(x=>!q||x.name.toLowerCase().includes(q)).sort((a,b)=>b.date.localeCompare(a.date));
+  $('cnt').textContent='등록된 기기 · '+L.length+'개';
+  $('tb').innerHTML=r.map(x=>'<div class="item"><div><b>'+esc(x.name)+'</b><div class="small">'+esc(x.date)+'</div></div><div class="row"><button class="btn secondary" data-e="'+esc(x.id)+'">수정</button><button class="btn danger" data-d="'+esc(x.id)+'">삭제</button></div></div>').join('')||'<div class="empty">등록된 기기가 없어요. 위 양식으로 추가하거나 "기본 데이터 불러오기"를 눌러 줘.</div>'}
+$('tb').onclick=async e=>{const d=e.target.dataset;
+  if(d.e){const x=L.find(y=>y.id===d.e);if(!x)return;E=x.id;$('ft').textContent='기기 수정';$('brand').value=x.brand;$('cat').value=x.cat;F.forEach(f=>$('f_'+f[0]).value=x[f[0]]);say('"'+x.name+'" 수정 중이에요');window.scrollTo({top:0,behavior:'smooth'})}
+  if(d.d&&confirm('삭제할까요?')){try{await api('/api/phones/'+d.d,'DELETE');say('삭제했어요');await load()}catch(er){say(er.message,1)}}};
+$('sv').onclick=async()=>{const b={brand:$('brand').value,cat:$('cat').value};F.forEach(f=>b[f[0]]=$('f_'+f[0]).value);
+  try{await api(E?'/api/phones/'+E:'/api/phones',E?'PUT':'POST',b);say(E?'수정했어요':'추가했어요');reset();await load()}catch(er){say(er.message,1)}};
+$('nw').onclick=()=>{reset();say('')};
+$('sd').onclick=async()=>{try{const d=await api('/api/seed','POST');say(d.count+'개를 불러왔어요');await load()}catch(er){say(er.message,1)}};
+$('in').onclick=async()=>{try{const d=await api('/api/login','POST',{password:$('pw').value});T=d.token;sessionStorage.setItem('t',T);$('pw').value='';say('');show()}catch(er){alert(er.message)}};
+$('pw').addEventListener('keydown',e=>{if(e.key==='Enter')$('in').click()});
+$('out').onclick=()=>{T='';sessionStorage.removeItem('t');show()};
+$('sq').oninput=draw;
+show();
+</script></body></html>
